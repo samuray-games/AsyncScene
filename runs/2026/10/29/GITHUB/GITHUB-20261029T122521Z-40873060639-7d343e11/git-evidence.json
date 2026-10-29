@@ -1,0 +1,106 @@
+{
+  "branch": "codex/chat03-integrate-pr449-450-451-454-20261029",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T12:25:21Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T12:25:21Z",
+      "stderr": "",
+      "stdout": "codex/chat03-integrate-pr449-450-451-454-20261029\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T12:25:21Z",
+      "stderr": "",
+      "stdout": "531e017f7143af2adea6277436cad3d74088fe96\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T12:25:21Z",
+      "stderr": "",
+      "stdout": "# branch.oid 531e017f7143af2adea6277436cad3d74088fe96\n# branch.head codex/chat03-integrate-pr449-450-451-454-20261029\n# branch.upstream origin/codex/chat03-integrate-pr449-450-451-454-20261029\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T12:25:21Z",
+      "stderr": "",
+      "stdout": "531e017f (HEAD -> codex/chat03-integrate-pr449-450-451-454-20261029, origin/codex/chat03-integrate-pr449-450-451-454-20261029) Merge PR #454: operator capability status readback\n31e68304 Merge PR #451: remote participant client\ne30e2cb6 Merge PR #450: two-person access contract\nd2b7a6d8 Merge PR #449: local two-player harness\na0c1fcd5 (origin/codex/chat03-operator-capability-status-readback-20261029) docs(chat03): specify operator read key format\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T12:25:21Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 531e017f7143af2adea6277436cad3d74088fe96\nbranch refs/heads/codex/chat03-integrate-pr449-450-451-454-20261029\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T12:25:21Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T12:25:21Z",
+      "stderr": "",
+      "stdout": "31b7a077820914e92de81239e5ab4099e3dfa558\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "531e017f7143af2adea6277436cad3d74088fe96",
+  "observedAtUtc": "2026-10-29T12:25:21Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
