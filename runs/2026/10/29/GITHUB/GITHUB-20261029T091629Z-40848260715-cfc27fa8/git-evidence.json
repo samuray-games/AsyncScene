@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:16:29Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:16:29Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:16:29Z",
+      "stderr": "",
+      "stdout": "defcfea7b85dc4e1d0ee2ee9e2c78640952f1e2a\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:16:29Z",
+      "stderr": "",
+      "stdout": "# branch.oid defcfea7b85dc4e1d0ee2ee9e2c78640952f1e2a\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:16:29Z",
+      "stderr": "",
+      "stdout": "defcfea7 (HEAD, pull/451/merge) Merge 33bfbb7fa15441f90bb56ed195713ad2d677a77c into 31b7a077820914e92de81239e5ab4099e3dfa558\n33bfbb7f (origin/codex/chat03-two-person-remote-client-transport-20261029) fix: reconcile stale tabs after shared command clears\n96dfddd8 fix: bind tab reconciliation to submitted command\ne79beccb fix: reconcile already committed participant tabs\n47e82bd8 fix: reject impossible participant view states\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:16:29Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD defcfea7b85dc4e1d0ee2ee9e2c78640952f1e2a\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:16:29Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:16:29Z",
+      "stderr": "",
+      "stdout": "31b7a077820914e92de81239e5ab4099e3dfa558\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "defcfea7b85dc4e1d0ee2ee9e2c78640952f1e2a",
+  "observedAtUtc": "2026-10-29T09:16:29Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
