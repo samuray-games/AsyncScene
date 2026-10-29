@@ -17,6 +17,7 @@ const cfg = "wrangler.api-local-test.jsonc";
 const dir = mkdtempSync(path.join(os.tmpdir(), "chat03b2-private-api-"));
 const env = { ...process.env, WRANGLER_SEND_METRICS: "false" };
 const admin = "local-test-admin-" + "a".repeat(48);
+const operatorReadToken = "local-test-readonly-operator-" + "b".repeat(40);
 let worker, logs = "", workerStdout = "", workerStderr = "";
 let lastSuccessfulHttpAt = null;
 const d1SyncStats = { count: 0, totalMs: 0, lastMs: 0, maxMs: 0 };
@@ -72,7 +73,14 @@ function wrapDatabase(db) {
     return typeof value === "function" ? value.bind(target) : value;
   }});
 }
-function wrappedEnv(env) { return { ...env, DB: wrapDatabase(env.DB) }; }
+function wrappedEnv(env, request = null) {
+  const wrapped = { ...env, DB: wrapDatabase(env.DB) };
+  // These headers exist only in this disposable test wrapper to prove that
+  // status readback needs neither mutation authority nor an absent read key.
+  if (request?.headers.has("x-test-omit-operator-read-token")) delete wrapped.OPERATOR_READ_TOKEN;
+  if (request?.headers.has("x-test-omit-admin-control-token")) delete wrapped.ADMIN_CONTROL_TOKEN;
+  return wrapped;
+}
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -88,7 +96,7 @@ export default {
     if (url.pathname === "/__test/admin-response/last-dropped" && request.method === "GET") {
       return Response.json(droppedOperatorResponse);
     }
-    const response = await worker.fetch(request, wrappedEnv(env), ctx);
+    const response = await worker.fetch(request, wrappedEnv(env, request), ctx);
     if (dropNextOperatorResponse && url.pathname.includes("/capabilities/") && url.pathname.endsWith("/replace")) {
       dropNextOperatorResponse = false;
       droppedOperatorResponse = await response.clone().json();
@@ -246,6 +254,15 @@ async function create(base, name, idempotencyKey = testCreateKey(name)) {
 async function operatorRequest(base, battle, side, operation, expectedGeneration, token = admin, origin = null) {
   return request(base, "POST", `/v1/admin/battles/${battle.battleId}/capabilities/${side}/${operation}`,
     token, { expectedGeneration }, origin);
+}
+async function capabilityStatus(base, battleId, side, token = operatorReadToken, options = {}) {
+  const headers = { connection: "close", ...(options.extraHeaders || {}) };
+  if (token) headers.authorization = "Bearer " + token;
+  if (options.origin) headers.origin = options.origin;
+  const response = await fetch(base + `/v1/admin/battles/${battleId}/capabilities/${side}/status`, {
+    method: options.method || "GET", headers, signal: AbortSignal.timeout(9000),
+  });
+  return { httpStatus: response.status, ...await response.json() };
 }
 async function get(base, battle, token) {
   return request(base, "GET", "/v1/battles/" + battle.battleId, token);
@@ -412,6 +429,7 @@ try {
       "--ip", "127.0.0.1", "--port", String(port),
       "--persist-to", dir,
       "--var", "ADMIN_CONTROL_TOKEN:" + admin,
+      "--var", "OPERATOR_READ_TOKEN:" + operatorReadToken,
       // Crypto failure coverage restarts the local Worker several times.
       // Keep unrelated battle fixtures live throughout slower CI runners.
       "--var", "COMMIT_WINDOW_MS:600000",
@@ -475,6 +493,89 @@ try {
     createHash("sha256").update(battle.capabilities.B.token).digest("hex"));
   assert.deepEqual([freshRecovery.original_a_generation, freshRecovery.original_b_generation], [1, 1]);
 
+  const statusProbeBattle = await create(base, "operator-status-probe");
+  const statusPath = side => `/v1/admin/battles/${statusProbeBattle.battleId}/capabilities/${side}/status`;
+  const rawStatus = async (side, headers = {}, method = "GET") => {
+    const response = await fetch(base + statusPath(side), {
+      method, headers: { connection: "close", ...headers },
+      signal: AbortSignal.timeout(9000),
+    });
+    return { response, payload: await response.json() };
+  };
+  const statusBefore = query(`SELECT b.version,b.state_json,
+      (SELECT COUNT(*) FROM gameplay_command_receipts WHERE battle_id=b.battle_id) receipts,
+      (SELECT COUNT(*) FROM gameplay_event_outbox WHERE battle_id=b.battle_id) outbox,
+      (SELECT group_concat(side || ':' || status || ':' || generation || ':' || token_sha256, '|')
+         FROM gameplay_battle_capabilities WHERE battle_id=b.battle_id) capabilities,
+      (SELECT COUNT(*) FROM gameplay_capability_digest_history h
+         JOIN gameplay_battle_capabilities c ON c.token_sha256=h.token_sha256 WHERE c.battle_id=b.battle_id) digest_history,
+      (SELECT lifecycle_state FROM gameplay_battle_creations WHERE battle_id=b.battle_id) recovery_state,
+      (SELECT capabilities_ciphertext_base64url FROM gameplay_battle_creations WHERE battle_id=b.battle_id) ciphertext
+    FROM gameplay_battles b WHERE b.battle_id='${statusProbeBattle.battleId}'`)[0];
+  assert.deepEqual((await capabilityStatus(base, statusProbeBattle.battleId, "A", null)),
+    { httpStatus: 401, error: "UNAUTHORIZED" }, "missing read-only key must fail closed");
+  assert.deepEqual((await capabilityStatus(base, statusProbeBattle.battleId, "A", "bad-read-key")),
+    { httpStatus: 401, error: "UNAUTHORIZED" }, "incorrect read-only key must fail closed");
+  assert.deepEqual((await capabilityStatus(base, statusProbeBattle.battleId, "A", admin)),
+    { httpStatus: 401, error: "UNAUTHORIZED" }, "mutation credential must not authorize readback");
+  assert.deepEqual(await request(base, "GET", statusPath("A"), operatorReadToken, null, null,
+    { "x-test-omit-operator-read-token": "1" }),
+  { status: 401, error: "UNAUTHORIZED" }, "missing Worker read-key configuration must fail closed");
+  const { response: independentAuthResponse, payload: activeAStatus } = await rawStatus("A", {
+    authorization: "Bearer " + operatorReadToken,
+    "x-test-omit-admin-control-token": "1",
+  });
+  assert.equal(independentAuthResponse.status, 200,
+    "readback must use the independent least-privileged key, without admin mutation authority");
+  assert.deepEqual(activeAStatus, { generation: 1, status: "active" });
+  assert.equal(independentAuthResponse.headers.get("cache-control"), "no-store");
+  assert.equal(independentAuthResponse.headers.get("access-control-allow-origin"), null);
+  assert.deepEqual(await capabilityStatus(base, statusProbeBattle.battleId, "B"),
+    { httpStatus: 200, generation: 1, status: "active" });
+  assert.deepEqual(await capabilityStatus(base, "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "A"),
+    { httpStatus: 404, error: "NOT_FOUND" });
+  assert.deepEqual(await capabilityStatus(base, "not-a-battle-id", "A"),
+    { httpStatus: 404, error: "NOT_FOUND" });
+  assert.deepEqual(await capabilityStatus(base, statusProbeBattle.battleId, "C"),
+    { httpStatus: 404, error: "NOT_FOUND" });
+  const { response: originStatusResponse, payload: originStatusPayload } = await rawStatus("A", {
+    authorization: "Bearer " + operatorReadToken, origin: "https://game.example.test",
+  });
+  assert.equal(originStatusResponse.status, 403);
+  assert.deepEqual(originStatusPayload, { error: "ORIGIN_FORBIDDEN" });
+  assert.equal(originStatusResponse.headers.get("access-control-allow-origin"), null);
+  const { response: preflightResponse } = await rawStatus("A", {
+    origin: "https://game.example.test", "access-control-request-method": "GET",
+  }, "OPTIONS");
+  assert.equal(preflightResponse.status, 403);
+  assert.equal(preflightResponse.headers.get("access-control-allow-origin"), null);
+  const { response: postStatusResponse } = await rawStatus("A", {
+    authorization: "Bearer " + operatorReadToken,
+  }, "POST");
+  assert.equal(postStatusResponse.status, 405);
+  assert.deepEqual(await request(base, "POST", statusPath("A"), operatorReadToken, { status: "revoked" }),
+    { status: 405, error: "METHOD_NOT_ALLOWED" });
+  const activeStatusJson = JSON.stringify(activeAStatus);
+  for (const sensitive of [statusProbeBattle.capabilities.A.token, statusProbeBattle.capabilities.B.token,
+    createHash("sha256").update(statusProbeBattle.capabilities.A.token).digest("hex"),
+    createHash("sha256").update(statusProbeBattle.capabilities.B.token).digest("hex"),
+    "operator-status-probe-A", "operator-status-probe-B", "ciphertext"]) {
+    assert.equal(activeStatusJson.includes(sensitive), false, "status readback leaked " + sensitive);
+  }
+  assert.deepEqual(query(`SELECT b.version,b.state_json,
+      (SELECT COUNT(*) FROM gameplay_command_receipts WHERE battle_id=b.battle_id) receipts,
+      (SELECT COUNT(*) FROM gameplay_event_outbox WHERE battle_id=b.battle_id) outbox,
+      (SELECT group_concat(side || ':' || status || ':' || generation || ':' || token_sha256, '|')
+         FROM gameplay_battle_capabilities WHERE battle_id=b.battle_id) capabilities,
+      (SELECT COUNT(*) FROM gameplay_capability_digest_history h
+         JOIN gameplay_battle_capabilities c ON c.token_sha256=h.token_sha256 WHERE c.battle_id=b.battle_id) digest_history,
+      (SELECT lifecycle_state FROM gameplay_battle_creations WHERE battle_id=b.battle_id) recovery_state,
+      (SELECT capabilities_ciphertext_base64url FROM gameplay_battle_creations WHERE battle_id=b.battle_id) ciphertext
+    FROM gameplay_battles b WHERE b.battle_id='${statusProbeBattle.battleId}'`)[0], statusBefore,
+  "status endpoint must be read-only across battle, receipts, outbox, credentials, and recovery ciphertext");
+  assert.equal(activeAStatus.status, "active");
+  console.log("PASS: separate read-only operator auth, fail-closed invalid/missing access, origin/preflight/method guards, exact response shape, no secret leakage, and no D1 writes");
+
   const operatorRevokedBattle = await create(base, "operator-revoke");
   const operatorReceipt = await commit(base, operatorRevokedBattle, "A", "operator-revoke-receipt");
   assert.equal(operatorReceipt.status, 200);
@@ -504,6 +605,10 @@ try {
     { expectedGeneration: 1 }), { status: 404, error: "NOT_FOUND" });
   const revokedByOperator = await operatorRequest(base, operatorRevokedBattle, "A", "revoke", 1);
   assert.deepEqual(revokedByOperator, { status: 200, generation: 2 });
+  assert.deepEqual(await capabilityStatus(base, operatorRevokedBattle.battleId, "A"),
+    { httpStatus: 200, generation: 2, status: "revoked" });
+  assert.deepEqual(await capabilityStatus(base, operatorRevokedBattle.battleId, "B"),
+    { httpStatus: 200, generation: 1, status: "active" });
   const revokedOperatorRow = query(`SELECT status,generation,token_sha256 FROM gameplay_battle_capabilities
     WHERE battle_id='${operatorRevokedBattle.battleId}' AND side='A'`)[0];
   assert.deepEqual(revokedOperatorRow, { status: "revoked", generation: 2,
@@ -561,6 +666,21 @@ try {
   assert.equal(query(`SELECT generation FROM gameplay_battle_capabilities WHERE battle_id='${duplicateReplaceBattle.battleId}' AND side='A'`)[0].generation, 2);
   console.log("PASS: concurrent duplicate replacements have one winner and cannot silently overwrite");
 
+  const concurrentReadBattle = await create(base, "operator-concurrent-read-replace");
+  const [concurrentRead, concurrentReadReplace] = await Promise.all([
+    capabilityStatus(base, concurrentReadBattle.battleId, "A"),
+    operatorRequest(base, concurrentReadBattle, "A", "replace", 1),
+  ]);
+  assert.equal(concurrentRead.httpStatus, 200);
+  assert.ok([1, 2].includes(concurrentRead.generation), JSON.stringify(concurrentRead));
+  assert.equal(concurrentRead.status, "active");
+  assert.equal(concurrentReadReplace.status, 200, JSON.stringify(concurrentReadReplace));
+  assert.deepEqual(await capabilityStatus(base, concurrentReadBattle.battleId, "A"),
+    { httpStatus: 200, generation: 2, status: "active" });
+  assert.deepEqual(await capabilityStatus(base, concurrentReadBattle.battleId, "B"),
+    { httpStatus: 200, generation: 1, status: "active" });
+  console.log("PASS: concurrent status read and replacement observe a valid generation boundary without changing the other side");
+
   const revokeReplaceRaceBattle = await create(base, "operator-revoke-replace-race");
   const revokeReplaceRace = await Promise.all([
     operatorRequest(base, revokeReplaceRaceBattle, "A", "revoke", 1),
@@ -583,7 +703,16 @@ try {
   const lostTokenDigest = createHash("sha256").update(lostOnlyInTestHarness.token).digest("hex");
   assert.equal(query(`SELECT COUNT(*) count FROM gameplay_battle_capabilities WHERE token_sha256='${lostTokenDigest}'`)[0].count, 1);
   assert.equal(query(`SELECT COUNT(*) count FROM gameplay_battle_capabilities WHERE token_sha256='${lostOnlyInTestHarness.token}'`)[0].count, 0);
-  const inspectedGeneration = query(`SELECT generation FROM gameplay_battle_capabilities WHERE battle_id='${lostResponseBattle.battleId}' AND side='A'`)[0].generation;
+  const beforeReadback = query(`SELECT status,generation,token_sha256 FROM gameplay_battle_capabilities
+    WHERE battle_id='${lostResponseBattle.battleId}' AND side='A'`)[0];
+  const ambiguousReadback = await capabilityStatus(base, lostResponseBattle.battleId, "A");
+  assert.deepEqual(ambiguousReadback, { httpStatus: 200, generation: 2, status: "active" });
+  assert.equal(JSON.stringify(ambiguousReadback).includes(lostOnlyInTestHarness.token), false);
+  assert.equal(JSON.stringify(ambiguousReadback).includes(lostTokenDigest), false);
+  assert.deepEqual(query(`SELECT status,generation,token_sha256 FROM gameplay_battle_capabilities
+    WHERE battle_id='${lostResponseBattle.battleId}' AND side='A'`)[0], beforeReadback,
+  "readback must not automatically replace or mutate the credential");
+  const inspectedGeneration = ambiguousReadback.generation;
   assert.equal(inspectedGeneration, 2);
   const recoveredByIntentionalRotation = await operatorRequest(base, lostResponseBattle, "A", "replace", inspectedGeneration);
   assert.equal(recoveredByIntentionalRotation.status, 200);
@@ -591,7 +720,9 @@ try {
   assert.deepEqual(await get(base, lostResponseBattle, lostOnlyInTestHarness.token),
     { status: 401, error: "UNAUTHORIZED" });
   assert.equal((await get(base, lostResponseBattle, recoveredByIntentionalRotation.token)).version, 0);
-  console.log("PASS: lost success response is not retried; trusted D1 generation inspection plus intentional replacement invalidates the unknown token");
+  assert.deepEqual(await capabilityStatus(base, lostResponseBattle.battleId, "A"),
+    { httpStatus: 200, generation: 3, status: "active" });
+  console.log("PASS: lost replace response -> read-only HTTP generation/status -> no implicit write -> deliberate existing replace invalidates unknown bearer; plaintext remains unrecoverable");
   const repeatedCreate = await create(base, "alpha", alphaKey);
   assert.equal(repeatedCreate.battleId, battle.battleId,
     "repeating the same authorized create request must return the original battle");
