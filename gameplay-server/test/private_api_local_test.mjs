@@ -79,6 +79,9 @@ function wrappedEnv(env, request = null) {
   // status readback needs neither mutation authority nor an absent read key.
   if (request?.headers.has("x-test-omit-operator-read-token")) delete wrapped.OPERATOR_READ_TOKEN;
   if (request?.headers.has("x-test-omit-admin-control-token")) delete wrapped.ADMIN_CONTROL_TOKEN;
+  if (request?.headers.has("x-test-match-admin-read-token")) {
+    wrapped.OPERATOR_READ_TOKEN = wrapped.ADMIN_CONTROL_TOKEN;
+  }
   return wrapped;
 }
 export default {
@@ -518,6 +521,15 @@ try {
     { httpStatus: 401, error: "UNAUTHORIZED" }, "incorrect read-only key must fail closed");
   assert.deepEqual((await capabilityStatus(base, statusProbeBattle.battleId, "A", admin)),
     { httpStatus: 401, error: "UNAUTHORIZED" }, "mutation credential must not authorize readback");
+  assert.deepEqual(await capabilityStatus(base, statusProbeBattle.battleId, "A", admin, {
+    extraHeaders: { "x-test-match-admin-read-token": "1" },
+  }), { httpStatus: 401, error: "UNAUTHORIZED" },
+  "a read key misconfigured equal to the admin credential must fail closed");
+  assert.deepEqual(await request(base, "POST",
+    `/v1/admin/battles/${statusProbeBattle.battleId}/capabilities/A/revoke`, admin,
+    { expectedGeneration: 1 }, null, { "x-test-match-admin-read-token": "1" }),
+  { status: 500, error: "SERVER_ERROR" },
+  "shared read/admin configuration must disable mutation routes too");
   assert.deepEqual(await request(base, "GET", statusPath("A"), operatorReadToken, null, null,
     { "x-test-omit-operator-read-token": "1" }),
   { status: 401, error: "UNAUTHORIZED" }, "missing Worker read-key configuration must fail closed");
