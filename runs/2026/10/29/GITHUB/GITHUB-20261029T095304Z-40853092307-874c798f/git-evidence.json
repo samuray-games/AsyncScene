@@ -1,0 +1,106 @@
+{
+  "branch": "codex/chat06-judge-v1-20261029",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:53:04Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:53:04Z",
+      "stderr": "",
+      "stdout": "codex/chat06-judge-v1-20261029\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:53:04Z",
+      "stderr": "",
+      "stdout": "229247afa0b0a6886acc93b8001a669a3c3690a4\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:53:04Z",
+      "stderr": "",
+      "stdout": "# branch.oid 229247afa0b0a6886acc93b8001a669a3c3690a4\n# branch.head codex/chat06-judge-v1-20261029\n# branch.upstream origin/codex/chat06-judge-v1-20261029\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:53:04Z",
+      "stderr": "",
+      "stdout": "229247af (HEAD -> codex/chat06-judge-v1-20261029, origin/codex/chat06-judge-v1-20261029) fix(chat06): bind input hash to strict schema\n7a365e4e feat(chat06): add isolated deterministic judge module\n31b7a077 (origin/main) Merge pull request #448 from samuray-games/codex/chat03-private-alpha-readiness-gate-20261028\n0ee4d07d (origin/codex/chat03-private-alpha-readiness-gate-20261028) docs(chat03): propose private-alpha operator and staging safety gates\n1e05ffd7 Merge pull request #447 from samuray-games/codex/chat03-postmerge-memory-sync-20261028\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:53:04Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 229247afa0b0a6886acc93b8001a669a3c3690a4\nbranch refs/heads/codex/chat06-judge-v1-20261029\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:53:04Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:53:04Z",
+      "stderr": "",
+      "stdout": "31b7a077820914e92de81239e5ab4099e3dfa558\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "229247afa0b0a6886acc93b8001a669a3c3690a4",
+  "observedAtUtc": "2026-10-29T09:53:04Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
