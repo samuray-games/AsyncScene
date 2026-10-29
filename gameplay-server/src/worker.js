@@ -152,7 +152,7 @@ function config(env) {
     throw new Error("GAMEPLAY_CONFIG_MISSING");
   }
   if (typeof env.OPERATOR_READ_TOKEN === "string" &&
-      secretEquals(env.OPERATOR_READ_TOKEN, env.ADMIN_CONTROL_TOKEN)) {
+      env.OPERATOR_READ_TOKEN === env.ADMIN_CONTROL_TOKEN) {
     throw new Error("GAMEPLAY_CONFIG_INVALID");
   }
   const windowMs = Number(env.COMMIT_WINDOW_MS);
