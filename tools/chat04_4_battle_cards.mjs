@@ -206,13 +206,17 @@ function makeSlot(projected, side, kind, direction, state, persist, rerender) {
       const area=element('textarea','');area.setAttribute('aria-label','Редактор реплики');area.maxLength=280;area.rows=3;area.value=old;
       const controls=element('div','bc-edit-controls');
       let finished=false;
+      // Save before the outside control handles its click/change, without
+      // replacing that control's DOM (which would swallow the action).
       const outside=e=>{if(!editBox.contains(e.target))end(true)};
       const end=(save)=>{
         if(finished)return;
         finished=true;
-        document.removeEventListener('pointerdown',outside,true);
-        if(save) saveText(state,projected.battleId,kind,area.value);
-        persist();rerender();
+        document.removeEventListener('click',outside,true);
+        document.removeEventListener('change',outside,true);
+        const text=save && saveText(state,projected.battleId,kind,area.value) ? area.value.trim() : old;
+        content.replaceChildren(element('p','bc-phrase',text));
+        persist();
       };
       const ok=button('Сохранить',()=>end(true));const cancel=button('Отменить',()=>end(false));
       controls.append(ok,cancel);editBox.append(area,controls);
@@ -221,7 +225,8 @@ function makeSlot(projected, side, kind, direction, state, persist, rerender) {
         if(e.key==='Escape'){e.preventDefault();end(false)}
         if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();end(true)}
       });
-      document.addEventListener('pointerdown',outside,true);
+      document.addEventListener('click',outside,true);
+      document.addEventListener('change',outside,true);
       area.focus();area.select();
     },'bc-edit-button');
     slot.append(edit);
