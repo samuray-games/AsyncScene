@@ -1,5 +1,4 @@
-# Project-scoped role registry. The 0.137.0 project-config schema treats
-# [agents] as named roles; global concurrency settings belong to user config.
+# Project-scoped agent roles, model defaults, and concurrency settings.
 default_permissions = "stage715-read-only-loopback"
 
 [features]
@@ -17,6 +16,7 @@ allow_local_binding = true
 [agents]
 default_subagent_model = "gpt-6-luna"
 default_subagent_reasoning_effort = "low"
+max_concurrent_threads_per_session = 2
 
 [agents.explorer]
 config_file = "agents/explorer.toml"
