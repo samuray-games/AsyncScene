@@ -1,0 +1,106 @@
+{
+  "branch": "codex/chat05a-vote-trigger-idempotency-20261030",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T16:56:42Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T16:56:42Z",
+      "stderr": "",
+      "stdout": "codex/chat05a-vote-trigger-idempotency-20261030\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T16:56:42Z",
+      "stderr": "",
+      "stdout": "e248a042b1f4058a5a720b1b22b7d8bc2fd3263c\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T16:56:42Z",
+      "stderr": "",
+      "stdout": "# branch.oid e248a042b1f4058a5a720b1b22b7d8bc2fd3263c\n# branch.head codex/chat05a-vote-trigger-idempotency-20261030\n# branch.upstream origin/codex/chat05a-vote-trigger-idempotency-20261030\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T16:56:42Z",
+      "stderr": "",
+      "stdout": "e248a042 (HEAD -> codex/chat05a-vote-trigger-idempotency-20261030, origin/codex/chat05a-vote-trigger-idempotency-20261030) fix(chat05a): correct unicode punctuation normalization\n1752a320 test(chat05a): cover trigger and stable vote id contract\n2249719a feat(chat05a): add pure vote trigger and stable id contract\nb435e70e (origin/main) Merge PR #456: integrate Chat03 local and remote two-person gameplay\n34ca7435 (origin/codex/chat03-integrate-pr449-450-451-454-20261029) Preserve access spec line breaks without trailing spaces\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T16:56:42Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD e248a042b1f4058a5a720b1b22b7d8bc2fd3263c\nbranch refs/heads/codex/chat05a-vote-trigger-idempotency-20261030\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T16:56:42Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T16:56:42Z",
+      "stderr": "",
+      "stdout": "b435e70eb88b87b3c3324ef2a2da14cdf473f229\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "e248a042b1f4058a5a720b1b22b7d8bc2fd3263c",
+  "observedAtUtc": "2026-10-29T16:56:42Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
