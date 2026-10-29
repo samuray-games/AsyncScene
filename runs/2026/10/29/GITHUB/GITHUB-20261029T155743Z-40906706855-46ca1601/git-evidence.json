@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T15:57:43Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T15:57:43Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T15:57:43Z",
+      "stderr": "",
+      "stdout": "247239908ec3e8500dbf9b0924c6ce94794fbd17\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T15:57:43Z",
+      "stderr": "",
+      "stdout": "# branch.oid 247239908ec3e8500dbf9b0924c6ce94794fbd17\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T15:57:43Z",
+      "stderr": "",
+      "stdout": "24723990 (HEAD, pull/431/merge) Merge 260c1142c4fa1e1394483bfa82d9637d2064f209 into b9a5792128059197bf6cae364876750493765cd8\n260c1142 (origin/codex/mobile-shell-tabs-splitter-20261014) fix(mobile): close menu for focused mobile editors\nb9a57921 (origin/main) chore(codex): optimize project subagent model routing (#459)\n940bc615 Strengthen short keyboard viewport assertions\nc23c979a Fix mobile layout with keyboard and open menu\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T15:57:43Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 247239908ec3e8500dbf9b0924c6ce94794fbd17\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T15:57:43Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T15:57:43Z",
+      "stderr": "",
+      "stdout": "b9a5792128059197bf6cae364876750493765cd8\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "247239908ec3e8500dbf9b0924c6ce94794fbd17",
+  "observedAtUtc": "2026-10-29T15:57:43Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
