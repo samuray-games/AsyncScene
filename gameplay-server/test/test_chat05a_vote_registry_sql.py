@@ -98,6 +98,11 @@ class Chat05ARegistryAndVotesTests(unittest.TestCase):
         self.seed_battle(self.db, "not-draw", "A_WIN")
         with self.assertRaisesRegex(sqlite3.IntegrityError, "SOCIAL_VOTE_TRIGGER_NOT_MET"):
             self.vote(self.db, "not-draw", "vote-not-draw")
+        self.seed_battle(self.db, "legacy-draw", "DRAW")
+        self.person(self.db, "legacy-spectator")
+        self.cap(self.db, "legacy-draw", "legacy-spectator", "legacy-secret")
+        with self.assertRaisesRegex(sqlite3.IntegrityError, "SOCIAL_VOTE_TRIGGER_NOT_MET"):
+            self.vote(self.db, "legacy-draw", "vote-legacy-draw")
         self.seed_battle(self.db, "not-revealed", "DRAW")
         state = {"battleId":"not-revealed","phase":"committed","mechanicalOutcome":"DRAW"}
         self.db.execute(
@@ -111,6 +116,11 @@ class Chat05ARegistryAndVotesTests(unittest.TestCase):
         self.assertEqual(self.db.execute(
             "SELECT vote_id FROM gameplay_social_votes WHERE battle_id='battle-1'"
         ).fetchone()[0], "vote-battle-1")
+        with self.assertRaisesRegex(sqlite3.IntegrityError, "SOCIAL_VOTE_IMMUTABLE"):
+            self.db.execute(
+                "INSERT OR REPLACE INTO gameplay_social_votes VALUES ('replacement','battle-1','DRAW','open',?)",
+                (NOW + 1,),
+            )
 
     def test_person_registry_and_battle_binding_are_immutable(self):
         self.person(self.db, "registered-person")
@@ -128,9 +138,22 @@ class Chat05ARegistryAndVotesTests(unittest.TestCase):
             self.db.execute(
                 "UPDATE gameplay_persons SET person_id='different-id' WHERE person_id='registered-person'"
             )
+        with self.assertRaisesRegex(sqlite3.IntegrityError, "PERSON_IDENTITY_IMMUTABLE"):
+            self.db.execute(
+                "INSERT OR REPLACE INTO gameplay_persons VALUES ('registered-person',?)", (NOW + 1,)
+            )
+        with self.assertRaisesRegex(sqlite3.IntegrityError, "PERSON_REGISTRATION_IMMUTABLE"):
+            self.db.execute(
+                "INSERT OR REPLACE INTO gameplay_person_registration_requests VALUES (?,?,?)",
+                (key,"spectator-a",NOW),
+            )
         with self.assertRaisesRegex(sqlite3.IntegrityError, "BATTLE_PERSON_IDENTITY_IMMUTABLE"):
             self.db.execute(
                 "DELETE FROM gameplay_battle_persons WHERE battle_id='battle-1' AND side='A'"
+            )
+        with self.assertRaisesRegex(sqlite3.IntegrityError, "BATTLE_PERSON_IDENTITY_IMMUTABLE"):
+            self.db.execute(
+                "INSERT OR REPLACE INTO gameplay_battle_persons VALUES ('battle-1','A','spectator-a')"
             )
 
     def test_ballot_identity_comes_from_active_capability_not_request_data(self):
@@ -163,6 +186,13 @@ class Chat05ARegistryAndVotesTests(unittest.TestCase):
             self.db.execute("UPDATE gameplay_social_ballots SET choice='B' WHERE vote_id='vote-battle-1'")
         with self.assertRaisesRegex(sqlite3.IntegrityError, "SOCIAL_BALLOT_IMMUTABLE"):
             self.db.execute("DELETE FROM gameplay_social_ballots WHERE vote_id='vote-battle-1'")
+        with self.assertRaisesRegex(sqlite3.IntegrityError, "SOCIAL_BALLOT_IMMUTABLE"):
+            self.db.execute(
+                """INSERT OR REPLACE INTO gameplay_social_ballots
+                   (vote_id,person_id,choice,capability_token_sha256,capability_generation,cast_at_ms)
+                   VALUES ('vote-battle-1','spectator-a','B',?,1,?)""",
+                (digest("secret-a"),NOW + 1),
+            )
         old_hash = digest("secret-a")
         new_hash = self.reissue(self.db, "battle-1", "spectator-a", old_hash, "secret-a-new", 1, "active")
         with self.assertRaisesRegex(sqlite3.IntegrityError, "INVALID_SPECTATOR_CAPABILITY"):
@@ -195,6 +225,12 @@ class Chat05ARegistryAndVotesTests(unittest.TestCase):
                SET status='revoked',generation=generation+1
                WHERE battle_id='battle-1' AND person_id='spectator-a' AND generation=1""",
         )
+        with self.assertRaisesRegex(sqlite3.IntegrityError, "SPECTATOR_CAPABILITY_HISTORY_REQUIRED"):
+            self.db.execute(
+                """INSERT OR REPLACE INTO gameplay_battle_spectator_capabilities
+                   VALUES ('battle-1','spectator-a',?, ?, 'active',1)""",
+                (digest("secret-a-reset"),NOW),
+            )
         with self.assertRaisesRegex(sqlite3.IntegrityError, "INVALID_SPECTATOR_CAPABILITY"):
             self.cast(self.db, "battle-1", "vote-battle-1", "secret-a", generation=2)
         new_hash = self.reissue(
@@ -206,6 +242,45 @@ class Chat05ARegistryAndVotesTests(unittest.TestCase):
         self.assertEqual(self.db.execute(
             "SELECT token_sha256,status,generation FROM gameplay_battle_spectator_capabilities WHERE battle_id='battle-1' AND person_id='spectator-a'"
         ).fetchone(), (new_hash, "active", 3))
+
+    def test_parallel_vote_creation_has_one_id_per_battle(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = str(Path(tmp) / "vote-race.sqlite")
+            setup = open_db(path)
+            self.seed_battle(setup, "vote-race", "DRAW")
+            self.person(setup, "race-a")
+            self.person(setup, "race-b")
+            self.bind_participant(setup, "vote-race", "A", "race-a")
+            self.bind_participant(setup, "vote-race", "B", "race-b")
+            setup.close()
+            barrier = threading.Barrier(2)
+            outcomes = []
+            lock = threading.Lock()
+            def create(vote_id):
+                conn = sqlite3.connect(path, timeout=15, isolation_level=None)
+                conn.execute("PRAGMA foreign_keys=ON")
+                conn.execute("PRAGMA busy_timeout=15000")
+                barrier.wait()
+                try:
+                    conn.execute(
+                        """INSERT INTO gameplay_social_votes
+                           VALUES (?, 'vote-race', 'DRAW', 'open', ?)""",
+                        (vote_id, NOW),
+                    )
+                    result = "inserted"
+                except sqlite3.IntegrityError as error:
+                    result = str(error)
+                with lock:
+                    outcomes.append(result)
+                conn.close()
+            threads = [threading.Thread(target=create,args=(x,)) for x in ("vote-a","vote-b")]
+            for thread in threads: thread.start()
+            for thread in threads: thread.join()
+            self.assertEqual(outcomes.count("inserted"), 1)
+            self.assertTrue(any("UNIQUE constraint failed" in x or "SOCIAL_VOTE_IMMUTABLE" in x for x in outcomes))
+            self.assertEqual(sqlite3.connect(path).execute(
+                "SELECT COUNT(*) FROM gameplay_social_votes WHERE battle_id='vote-race'"
+            ).fetchone()[0], 1)
 
     def test_parallel_duplicate_ballots_have_one_database_winner(self):
         with tempfile.TemporaryDirectory() as tmp:

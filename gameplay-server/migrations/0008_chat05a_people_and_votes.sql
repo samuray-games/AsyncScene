@@ -11,6 +11,13 @@ CREATE TABLE gameplay_persons (
   )
 );
 
+CREATE TRIGGER trg_gameplay_person_no_replace
+BEFORE INSERT ON gameplay_persons
+WHEN EXISTS (SELECT 1 FROM gameplay_persons WHERE person_id = NEW.person_id)
+BEGIN
+  SELECT RAISE(ABORT, 'PERSON_IDENTITY_IMMUTABLE');
+END;
+
 CREATE TABLE gameplay_person_registration_requests (
   idempotency_key_sha256 TEXT NOT NULL PRIMARY KEY CHECK (length(idempotency_key_sha256) = 64),
   person_id TEXT NOT NULL UNIQUE REFERENCES gameplay_persons(person_id) ON DELETE RESTRICT,
@@ -19,6 +26,29 @@ CREATE TABLE gameplay_person_registration_requests (
     AND created_at_ms BETWEEN 0 AND 9007199254740991
   )
 );
+
+CREATE TRIGGER trg_gameplay_person_registration_request_no_update
+BEFORE UPDATE ON gameplay_person_registration_requests
+BEGIN
+  SELECT RAISE(ABORT, 'PERSON_REGISTRATION_IMMUTABLE');
+END;
+
+CREATE TRIGGER trg_gameplay_person_registration_request_no_delete
+BEFORE DELETE ON gameplay_person_registration_requests
+BEGIN
+  SELECT RAISE(ABORT, 'PERSON_REGISTRATION_IMMUTABLE');
+END;
+
+CREATE TRIGGER trg_gameplay_person_registration_request_no_replace
+BEFORE INSERT ON gameplay_person_registration_requests
+WHEN EXISTS (
+  SELECT 1 FROM gameplay_person_registration_requests
+  WHERE idempotency_key_sha256 = NEW.idempotency_key_sha256
+     OR person_id = NEW.person_id
+)
+BEGIN
+  SELECT RAISE(ABORT, 'PERSON_REGISTRATION_IMMUTABLE');
+END;
 
 CREATE TRIGGER trg_gameplay_person_identity_immutable
 BEFORE UPDATE ON gameplay_persons
@@ -39,6 +69,17 @@ CREATE TABLE gameplay_battle_persons (
   PRIMARY KEY (battle_id, side),
   UNIQUE (battle_id, person_id)
 );
+
+CREATE TRIGGER trg_gameplay_battle_persons_no_replace
+BEFORE INSERT ON gameplay_battle_persons
+WHEN EXISTS (
+  SELECT 1 FROM gameplay_battle_persons
+  WHERE (battle_id = NEW.battle_id AND side = NEW.side)
+     OR (battle_id = NEW.battle_id AND person_id = NEW.person_id)
+)
+BEGIN
+  SELECT RAISE(ABORT, 'BATTLE_PERSON_IDENTITY_IMMUTABLE');
+END;
 
 CREATE TRIGGER trg_gameplay_battle_persons_immutable
 BEFORE UPDATE ON gameplay_battle_persons
@@ -67,6 +108,17 @@ CREATE TABLE gameplay_battle_spectator_capabilities (
   ),
   PRIMARY KEY (battle_id, person_id)
 );
+
+CREATE TRIGGER trg_gameplay_spectator_no_replace
+BEFORE INSERT ON gameplay_battle_spectator_capabilities
+WHEN EXISTS (
+  SELECT 1 FROM gameplay_battle_spectator_capabilities
+  WHERE (battle_id = NEW.battle_id AND person_id = NEW.person_id)
+     OR token_sha256 = NEW.token_sha256
+)
+BEGIN
+  SELECT RAISE(ABORT, 'SPECTATOR_CAPABILITY_HISTORY_REQUIRED');
+END;
 
 CREATE INDEX idx_gameplay_spectator_capability_lookup
   ON gameplay_battle_spectator_capabilities(battle_id, token_sha256, status, generation);
@@ -162,10 +214,21 @@ WHEN NOT EXISTS (
   WHERE b.battle_id = NEW.battle_id
     AND json_extract(b.state_json, '$.phase') = 'revealed'
     AND NEW.trigger_reason = 'DRAW'
+    AND (SELECT COUNT(*) FROM gameplay_battle_persons p WHERE p.battle_id = NEW.battle_id) = 2
     AND json_extract(b.state_json, '$.mechanicalOutcome') = 'DRAW'
 )
 BEGIN
   SELECT RAISE(ABORT, 'SOCIAL_VOTE_TRIGGER_NOT_MET');
+END;
+
+CREATE TRIGGER trg_gameplay_social_vote_no_replace
+BEFORE INSERT ON gameplay_social_votes
+WHEN EXISTS (
+  SELECT 1 FROM gameplay_social_votes
+  WHERE vote_id = NEW.vote_id OR battle_id = NEW.battle_id
+)
+BEGIN
+  SELECT RAISE(ABORT, 'SOCIAL_VOTE_IMMUTABLE');
 END;
 
 CREATE TRIGGER trg_gameplay_social_vote_immutable
@@ -195,6 +258,16 @@ CREATE TABLE gameplay_social_ballots (
   ),
   PRIMARY KEY (vote_id, person_id)
 );
+
+CREATE TRIGGER trg_gameplay_social_ballot_no_replace
+BEFORE INSERT ON gameplay_social_ballots
+WHEN EXISTS (
+  SELECT 1 FROM gameplay_social_ballots
+  WHERE vote_id = NEW.vote_id AND person_id = NEW.person_id
+)
+BEGIN
+  SELECT RAISE(ABORT, 'SOCIAL_BALLOT_IMMUTABLE');
+END;
 
 CREATE TRIGGER trg_gameplay_social_ballot_authorization_guard
 BEFORE INSERT ON gameplay_social_ballots
