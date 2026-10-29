@@ -2,7 +2,8 @@ function normalizeAuthoredText(value) {
   return String(value ?? "")
     .normalize("NFKC")
     .toLocaleLowerCase("ru")
-    .replace(/[\p{P}\p{C}]/gu, "")
+    .replace(/\s+/gu, " ")
+    .replace(/\p{P}/gu, "")
     .replace(/\s+/gu, " ")
     .trim();
 }

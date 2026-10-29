@@ -18,19 +18,21 @@ test("substantive authored-text edit triggers a vote", () => {
 });
 
 test("punctuation-only and whitespace-only edits do not trigger a vote", () => {
-  assert.equal(shouldOpenSocialVote({
-    mechanicalResult: "A_WIN",
-    previousAuthoredText: "Это факт!",
-    nextAuthoredText: "Это факт...",
-  }), false);
-  assert.equal(shouldOpenSocialVote({
-    mechanicalResult: "A_WIN",
-    previousAuthoredText: "это   факт",
-    nextAuthoredText: "это факт",
-  }), false);
+  for (const nextAuthoredText of ["Это факт...", "это факт", "a\nb", "a\tb"]) {
+    const previousAuthoredText = nextAuthoredText.startsWith("Это")
+      ? "Это факт!"
+      : nextAuthoredText.startsWith("a")
+        ? "a b"
+        : "это   факт";
+    assert.equal(shouldOpenSocialVote({
+      mechanicalResult: "A_WIN",
+      previousAuthoredText,
+      nextAuthoredText,
+    }), false);
+  }
 });
 
-test("whitespace and emoji content remain semantically significant", () => {
+test("word boundaries and emoji sequences remain semantically significant", () => {
   assert.equal(shouldOpenSocialVote({
     mechanicalResult: "A_WIN",
     previousAuthoredText: "ab",
@@ -40,6 +42,11 @@ test("whitespace and emoji content remain semantically significant", () => {
     mechanicalResult: "A_WIN",
     previousAuthoredText: "Да 👍",
     nextAuthoredText: "Да 👎",
+  }), true);
+  assert.equal(shouldOpenSocialVote({
+    mechanicalResult: "A_WIN",
+    previousAuthoredText: "👩‍⚕️",
+    nextAuthoredText: "👩⚕️",
   }), true);
 });
 
