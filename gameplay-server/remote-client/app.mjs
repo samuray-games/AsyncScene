@@ -97,6 +97,7 @@ export function createRemoteClientApp({
   }
 
   function display(view) {
+    if (Number.isSafeInteger(view?.version) && view.version < highestViewVersion) return false;
     if (Number.isSafeInteger(view?.version)) highestViewVersion = Math.max(highestViewVersion, view.version);
     lastView = view;
     const state = visibleBattleState(view, ownSelection);
@@ -123,6 +124,7 @@ export function createRemoteClientApp({
     }
     $("commit-button").disabled = commitInFlight;
     $("commit-button").textContent = retryPendingMode ? "Повторить исходную команду" : "Подтвердить скрытый ход";
+    return true;
   }
 
   async function discardUncommittedTerminalPending(view, token, battleId, pending, isCurrent) {
@@ -297,7 +299,7 @@ export function createRemoteClientApp({
       if (!state.selfCommitted) throw new Error("COMMIT_ACKNOWLEDGED_PENDING_RETAINED");
       retryPendingMode = false;
       viewRequestEpoch += 1;
-      display(response.view);
+      if (!display(response.view) && lastView) display(lastView);
       show("Ход принят. Чужой выбор останется скрытым до серверного раскрытия.");
     } catch (error) {
       if (!isCurrentCommit()) return;
@@ -324,14 +326,14 @@ export function createRemoteClientApp({
               retryPendingMode = true;
               ownSelection = null;
               viewRequestEpoch += 1;
-              display(view);
+              if (!display(view) && lastView) display(lastView);
               show("Сервер уже подтвердил другой ход. Другая неподтверждённая команда сохранена с прежним номером для сверки.");
               return;
             }
             retryPendingMode = false;
             ownSelection = null;
             viewRequestEpoch += 1;
-            display(view);
+            if (!display(view) && lastView) display(lastView);
             show("Сервер подтвердил ход этого участника ранее. Отклонённая команда этой вкладки удалена; чужой ход остаётся скрытым до разрешённого раскрытия.");
             return;
           }

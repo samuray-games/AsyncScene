@@ -39,6 +39,14 @@ export function validatePublicView(view, expectedBattleId = null) {
     }
     try { sanitizeSelection(selectionPair.A); sanitizeSelection(selectionPair.B); }
     catch { throw new Error("INVALID_SERVER_RESPONSE"); }
+    if ((view.phase === "revealed" &&
+        (view.recognizedOutcome !== "PENDING" ||
+         view.socialOutcome !== (view.mechanicalOutcome === "DRAW" ? "PENDING" : "NONE"))) ||
+        (view.phase === "final" &&
+         (view.mechanicalOutcome === "DRAW" || view.recognizedOutcome !== view.mechanicalOutcome ||
+          view.socialOutcome !== "NONE"))) {
+      throw new Error("INVALID_SERVER_RESPONSE");
+    }
   }
   return view;
 }

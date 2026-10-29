@@ -550,6 +550,36 @@ await test("stale retry tab reconciles a cleared shared pending from selfCommitt
   assert.match(doc.elements.get("status").textContent, /новый ход не отправлялся/);
 });
 
+await test("late commit acknowledgement cannot roll a newer revealed version back", async () => {
+  const storage = createMemoryStorage();
+  const postResponse = deferred();
+  const postStarted = deferred();
+  let gets = 0;
+  const transport = makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true, storage,
+    idFactory: () => "late-ack-command-1",
+    fetchImpl: async (_url, init) => {
+      if (init.method === "POST") { postStarted.resolve(); return postResponse.promise; }
+      gets++;
+      return new Response(JSON.stringify(gets === 1 ? validView({ version: 1 }) : revealedView({ version: 3 })), { status: 200 });
+    } });
+  const doc = fakeDocument();
+  const app = createRemoteClientApp({ document: doc, storage, transport, FormDataImpl: FakeFormData,
+    setIntervalImpl: () => 1, clearIntervalImpl: () => {} });
+  await app.restorePromise;
+  doc.elements.get("battle-id").value = battle;
+  doc.elements.get("token").value = tokenA;
+  await doc.elements.get("connect-form").dispatch("submit");
+  const submitting = doc.elements.get("commit-form").dispatch("submit");
+  await postStarted.promise;
+  await app.refresh();
+  assert.equal(doc.elements.get("result").hidden, false, "newer polling result is displayed first");
+  postResponse.resolve(new Response(JSON.stringify({ view: validView({ version: 2, selfCommitted: true }) }), { status: 200 }));
+  await submitting;
+  assert.equal(doc.elements.get("result").hidden, false, "older POST acknowledgement cannot hide the reveal");
+  assert.equal(doc.elements.get("result").textContent.includes("Атаки раскрыты: N/T"), true);
+  assert.equal(doc.elements.get("commit-form").hidden, true);
+});
+
 await test("malformed GET and POST views fail closed without deleting the retry command", async () => {
   const storage = createMemoryStorage();
   let responseView = {};
@@ -572,6 +602,12 @@ await test("malformed GET and POST views fail closed without deleting the retry 
   await rejectsCode(transport.sendPending(battle, tokenA, pending), "INVALID_SERVER_RESPONSE");
   assert.equal((await storage.getPending(battle, tokenA)).commandId, pending.commandId,
     "impossible final phase/commit flags cannot clear recovery state");
+  responseView = revealedView({ phase: "final", mechanicalOutcome: "DRAW",
+    resolution: validResolution("DRAW"), recognizedOutcome: "DRAW", socialOutcome: "NONE" });
+  await rejectsCode(transport.connect(battle, tokenA), "INVALID_SERVER_RESPONSE");
+  await rejectsCode(transport.sendPending(battle, tokenA, pending), "INVALID_SERVER_RESPONSE");
+  assert.equal((await storage.getPending(battle, tokenA)).commandId, pending.commandId,
+    "canonical-impossible final DRAW cannot clear a pending command");
   responseView = validView({ selfCommitted: true });
   await transport.sendPending(battle, tokenA, pending);
   assert.equal(await storage.getPending(battle, tokenA), null);
@@ -883,4 +919,4 @@ await test("build is blocked without an exact approved origin and emits no publi
   } finally { await rm(temp, { recursive: true, force: true }); }
 });
 
-console.log(`REMOTE_CLIENT_TESTS_PASS ${assertions}/35`);
+console.log(`REMOTE_CLIENT_TESTS_PASS ${assertions}/36`);
