@@ -111,7 +111,7 @@ class Chat05ARegistryAndVotesTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(sqlite3.IntegrityError, "SOCIAL_VOTE_TRIGGER_NOT_MET"):
             self.vote(self.db, "not-revealed", "vote-not-revealed")
-        with self.assertRaisesRegex(sqlite3.IntegrityError, "UNIQUE constraint failed"):
+        with self.assertRaisesRegex(sqlite3.IntegrityError, "SOCIAL_VOTE_IMMUTABLE"):
             self.vote(self.db, "battle-1", "different-vote-id")
         self.assertEqual(self.db.execute(
             "SELECT vote_id FROM gameplay_social_votes WHERE battle_id='battle-1'"
@@ -129,7 +129,7 @@ class Chat05ARegistryAndVotesTests(unittest.TestCase):
             "INSERT INTO gameplay_person_registration_requests VALUES (?,?,?)",
             (key, "registered-person", NOW),
         )
-        with self.assertRaisesRegex(sqlite3.IntegrityError, "UNIQUE constraint failed"):
+        with self.assertRaisesRegex(sqlite3.IntegrityError, "PERSON_REGISTRATION_IMMUTABLE"):
             self.db.execute(
                 "INSERT INTO gameplay_person_registration_requests VALUES (?,?,?)",
                 (key, "spectator-a", NOW),
@@ -287,6 +287,10 @@ class Chat05ARegistryAndVotesTests(unittest.TestCase):
             path = str(Path(tmp) / "race.sqlite")
             setup = open_db(path)
             self.seed_battle(setup, "race-battle", "DRAW")
+            self.person(setup, "race-a")
+            self.person(setup, "race-b")
+            self.bind_participant(setup, "race-battle", "A", "race-a")
+            self.bind_participant(setup, "race-battle", "B", "race-b")
             self.person(setup, "race-spectator")
             self.cap(setup, "race-battle", "race-spectator", "race-secret")
             self.vote(setup, "race-battle", "vote-race")
