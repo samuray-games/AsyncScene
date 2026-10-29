@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T16:58:51Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T16:58:51Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T16:58:51Z",
+      "stderr": "",
+      "stdout": "fdc27a78230905e02590aeaf58aed6ff2b6fef8e\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T16:58:51Z",
+      "stderr": "",
+      "stdout": "# branch.oid fdc27a78230905e02590aeaf58aed6ff2b6fef8e\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T16:58:51Z",
+      "stderr": "",
+      "stdout": "fdc27a78 (HEAD, pull/460/merge) Merge 6f34b903cbebe27028ef38e5e064aaf7eb4c3034 into b435e70eb88b87b3c3324ef2a2da14cdf473f229\n6f34b903 (origin/codex/chat05a-vote-trigger-idempotency-20261030) fix(chat05a): align trigger contract with resolver outcomes\ne248a042 fix(chat05a): correct unicode punctuation normalization\n1752a320 test(chat05a): cover trigger and stable vote id contract\n2249719a feat(chat05a): add pure vote trigger and stable id contract\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T16:58:51Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD fdc27a78230905e02590aeaf58aed6ff2b6fef8e\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T16:58:51Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T16:58:51Z",
+      "stderr": "",
+      "stdout": "b435e70eb88b87b3c3324ef2a2da14cdf473f229\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "fdc27a78230905e02590aeaf58aed6ff2b6fef8e",
+  "observedAtUtc": "2026-10-29T16:58:51Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
