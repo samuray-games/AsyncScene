@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "456/merge",
+  "createdAtJst": "2026-10-29 21:33:01 JST",
+  "createdAtUtc": "2026-10-29T12:33:01Z",
+  "packagePath": "runs/2026/10/29/GITHUB/GITHUB-20261029T123301Z-40874120710-734fc4d2",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20261029T123301Z-40874120710-734fc4d2",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
