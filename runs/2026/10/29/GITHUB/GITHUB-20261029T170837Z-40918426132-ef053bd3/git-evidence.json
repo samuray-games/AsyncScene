@@ -1,0 +1,106 @@
+{
+  "branch": "codex/mobile-shell-tabs-splitter-20261014",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T17:08:37Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T17:08:37Z",
+      "stderr": "",
+      "stdout": "codex/mobile-shell-tabs-splitter-20261014\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T17:08:37Z",
+      "stderr": "",
+      "stdout": "f5c6e90d04109e674918d1041a3f8593049f627c\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T17:08:37Z",
+      "stderr": "",
+      "stdout": "# branch.oid f5c6e90d04109e674918d1041a3f8593049f627c\n# branch.head codex/mobile-shell-tabs-splitter-20261014\n# branch.upstream origin/codex/mobile-shell-tabs-splitter-20261014\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T17:08:37Z",
+      "stderr": "",
+      "stdout": "f5c6e90d (HEAD -> codex/mobile-shell-tabs-splitter-20261014, origin/codex/mobile-shell-tabs-splitter-20261014) fix(mobile): pin menu beside scrollable profile\nefafaa00 fix(mobile): keep profile and focused inputs visible\n48f65979 fix(mobile): keep focused inputs usable with keyboard\n9c409331 fix(mobile): restore exact UI core source\n260c1142 fix(mobile): close menu for focused mobile editors\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T17:08:37Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD f5c6e90d04109e674918d1041a3f8593049f627c\nbranch refs/heads/codex/mobile-shell-tabs-splitter-20261014\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T17:08:37Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T17:08:37Z",
+      "stderr": "",
+      "stdout": "b435e70eb88b87b3c3324ef2a2da14cdf473f229\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "f5c6e90d04109e674918d1041a3f8593049f627c",
+  "observedAtUtc": "2026-10-29T17:08:37Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
