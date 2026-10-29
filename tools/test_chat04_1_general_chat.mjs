@@ -18,6 +18,7 @@ class Element {
   }
   addEventListener(name, callback) { this.handlers[name] = callback; }
   setAttribute(name, value) { this.attributes[name] = value; }
+  getAttribute(name) { return this.attributes[name] ?? null; }
   focus() { this.focused = true; }
   replaceChildren() { this._innerHTML = ""; }
   set innerHTML(value) { this._innerHTML = value; }
@@ -37,7 +38,9 @@ panel.hidden = true;
 panel.children = Object.fromEntries(selectors.map((selector) => [selector, new Element(selector)]));
 const modeButtons = [new Element("game tab"), new Element("public tab")];
 modeButtons[0].dataset.chatMode = "game";
+modeButtons[0].setAttribute("aria-selected", "true");
 modeButtons[1].dataset.chatMode = "public";
+modeButtons[1].setAttribute("aria-selected", "false");
 const legacy = [new Element("legacy log"), new Element("legacy composer"), new Element("resize handle")];
 const ids = { generalChatPanel: panel, chatLog: legacy[0], chatInputRow: legacy[1], chatResizeHandle: legacy[2] };
 const timers = [];
@@ -56,6 +59,7 @@ check(child("[data-chat-status]").textContent === "Сервер общего ч�
 check(child("[data-chat-feed]").innerHTML.includes("Общий чат пока недоступен"), "empty state renders");
 check(!child("[data-chat-feed]").innerHTML.includes("data-entity-id"), "live state does not fabricate timeline records");
 check(legacy.every((element) => !element.hidden), "game chat remains visible by default");
+check(modeButtons[0].tabIndex === 0 && modeButtons[1].tabIndex === -1, "initial tab focus order matches selected tab");
 modeButtons[1].click();
 check(!panel.hidden && legacy.every((element) => element.hidden), "public tab is isolated from game chat");
 child('[data-chat-action="demo"]').click();
