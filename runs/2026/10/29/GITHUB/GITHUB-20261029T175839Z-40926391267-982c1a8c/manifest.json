@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "codex/chat05a-vote-trigger-idempotency-20261030",
+  "createdAtJst": "2026-10-30 02:58:39 JST",
+  "createdAtUtc": "2026-10-29T17:58:39Z",
+  "packagePath": "runs/2026/10/29/GITHUB/GITHUB-20261029T175839Z-40926391267-982c1a8c",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20261029T175839Z-40926391267-982c1a8c",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
