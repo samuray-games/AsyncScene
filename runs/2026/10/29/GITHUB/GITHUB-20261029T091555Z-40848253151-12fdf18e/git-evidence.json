@@ -1,0 +1,106 @@
+{
+  "branch": "codex/chat03-two-person-remote-client-transport-20261029",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:15:55Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:15:55Z",
+      "stderr": "",
+      "stdout": "codex/chat03-two-person-remote-client-transport-20261029\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:15:55Z",
+      "stderr": "",
+      "stdout": "33bfbb7fa15441f90bb56ed195713ad2d677a77c\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:15:56Z",
+      "stderr": "",
+      "stdout": "# branch.oid 33bfbb7fa15441f90bb56ed195713ad2d677a77c\n# branch.head codex/chat03-two-person-remote-client-transport-20261029\n# branch.upstream origin/codex/chat03-two-person-remote-client-transport-20261029\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:15:56Z",
+      "stderr": "",
+      "stdout": "33bfbb7f (HEAD -> codex/chat03-two-person-remote-client-transport-20261029, origin/codex/chat03-two-person-remote-client-transport-20261029) fix: reconcile stale tabs after shared command clears\n96dfddd8 fix: bind tab reconciliation to submitted command\ne79beccb fix: reconcile already committed participant tabs\n47e82bd8 fix: reject impossible participant view states\nf20145bb fix: guard remote client session and command races\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:15:56Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 33bfbb7fa15441f90bb56ed195713ad2d677a77c\nbranch refs/heads/codex/chat03-two-person-remote-client-transport-20261029\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:15:56Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T09:15:56Z",
+      "stderr": "",
+      "stdout": "31b7a077820914e92de81239e5ab4099e3dfa558\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "33bfbb7fa15441f90bb56ed195713ad2d677a77c",
+  "observedAtUtc": "2026-10-29T09:15:56Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
