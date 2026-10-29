@@ -1,0 +1,106 @@
+{
+  "branch": "chat09a-isolated-territory-gate-v1",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T12:21:35Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T12:21:35Z",
+      "stderr": "",
+      "stdout": "chat09a-isolated-territory-gate-v1\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T12:21:35Z",
+      "stderr": "",
+      "stdout": "cd1123429fc172a3f75e25df3d57a4c3f07665e8\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T12:21:35Z",
+      "stderr": "",
+      "stdout": "# branch.oid cd1123429fc172a3f75e25df3d57a4c3f07665e8\n# branch.head chat09a-isolated-territory-gate-v1\n# branch.upstream origin/chat09a-isolated-territory-gate-v1\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T12:21:35Z",
+      "stderr": "",
+      "stdout": "cd112342 (HEAD -> chat09a-isolated-territory-gate-v1, origin/chat09a-isolated-territory-gate-v1) feat(chat09a): add isolated territory eligibility policy\n31b7a077 (origin/main, origin/codex/chat04-4-isolated-battle-cards-20261029) Merge pull request #448 from samuray-games/codex/chat03-private-alpha-readiness-gate-20261028\n0ee4d07d (origin/codex/chat03-private-alpha-readiness-gate-20261028) docs(chat03): propose private-alpha operator and staging safety gates\n1e05ffd7 Merge pull request #447 from samuray-games/codex/chat03-postmerge-memory-sync-20261028\n1e2c83ac (origin/codex/chat03-postmerge-memory-sync-20261028) docs(chat03): reconcile post-merge source checkpoint and recovery gates\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T12:21:35Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD cd1123429fc172a3f75e25df3d57a4c3f07665e8\nbranch refs/heads/chat09a-isolated-territory-gate-v1\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T12:21:35Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T12:21:35Z",
+      "stderr": "",
+      "stdout": "31b7a077820914e92de81239e5ab4099e3dfa558\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "cd1123429fc172a3f75e25df3d57a4c3f07665e8",
+  "observedAtUtc": "2026-10-29T12:21:35Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
