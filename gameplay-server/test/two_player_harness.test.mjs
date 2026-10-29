@@ -5,7 +5,7 @@ import {
   participantDescription, participantSide, readableError,
 } from "../dev-harness/presentation.mjs";
 import test from "node:test";
-import { createSessionEpoch } from "../dev-harness/session_epoch.mjs";
+import { createSessionEpoch, createSessionViewGate } from "../dev-harness/session_epoch.mjs";
 import { assertLoopbackApiBase, createBattleClient, localApiBase } from "../dev-harness/api.mjs";
 import { createSyntheticBattle } from "../dev-harness/create_local_battle.mjs";
 
@@ -45,6 +45,9 @@ test("ambiguous local commit retries keep the original commandId and selection",
   const posts = [];
   let failFirstPost = true;
   let idCount = 0;
+  const selection = {
+    attackColor: "y", defenseColor: "o", attackType: "N", defenseType: "S", role: "citizen",
+  };
   const client = createBattleClient({
     fetchImpl: async (_url, options) => {
       if (options.method === "GET") return { ok: true, json: async () => ({ phase: "created", version: 0 }) };
@@ -280,6 +283,39 @@ test("final result action line has readable punctuation without doubled periods"
   });
   assert.equal(line, "Атака: Жёлтый; Наезд. Сильное прямое давление. Защита: Красный; Спокойная защита. Помогает удержать удар.");
   assert.doesNotMatch(line, /\\.\\./);
+});
+
+test("late same-session GET cannot roll back a newer commit view or re-enable submit", async () => {
+  const session = createSessionEpoch();
+  const versionGate = createSessionViewGate();
+  versionGate.reset();
+  const epoch = session.begin();
+  const ui = { view: null, commitDisabled: true };
+  const applyView = view => {
+    if (!session.isCurrent(epoch) || !versionGate.accept(view)) return false;
+    ui.view = view;
+    ui.commitDisabled = view.selfCommitted === true || view.revealed === true || view.phase === "expired";
+    return true;
+  };
+  const oldGet = { version: 0, phase: "created", selfCommitted: false };
+  assert.equal(applyView(oldGet), true);
+
+  let resolveOldGet;
+  const pendingRefresh = new Promise(resolve => { resolveOldGet = resolve; })
+    .then(view => applyView(view));
+  const postView = { version: 1, phase: "waiting", selfCommitted: true };
+  assert.equal(applyView(postView), true);
+  assert.equal(ui.commitDisabled, true);
+
+  resolveOldGet(oldGet);
+  assert.equal(await pendingRefresh, false);
+  assert.equal(ui.view, postView);
+  assert.equal(ui.commitDisabled, true);
+
+  const nextEpoch = session.begin();
+  versionGate.reset();
+  assert.equal(session.isCurrent(nextEpoch), true);
+  assert.equal(versionGate.accept({ version: 0, phase: "created", selfCommitted: false }), true);
 });
 
 test("late requests cannot render after clearing a window or changing its session", async () => {
