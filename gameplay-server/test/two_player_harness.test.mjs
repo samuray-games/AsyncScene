@@ -5,6 +5,7 @@ import {
   participantDescription, participantSide, readableError,
 } from "../dev-harness/presentation.mjs";
 import test from "node:test";
+import { createSessionEpoch } from "../dev-harness/session_epoch.mjs";
 import { assertLoopbackApiBase, createBattleClient, localApiBase } from "../dev-harness/api.mjs";
 import { createSyntheticBattle } from "../dev-harness/create_local_battle.mjs";
 
@@ -253,4 +254,25 @@ test("final result action line has readable punctuation without doubled periods"
   });
   assert.equal(line, "Атака: Жёлтый; Наезд. Сильное прямое давление. Защита: Красный; Спокойная защита. Помогает удержать удар.");
   assert.doesNotMatch(line, /\\.\\./);
+});
+
+test("late requests cannot render after clearing a window or changing its session", async () => {
+  const session = createSessionEpoch();
+  const pending = [];
+  const request = epoch => new Promise(resolve => pending.push(() => {
+    if (session.isCurrent(epoch)) resolve("render");
+    else resolve("discard");
+  }));
+  const firstEpoch = session.begin();
+  const firstRequest = request(firstEpoch);
+  session.invalidate();
+  pending.shift()();
+  assert.equal(await firstRequest, "discard");
+
+  const secondEpoch = session.begin();
+  const secondRequest = request(secondEpoch);
+  const thirdEpoch = session.begin();
+  pending.shift()();
+  assert.equal(await secondRequest, "discard");
+  assert.equal(session.isCurrent(thirdEpoch), true);
 });

@@ -1,4 +1,5 @@
 import { createBattleClient } from "./api.mjs";
+import { createSessionEpoch } from "./session_epoch.mjs";
 import {
   attackActionInfo, battleProgressText, defenseActionInfo, describeResult, formatActionLine, localDate,
   moveStatus, participantDescription, participantSide, readableError,
@@ -15,6 +16,7 @@ const fields = {
   selfCommitted: $("self-committed"), opponentCommitted: $("opponent-committed"),
   deadline: $("deadline"), result: $("result"),
 };
+const sessionEpoch = createSessionEpoch();
 let playerToken = "";
 let battleId = "";
 let client = null;
@@ -77,19 +79,28 @@ function updateView(view) {
 }
 
 async function refresh() {
-  const view = await client.getView(battleId, playerToken);
+  const epoch = sessionEpoch.current();
+  const requestClient = client;
+  const requestBattleId = battleId;
+  const requestToken = playerToken;
+  if (!requestClient || !requestToken || !requestBattleId) return null;
+  const view = await requestClient.getView(requestBattleId, requestToken);
+  if (!sessionEpoch.isCurrent(epoch)) return null;
   updateView(view);
   return view;
 }
 
 fields.connect.addEventListener("click", async () => {
+  const epoch = sessionEpoch.begin();
   const candidateBattleId = fields.battleId.value.trim();
   const candidateToken = fields.token.value.trim();
   fields.token.value = "";
   fields.connect.disabled = true;
   try {
     client = createBattleClient();
-    const view = await client.getView(candidateBattleId, candidateToken);
+    const requestClient = client;
+    const view = await requestClient.getView(candidateBattleId, candidateToken);
+    if (!sessionEpoch.isCurrent(epoch)) return;
     battleId = candidateBattleId;
     playerToken = candidateToken;
     fields.token.value = "";
@@ -98,16 +109,18 @@ fields.connect.addEventListener("click", async () => {
     setStatus(fields.status, "Подключено. Ключ игрока остаётся только в памяти этого окна.");
     updateView(view);
   } catch (error) {
+    if (!sessionEpoch.isCurrent(epoch)) return;
     client = null;
     playerToken = "";
     battleId = "";
     setStatus(fields.status, readableError(error), true);
   } finally {
-    fields.connect.disabled = false;
+    if (sessionEpoch.isCurrent(epoch)) fields.connect.disabled = false;
   }
 });
 
 fields.disconnect.addEventListener("click", () => {
+  sessionEpoch.invalidate();
   playerToken = "";
   battleId = "";
   client = null;
@@ -116,6 +129,8 @@ fields.disconnect.addEventListener("click", () => {
   fields.token.value = "";
   fields.battleId.value = "";
   fields.disconnect.disabled = true;
+  fields.commit.disabled = true;
+  fields.refresh.disabled = false;
   setStatus(fields.status, "Данные игрока удалены из памяти этого окна.");
   setStatus(fields.battleStatus, "");
 });
@@ -124,7 +139,7 @@ fields.refresh.addEventListener("click", async () => {
   fields.refresh.disabled = true;
   try {
     const view = await refresh();
-    setStatus(fields.battleStatus, battleProgressText(view));
+    if (view) setStatus(fields.battleStatus, battleProgressText(view));
   } catch (error) {
     setStatus(fields.battleStatus, readableError(error), true);
   } finally {
@@ -135,6 +150,10 @@ fields.refresh.addEventListener("click", async () => {
 fields.form.addEventListener("submit", async event => {
   event.preventDefault();
   if (!client || !currentView || fields.commit.disabled) return;
+  const epoch = sessionEpoch.current();
+  const requestClient = client;
+  const requestBattleId = battleId;
+  const requestToken = playerToken;
   const selection = {
     attackColor: $("attack-color").value,
     defenseColor: $("defense-color").value,
@@ -144,11 +163,13 @@ fields.form.addEventListener("submit", async event => {
   };
   fields.commit.disabled = true;
   try {
-    const result = await client.commit(battleId, playerToken, selection);
+    const result = await requestClient.commit(requestBattleId, requestToken, selection);
+    if (!sessionEpoch.isCurrent(epoch)) return;
     updateView(result.view);
     setStatus(fields.battleStatus, battleProgressText(result.view));
   } catch (error) {
+    if (!sessionEpoch.isCurrent(epoch)) return;
     setStatus(fields.battleStatus, readableError(error), true);
-    try { updateView(await refresh()); } catch { /* preserve the last verified public view */ }
+    try { await refresh(); } catch { /* preserve the last verified public view */ }
   }
 });
