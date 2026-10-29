@@ -151,6 +151,50 @@ test('missing, malformed, and unsupported inputs fail closed without a vote', ()
   assert.throws(() => evaluateJudge(malformedParticipant, makeTieJudge()), error => error.code === 'INVALID_STRING');
 });
 
+test('unknown fields are rejected across every object included in fullInputHash', () => {
+  const cases = [
+    ['input', (input) => { input.unrecognized = true; }],
+    ['snapshot', (_input, snapshot) => { snapshot.unrecognized = true; }],
+    ['profile', (_input, snapshot) => { snapshot.profile.unrecognized = true; }],
+    ['relationships', (_input, snapshot) => { snapshot.relationships.unrecognized = true; }],
+    ['relationship', (_input, snapshot) => { snapshot.relationships.A.unrecognized = true; }],
+    ['line', (input) => { input.lines[0].unrecognized = true; }],
+    ['claim', (input) => { input.lines[0].claims[0].unrecognized = true; }],
+    ['known fact', (_input, snapshot) => { snapshot.knownFacts[0].unrecognized = true; }],
+  ];
+  for (const [path, addUnknownField] of cases) {
+    const input = structuredClone(FIXTURE_INPUT);
+    const snapshot = structuredClone(GOLDEN_JUDGES[0]);
+    addUnknownField(input, snapshot);
+    assert.throws(
+      () => evaluateJudge(input, snapshot),
+      error => error instanceof JudgeInputError && error.code === 'UNEXPECTED_FIELD',
+      `expected unknown field in ${path} to be rejected`,
+    );
+  }
+});
+
+test('fullInputHash schema rejects hidden, symbol, accessor, and inherited properties', () => {
+  const hiddenField = structuredClone(FIXTURE_INPUT);
+  Object.defineProperty(hiddenField, 'unrecognized', { value: true });
+  assert.throws(() => evaluateJudge(hiddenField, GOLDEN_JUDGES[0]), error => error.code === 'UNEXPECTED_FIELD');
+
+  const symbolField = structuredClone(FIXTURE_INPUT);
+  symbolField[Symbol('unrecognized')] = true;
+  assert.throws(() => evaluateJudge(symbolField, GOLDEN_JUDGES[0]), error => error.code === 'UNEXPECTED_FIELD');
+
+  const hiddenContractField = structuredClone(FIXTURE_INPUT);
+  Object.defineProperty(hiddenContractField, 'voteId', { value: FIXTURE_INPUT.voteId, enumerable: false });
+  assert.throws(() => evaluateJudge(hiddenContractField, GOLDEN_JUDGES[0]), error => error.code === 'INVALID_FIELD_DESCRIPTOR');
+
+  const accessorField = structuredClone(FIXTURE_INPUT);
+  Object.defineProperty(accessorField, 'voteId', { get: () => FIXTURE_INPUT.voteId, enumerable: true });
+  assert.throws(() => evaluateJudge(accessorField, GOLDEN_JUDGES[0]), error => error.code === 'INVALID_FIELD_DESCRIPTOR');
+
+  const inheritedField = Object.assign(Object.create({ unrecognized: true }), structuredClone(FIXTURE_INPUT));
+  assert.throws(() => evaluateJudge(inheritedField, GOLDEN_JUDGES[0]), error => error.code === 'INVALID_OBJECT');
+});
+
 test('public projection excludes internal scores, private hashes, and internal reason codes', () => {
   const publicResult = toPublicResult(goldenResults()[0]);
   for (const field of ['scores', 'lineScores', 'relationshipScores', 'internalReasonCodes', 'fullInputHash', 'digest']) assert.equal(Object.hasOwn(publicResult, field), false);

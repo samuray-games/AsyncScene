@@ -38,6 +38,20 @@ function requiredString(value, path) {
 function integerIn(value, min, max, path) {
   if (!Number.isInteger(value) || value < min || value > max) fail('INVALID_INTEGER', `${path} must be an integer in ${min}..${max}`);
 }
+function onlyKeys(value, allowed, path) {
+  if (!isObject(value)) fail('INVALID_OBJECT', `${path} must be an object`);
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) fail('INVALID_OBJECT', `${path} must be a plain data object`);
+  for (const key of Reflect.ownKeys(value)) {
+    if (typeof key !== 'string' || !allowed.includes(key)) {
+      fail('UNEXPECTED_FIELD', `${path}.${String(key)} is not part of the CHAT06-JUDGE-V1 input schema`);
+    }
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (!descriptor.enumerable || !Object.hasOwn(descriptor, 'value')) {
+      fail('INVALID_FIELD_DESCRIPTOR', `${path}.${key} must be an enumerable data property`);
+    }
+  }
+}
 function own(value, key, path) {
   if (!isObject(value)) fail('INVALID_OBJECT', `${path} must be an object`);
   if (!Object.hasOwn(value, key)) fail('MISSING_FIELD', `${path}.${key} is required`);
@@ -65,6 +79,7 @@ export function canonicalJson(value) {
 
 function validateProfile(profile) {
   if (!isObject(profile)) fail('INVALID_PROFILE', 'profile must be an object');
+  onlyKeys(profile, ['judgeId', 'profileVersion', 'aggressionCalm', 'factsEmotions', 'humorSeriousness', 'fearResponse'], 'profile');
   requiredString(own(profile, 'judgeId', 'profile'), 'profile.judgeId');
   integerIn(own(profile, 'profileVersion', 'profile'), 1, Number.MAX_SAFE_INTEGER, 'profile.profileVersion');
   for (const key of ['aggressionCalm', 'factsEmotions', 'humorSeriousness']) integerIn(own(profile, key, 'profile'), -2, 2, `profile.${key}`);
@@ -75,6 +90,8 @@ function validateProfile(profile) {
 
 function validateInput(input, snapshot) {
   if (!isObject(input)) fail('INVALID_INPUT', 'input must be an object');
+  onlyKeys(input, ['voteId', 'battleId', 'participantIds', 'featureVersion', 'algorithmVersion', 'lines'], 'input');
+  onlyKeys(snapshot, ['snapshotAt', 'profile', 'judgeId', 'profileVersion', 'seed', 'relationships', 'knownFacts'], 'snapshot');
   for (const key of ['voteId', 'battleId', 'algorithmVersion']) requiredString(own(input, key, 'input'), `input.${key}`);
   if (input.algorithmVersion !== ALGORITHM_VERSION) fail('UNSUPPORTED_ALGORITHM', `algorithmVersion must be ${ALGORITHM_VERSION}`);
   const participants = own(input, 'participantIds', 'input');
@@ -92,9 +109,12 @@ function validateInput(input, snapshot) {
 
   const relationships = own(snapshot, 'relationships', 'snapshot');
   if (!isObject(relationships)) fail('INVALID_RELATIONSHIPS', 'relationships must be an object');
+  onlyKeys(relationships, ['A', 'B'], 'snapshot.relationships');
   for (const [side, participantId] of [['A', participants[0]], ['B', participants[1]]]) {
     const relation = own(relationships, side, 'snapshot.relationships');
-    if (!isObject(relation) || relation.participantId !== participantId) fail('RELATIONSHIP_PARTICIPANT_MISMATCH', `relationship ${side} must identify ${participantId}`);
+    if (!isObject(relation)) fail('INVALID_RELATIONSHIP', `relationship ${side} must be an object`);
+    onlyKeys(relation, ['participantId', 'sympathy', 'resentment', 'fear'], `snapshot.relationships.${side}`);
+    if (own(relation, 'participantId', `snapshot.relationships.${side}`) !== participantId) fail('RELATIONSHIP_PARTICIPANT_MISMATCH', `relationship ${side} must identify ${participantId}`);
     for (const key of ['sympathy', 'resentment', 'fear']) integerIn(own(relation, key, `relationships.${side}`), 0, 2, `relationships.${side}.${key}`);
   }
 
@@ -103,23 +123,29 @@ function validateInput(input, snapshot) {
   const claimById = new Map();
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
-    if (!isObject(line) || line.lineId !== LINE_IDS[i]) fail('INVALID_LINE_ORDER', 'lines must be A1, B1, A2, B2 in that order');
+    if (!isObject(line)) fail('INVALID_LINE', `line ${i} must be an object`);
+    onlyKeys(line, ['lineId', 'speakerId', 'aggression', 'factsEmotions', 'humor', 'claims'], `input.lines[${i}]`);
+    const lineId = own(line, 'lineId', `input.lines[${i}]`);
+    if (lineId !== LINE_IDS[i]) fail('INVALID_LINE_ORDER', 'lines must be A1, B1, A2, B2 in that order');
     const expectedSpeaker = i % 2 === 0 ? participants[0] : participants[1];
-    if (line.speakerId !== expectedSpeaker) fail('LINE_SPEAKER_MISMATCH', `${line.lineId} speakerId must match its participant`);
+    if (own(line, 'speakerId', `input.lines[${i}]`) !== expectedSpeaker) fail('LINE_SPEAKER_MISMATCH', `${lineId} speakerId must match its participant`);
     for (const key of ['aggression', 'factsEmotions', 'humor']) integerIn(own(line, key, `lines.${line.lineId}`), -2, 2, `lines.${line.lineId}.${key}`);
     const claims = own(line, 'claims', `lines.${line.lineId}`);
     if (!Array.isArray(claims)) fail('INVALID_CLAIMS', `${line.lineId}.claims must be an array`);
     for (const claim of claims) {
       if (!isObject(claim)) fail('INVALID_CLAIM', `${line.lineId} claim must be an object`);
+      onlyKeys(claim, ['claimId', 'provenance', 'availableAt', 'status', 'supportUnits'], `${line.lineId}.claim`);
       requiredString(own(claim, 'claimId', 'claim'), 'claim.claimId');
       requiredString(own(claim, 'provenance', 'claim'), 'claim.provenance');
       const availableAt = timestamp(own(claim, 'availableAt', 'claim'), 'claim.availableAt');
       if (availableAt > snapshotAt) fail('FUTURE_CLAIM', `${claim.claimId} was not available at the judge snapshot`);
-      if (!['confirmed', 'unknown', 'refuted', 'mixed'].includes(own(claim, 'status', 'claim'))) fail('INVALID_CLAIM_STATUS', `${claim.claimId} has an invalid status`);
+      const status = own(claim, 'status', 'claim');
+      if (!['confirmed', 'unknown', 'refuted', 'mixed'].includes(status)) fail('INVALID_CLAIM_STATUS', `${claim.claimId} has an invalid status`);
       integerIn(own(claim, 'supportUnits', 'claim'), 0, 100, `claim.${claim.claimId}.supportUnits`);
-      if (claim.status === 'confirmed' && claim.supportUnits < 1) fail('INVALID_CONFIRMED_CLAIM', 'confirmed claims need positive supportUnits');
-      if ((claim.status === 'unknown' || claim.status === 'refuted') && claim.supportUnits !== 0) fail('UNTRUSTED_SUPPORT', 'unknown and refuted claims must have zero supportUnits');
-      if (claim.status === 'mixed' && claim.supportUnits < 1) fail('INVALID_MIXED_CLAIM', 'mixed claims need positive confirmed-part supportUnits');
+      const supportUnits = own(claim, 'supportUnits', 'claim');
+      if (status === 'confirmed' && supportUnits < 1) fail('INVALID_CONFIRMED_CLAIM', 'confirmed claims need positive supportUnits');
+      if ((status === 'unknown' || status === 'refuted') && supportUnits !== 0) fail('UNTRUSTED_SUPPORT', 'unknown and refuted claims must have zero supportUnits');
+      if (status === 'mixed' && supportUnits < 1) fail('INVALID_MIXED_CLAIM', 'mixed claims need positive confirmed-part supportUnits');
       if (claimById.has(claim.claimId)) fail('DUPLICATE_CLAIM_ID', `duplicate claimId ${claim.claimId}`);
       claimById.set(claim.claimId, claim);
     }
@@ -130,6 +156,7 @@ function validateInput(input, snapshot) {
   const knownById = new Map();
   for (const known of knownFacts) {
     if (!isObject(known)) fail('INVALID_KNOWN_FACT', 'known fact must be an object');
+    onlyKeys(known, ['claimId', 'provenance', 'availableAt'], 'snapshot.knownFacts[]');
     requiredString(own(known, 'claimId', 'knownFact'), 'knownFact.claimId');
     requiredString(own(known, 'provenance', 'knownFact'), 'knownFact.provenance');
     const availableAt = timestamp(own(known, 'availableAt', 'knownFact'), 'knownFact.availableAt');
