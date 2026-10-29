@@ -1,6 +1,5 @@
 // Stage 7 - profile-adapted essence modal.
-// The accepted start screen remains unchanged. This module only gives the
-// existing profile-specific essence/rules action real content and behavior.
+// The existing profile-specific rules action opens the game's short introduction.
 window.Game = window.Game || {};
 
 (() => {
@@ -12,101 +11,31 @@ window.Game = window.Game || {};
   const MODAL_ID = "stage7EssenceModal";
   const PROFILES = Object.freeze(["boomer", "genX", "millennial", "zoomer", "alpha"]);
   const COPY = Object.freeze({
-    boomer: Object.freeze({
-      eyebrow: "Почему это удобно",
-      title: "Онлайн-игра без привязки к чужому расписанию",
-      lead: "В обычной сетевой игре всем приходится собираться одновременно и оставаться до конца сессии. В Asynchronia каждый действует тогда, когда ему удобно, а мир сохраняет последствия.",
-      synchronousLabel: "Обычная онлайн-игра",
-      synchronousPoints: Object.freeze([
-        "Нужно заранее согласовать время со всеми.",
-        "Приходится ждать опоздавших или пропускать общую сессию.",
-        "После выхода партия часто останавливается для вас."
-      ]),
-      asynchronousLabel: "Asynchronia",
-      asynchronousPoints: Object.freeze([
-        "Вы заходите в удобное время и сразу делаете свой ход.",
-        "Другие участники отвечают позже, когда смогут.",
-        "Конфликты, союзы и репутация продолжают развиваться между вашими входами."
-      ]),
-      closer: "Не нужно освобождать целый вечер. Несколько осмысленных действий меняют живой мир, и при следующем входе вы видите их последствия.",
-      close: "Вернуться к началу"
-    }),
-    genX: Object.freeze({
-      eyebrow: "Без созвонов и сборов",
-      title: "Онлайн без чужого расписания",
-      lead: "Обычный мультиплеер требует собрать всех в одно время и не выпадать из сессии. Здесь это не нужно.",
-      synchronousLabel: "Обычный онлайн",
-      synchronousPoints: Object.freeze([
-        "Дождись всех.",
-        "Выдели вечер.",
-        "Вышел - выпал из происходящего."
-      ]),
-      asynchronousLabel: "Asynchronia",
-      asynchronousPoints: Object.freeze([
-        "Зашёл, сделал ход, вышел.",
-        "Остальные ответят позже.",
-        "Решения, конфликты и репутация останутся в мире."
-      ]),
-      closer: "Игра не держит у экрана. Но всё, что ты сделал, продолжает работать против кого-то или на тебя.",
-      close: "Назад"
-    }),
-    millennial: Object.freeze({
-      eyebrow: "Социальная стратегия в твоём ритме",
-      title: "Мультиплеер, который помещается в жизнь",
-      lead: "Большинство онлайн-игр просит подстроить вечер под общую сессию. Asynchronia подстраивает взаимодействие под реальное расписание людей.",
-      synchronousLabel: "Синхронный онлайн",
-      synchronousPoints: Object.freeze([
-        "Все должны быть онлайн одновременно.",
-        "Нужно ждать команду и оставаться до конца.",
-        "Пропустил сессию - пропустил события."
-      ]),
-      asynchronousLabel: "Asynchronia",
-      asynchronousPoints: Object.freeze([
-        "Каждый играет в своё время.",
-        "Ответы приходят позже, но история не останавливается.",
-        "Выборы меняют отношения, репутацию и будущие конфликты."
-      ]),
-      closer: "Ты не просто ставишь игру на паузу. Ты оставляешь решение в мире и возвращаешься посмотреть, что оно запустило.",
-      close: "Вернуться"
-    }),
-    zoomer: Object.freeze({
-      eyebrow: "Онлайн без обязаловки",
-      title: "Игра, которая не съедает вечер",
-      lead: "Без «все в 21:00», ожидания пати и страха выйти раньше.",
-      synchronousLabel: "Обычный онлайн",
-      synchronousPoints: Object.freeze([
-        "Собери всех онлайн.",
-        "Жди и не выпадай.",
-        "Пропустил сессию - пропустил движ."
-      ]),
-      asynchronousLabel: "Asynchronia",
-      asynchronousPoints: Object.freeze([
-        "Зашёл когда удобно.",
-        "Сделал ход и вышел.",
-        "Мир, конфликты и репутация двигаются дальше."
-      ]),
-      closer: "Ты не караулишь игру. Игра караулит последствия твоих решений.",
-      close: "Назад"
-    }),
-    alpha: Object.freeze({
-      eyebrow: "твой ритм",
-      title: "мир играет дальше",
-      lead: "не жди пати. не держи игру открытой.",
-      synchronousLabel: "обычный онлайн",
-      synchronousPoints: Object.freeze([
-        "все должны быть здесь сейчас",
-        "ждёшь других",
-        "вышел - всё мимо"
-      ]),
-      asynchronousLabel: "asynchronia",
-      asynchronousPoints: Object.freeze([
-        "зашёл → сделал ход → вышел",
-        "ответы придут позже",
-        "твой выбор меняет конфликт и репу"
-      ]),
-      closer: "удобно. живо. последствия уже пошли.",
-      close: "назад"
-    })
+    boomer: Object.freeze({ title: "Что за игра?", blocks: Object.freeze([
+      Object.freeze({ heading: "Здесь всё решают отношения.", body: "Люди спорят, поддерживают друг друга и меняют мнение. Вы выбираете, когда вмешаться и чью сторону занять." }),
+      Object.freeze({ heading: "За поступками следуют последствия.", body: "Поддержали одного — другой может обидеться. Даже выигранный спор не всегда означает, что всё улажено." }),
+      Object.freeze({ heading: "Играйте без спешки.", body: "Не нужно договариваться о времени встречи. Заходите, когда вам удобно." })
+    ]), close: "Вернуться" }),
+    genX: Object.freeze({ title: "Что за игра?", blocks: Object.freeze([
+      Object.freeze({ heading: "Тут каждый за кого-то.", body: "Один спорит, другой вступается, третий подливает масла. Вмешиваться или нет — сам решай." }),
+      Object.freeze({ heading: "За слова отвечают.", body: "Помог одному — нажил недовольного. Бывает, выиграл спор, а неприятности остались." }),
+      Object.freeze({ heading: "Без обязательных сборов.", body: "Зашёл, сделал своё дело, вышел. Ждать, пока все появятся онлайн, не требуется." })
+    ]), close: "Вернуться" }),
+    millennial: Object.freeze({ title: "Что за игра?", blocks: Object.freeze([
+      Object.freeze({ heading: "Здесь чат быстро становится личным.", body: "Кто-то спорит, кто-то зовёт на помощь. План был просто посмотреть, но ты уже выбираешь сторону." }),
+      Object.freeze({ heading: "Карма без кнопки «отменить».", body: "Поддержал одного — второй обиделся. Даже выигранный спор иногда запускает следующий." }),
+      Object.freeze({ heading: "Никакой вечерней переклички.", body: "Заходишь, когда есть время. Сделал выбор, вернулся позже — игра не требует собирать всех к одному часу." })
+    ]), close: "Вернуться" }),
+    zoomer: Object.freeze({ title: "Что за игра?", blocks: Object.freeze([
+      Object.freeze({ heading: "Здесь легко влететь в чужой движ.", body: "Споры, вбросы, просьбы о помощи. Можешь вписаться, можешь остаться в стороне." }),
+      Object.freeze({ heading: "За вброс прилетит ответ.", body: "Поддержал одного — другой уже косится. Победа в споре не всегда закрывает конфликт." }),
+      Object.freeze({ heading: "Без «все онлайн в девять».", body: "Залетел, выбрал, вышел. Никого караулить не надо." })
+    ]), close: "Вернуться" }),
+    alpha: Object.freeze({ title: "Что за игра?", blocks: Object.freeze([
+      Object.freeze({ heading: "тут у всех своё мнение", body: "один спорит. другой зовёт помочь. ты за кого?" }),
+      Object.freeze({ heading: "влез — будет ответ", body: "кого-то поддержал — другой может обидеться. даже победа не всегда финал." }),
+      Object.freeze({ heading: "зашёл. выбрал. вышел.", body: "все онлайн сразу не нужны. вернёшься потом." })
+    ]), close: "Вернуться" }),
   });
 
   const normalizeProfile = (value) => {
@@ -134,14 +63,8 @@ window.Game = window.Game || {};
     const source = COPY[key] || COPY.millennial;
     return {
       profile: key,
-      eyebrow: source.eyebrow,
       title: source.title,
-      lead: source.lead,
-      synchronousLabel: source.synchronousLabel,
-      synchronousPoints: Array.from(source.synchronousPoints),
-      asynchronousLabel: source.asynchronousLabel,
-      asynchronousPoints: Array.from(source.asynchronousPoints),
-      closer: source.closer,
+      blocks: source.blocks.map((block) => ({ ...block })),
       close: source.close
     };
   };
@@ -158,17 +81,6 @@ window.Game = window.Game || {};
   const setText = (root, selector, value) => {
     const node = root.querySelector(selector);
     if (node) node.textContent = String(value || "");
-  };
-
-  const fillList = (root, selector, values) => {
-    const list = root.querySelector(selector);
-    if (!list) return;
-    list.textContent = "";
-    values.forEach((value) => {
-      const item = document.createElement("li");
-      item.textContent = value;
-      list.appendChild(item);
-    });
   };
 
   const focusableInside = (root) => Array.from(root.querySelectorAll(
@@ -223,20 +135,8 @@ window.Game = window.Game || {};
     root.innerHTML = `
       <section class="stage7EssenceDialog" role="dialog" aria-modal="true" aria-labelledby="stage7EssenceTitle" aria-describedby="stage7EssenceLead" data-telemetry-modal="stage7.essence">
         <button class="stage7EssenceX" type="button" data-stage7-essence-close aria-label="Закрыть">×</button>
-        <div class="stage7EssenceEyebrow"></div>
         <h2 id="stage7EssenceTitle" class="stage7EssenceTitle"></h2>
-        <p id="stage7EssenceLead" class="stage7EssenceLead"></p>
-        <div class="stage7EssenceComparison">
-          <article class="stage7EssenceSide stage7EssenceSideSync">
-            <h3 class="stage7EssenceSyncLabel"></h3>
-            <ul class="stage7EssenceSyncPoints"></ul>
-          </article>
-          <article class="stage7EssenceSide stage7EssenceSideAsync">
-            <h3 class="stage7EssenceAsyncLabel"></h3>
-            <ul class="stage7EssenceAsyncPoints"></ul>
-          </article>
-        </div>
-        <p class="stage7EssenceCloser"></p>
+        <div class="stage7EssenceComparison"></div>
         <button class="btn primary stage7EssenceReturn" type="button" data-stage7-essence-close></button>
       </section>`;
 
@@ -260,17 +160,24 @@ window.Game = window.Game || {};
     root.dataset.uiProfile = copy.profile;
     const dialog = root.querySelector(".stage7EssenceDialog");
     if (dialog) dialog.dataset.uiProfile = copy.profile;
-    setText(root, ".stage7EssenceEyebrow", copy.eyebrow);
     setText(root, ".stage7EssenceTitle", copy.title);
-    setText(root, ".stage7EssenceLead", copy.lead);
-    setText(root, ".stage7EssenceSyncLabel", copy.synchronousLabel);
-    setText(root, ".stage7EssenceAsyncLabel", copy.asynchronousLabel);
-    fillList(root, ".stage7EssenceSyncPoints", copy.synchronousPoints);
-    fillList(root, ".stage7EssenceAsyncPoints", copy.asynchronousPoints);
-    setText(root, ".stage7EssenceCloser", copy.closer);
+    const blocks = root.querySelector(".stage7EssenceComparison");
+    if (blocks) {
+      blocks.textContent = "";
+      copy.blocks.forEach((block, index) => {
+        const article = document.createElement("article");
+        article.className = "stage7EssenceSide";
+        const heading = document.createElement("h3");
+        heading.textContent = block.heading;
+        const body = document.createElement("p");
+        body.className = "stage7EssenceBlockText";
+        if (index === 0) body.id = "stage7EssenceLead";
+        body.textContent = block.body;
+        article.append(heading, body);
+        blocks.appendChild(article);
+      });
+    }
     setText(root, ".stage7EssenceReturn", copy.close);
-    const closeButton = root.querySelector(".stage7EssenceX");
-    if (closeButton) closeButton.setAttribute("aria-label", copy.profile === "boomer" ? "Закрыть описание игры" : "Закрыть");
   };
 
   const openModal = () => {

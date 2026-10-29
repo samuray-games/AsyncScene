@@ -1,0 +1,32 @@
+name: Chat 03B2 Private Gameplay API
+
+on:
+  pull_request:
+    paths:
+      - "gameplay-server/**"
+      - ".github/workflows/chat03b2-private-api.yml"
+  push:
+    paths:
+      - "gameplay-server/**"
+      - ".github/workflows/chat03b2-private-api.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  private-api-local:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check Worker and API test syntax
+        run: node --check gameplay-server/src/worker.js && node --check gameplay-server/test/private_api_local_test.mjs && node --check gameplay-server/test/hosted_chat03b2_d1_preflight.mjs && node --check gameplay-server/test/hosted_chat03b2_d1_preflight.test.mjs
+      - name: Hosted D1 harness offline safety tests (no Cloudflare credentials)
+        run: node --test gameplay-server/test/hosted_chat03b2_d1_preflight.test.mjs
+      - name: Install Wrangler (no Cloudflare credentials)
+        run: npm install --no-save --package-lock=false wrangler@4
+      - name: Private Worker API integration under isolated local workerd/D1
+        run: node gameplay-server/test/private_api_local_test.mjs

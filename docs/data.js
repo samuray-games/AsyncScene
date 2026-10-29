@@ -10,7 +10,7 @@ window.Game = window.Game || {};
     "Tori","Haru","Sen","Dara","Memelord","Sigma","Boss","Zzz","Kappa","Fox"
   ];
 
-  Data.START_SCREEN_TEXT_MAX_LENGTH = 36;
+  Data.START_SCREEN_TEXT_MAX_LENGTH = 96;
   Data.START_SCREEN = Object.freeze({
     title: systemSay("systemEvents", "startTitle"),
     introLines: Object.freeze([
@@ -25,101 +25,121 @@ window.Game = window.Game || {};
     })
   });
   Data.START_SCREEN_PROFILE_TEXTS = Object.freeze({
-    millennial: Object.freeze({
-      start_title: "Асинхрония",
-      birth_digits_label: "Последние 2 цифры года рождения",
-      digit_up_first: "Увеличить первую цифру",
-      digit_down_first: "Уменьшить первую цифру",
-      digit_up_second: "Увеличить вторую цифру",
-      digit_down_second: "Уменьшить вторую цифру",
-      profile_helper: "Только для интерфейса. Год не сохраняем. Профиль потом можно поменять.",
-      fantasy_birth_label: "Кажется, я родился в …",
-      async_value: "Асинхронная онлайн-игра: заходи когда удобно.",
-      no_simultaneous_required: "Не нужно совпадать по расписанию - каждый играет в своё время.",
-      start_continue: "Продолжить игру",
-      start_start: "Старт",
-      start_reset: "Сбросить старт",
-      "introLines[0]": String((((Data.START_SCREEN || {}).introLines || [])[0]) == null ? "" : Data.START_SCREEN.introLines[0]),
-      "introLines[1]": String((((Data.START_SCREEN || {}).introLines || [])[1]) == null ? "" : Data.START_SCREEN.introLines[1]),
-      "introLines[2]": String((((Data.START_SCREEN || {}).introLines || [])[2]) == null ? "" : Data.START_SCREEN.introLines[2]),
-      economyHonestyLine: String(((Data.START_SCREEN || {}).economyHonestyLine) == null ? "" : Data.START_SCREEN.economyHonestyLine),
-      rules_action: String((((Data.START_SCREEN || {}).actions || {}).rules) == null ? "" : Data.START_SCREEN.actions.rules),
-      start_action: String((((Data.START_SCREEN || {}).actions || {}).start) == null ? "" : Data.START_SCREEN.actions.start),
-    }),
     boomer: Object.freeze({
       start_title: "Асинхрония",
-      birth_digits_label: "Последние две цифры года рождения",
       digit_up_first: "Увеличить первую цифру",
       digit_down_first: "Уменьшить первую цифру",
       digit_up_second: "Увеличить вторую цифру",
       digit_down_second: "Уменьшить вторую цифру",
-      profile_helper: "Год нужен только для выбора стиля. Мы его не сохраняем, потом можно выбрать другой.",
-      fantasy_birth_label: "Год рождения, который соответствует вашему самоощущению",
-      async_value: "Асинхронная онлайн-игра: играйте тогда, когда вам удобно.",
-      no_simultaneous_required: "Не нужно собираться одновременно - каждый заходит в игру в своё время.",
       start_continue: "Продолжить игру",
-      start_start: "Начать игру",
-      start_reset: "Сбросить выбор",
-      rules_action: "Правила игры",
-      start_action: "Начать игру",
-      "introLines[0]": "Соперник определяет уровень риска.",
-      "introLines[1]": "Выбранная ставка списывается из запаса монет 💰.",
-      "introLines[2]": "Результат показывается сразу.",
-      economyHonestyLine: "Стоимость действия и его результат показываются сразу.",
+      start_start: "Начать",
+      rules_action: "Что за игра?",
+      start_action: "Начать",
       "actions.start": "Начать",
-      "actions.rules": "Правила",
+      "actions.rules": "Что за игра?",
+      "introLines[2]": "",
+      economyHonestyLine: "",
+      birth_digits_label: "Последние две цифры года рождения",
+      profile_helper: "Это влияет только на оформление. Год рождения не сохраняется; стиль можно изменить позже.",
+      fantasy_birth_label: "Какой год вам ближе по ощущениям?",
+      async_value: "Здесь чужая ссора может неожиданно стать вашим делом.",
+      no_simultaneous_required: "За кого вступиться, кому возразить и когда отступить — решаете вы.",
+      "introLines[0]": "Здесь чужая ссора может неожиданно стать вашим делом.",
+      "introLines[1]": "За кого вступиться, кому возразить и когда отступить — решаете вы.",
+      start_reset: "Сбросить выбор"
     }),
     genX: Object.freeze({
       start_title: "Асинхрония",
-      birth_digits_label: "Две последние цифры года рождения",
       digit_up_first: "Увеличить первую цифру",
       digit_down_first: "Уменьшить первую цифру",
       digit_up_second: "Увеличить вторую цифру",
       digit_down_second: "Уменьшить вторую цифру",
-      profile_helper: "Это только настройка интерфейса. Год не сохраняем, потом можно поменять.",
-      fantasy_birth_label: "Год по ощущению",
-      async_value: "Асинхронная онлайн-игра. Заходи когда удобно.",
-      no_simultaneous_required: "Не надо ждать остальных онлайн - каждый играет в своё время.",
       start_continue: "Продолжить игру",
-      start_start: "Поехали",
-      start_reset: "Сбросить выбор",
-      rules_action: "Как тут всё устроено",
-      start_action: "Поехали",
+      start_start: "Начать",
+      rules_action: "Что за игра?",
+      start_action: "Начать",
+      "actions.start": "Начать",
+      "actions.rules": "Что за игра?",
+      "introLines[2]": "",
+      economyHonestyLine: "",
+      birth_digits_label: "Две последние цифры года рождения",
+      profile_helper: "Год нужен только для оформления. Не сохраняем. Стиль можно сменить потом.",
+      fantasy_birth_label: "Год по ощущениям",
+      async_value: "Зашёл узнать, что тут происходит. Уже кто-то выясняет отношения.",
+      no_simultaneous_required: "Не лезть или ввязаться — решай сам.",
+      "introLines[0]": "Зашёл узнать, что тут происходит. Уже кто-то выясняет отношения.",
+      "introLines[1]": "Не лезть или ввязаться — решай сам.",
+      start_reset: "Сбросить"
+    }),
+    millennial: Object.freeze({
+      start_title: "Асинхрония",
+      digit_up_first: "Увеличить первую цифру",
+      digit_down_first: "Уменьшить первую цифру",
+      digit_up_second: "Увеличить вторую цифру",
+      digit_down_second: "Уменьшить вторую цифру",
+      start_continue: "Продолжить игру",
+      start_start: "Начать",
+      rules_action: "Что за игра?",
+      start_action: "Начать",
+      "actions.start": "Начать",
+      "actions.rules": "Что за игра?",
+      "introLines[2]": "",
+      economyHonestyLine: "",
+      birth_digits_label: "Последние 2 цифры года рождения",
+      profile_helper: "Подбираем оформление по году. Сам год не храним, стиль можно сменить позже.",
+      fantasy_birth_label: "А по ощущениям я из...",
+      async_value: "Хотел просто почитать чат. А тебя уже втянули в спор.",
+      no_simultaneous_required: "Встать на чью-то сторону легко. Разгрести последствия — сложнее.",
+      "introLines[0]": "Хотел просто почитать чат. А тебя уже втянули в спор.",
+      "introLines[1]": "Встать на чью-то сторону легко. Разгрести последствия — сложнее.",
+      start_reset: "Сбросить выбор"
     }),
     zoomer: Object.freeze({
       start_title: "Асинхрония",
-      birth_digits_label: "Последние 2 цифры года рождения",
       digit_up_first: "Увеличить первую цифру",
       digit_down_first: "Уменьшить первую цифру",
       digit_up_second: "Увеличить вторую цифру",
       digit_down_second: "Уменьшить вторую цифру",
-      profile_helper: "Только для выбора стиля. Год не сохраняем, потом сменишь.",
-      fantasy_birth_label: "по вайбу я родился в …",
-      async_value: "Асинхронная онлайн-игра. Играй когда удобно.",
-      no_simultaneous_required: "Не надо ждать всех онлайн - каждый заходит когда хочет.",
       start_continue: "Продолжить игру",
-      start_start: "В игру",
-      start_reset: "Сбросить выбор",
-      rules_action: "Как играть",
-      start_action: "В игру",
+      start_start: "Начать",
+      rules_action: "Что за игра?",
+      start_action: "Начать",
+      "actions.start": "Начать",
+      "actions.rules": "Что за игра?",
+      "introLines[2]": "",
+      economyHonestyLine: "",
+      birth_digits_label: "Последние 2 цифры года",
+      profile_helper: "Это чисто для внешнего вида. Год не сохраняем, стиль можно сменить.",
+      fantasy_birth_label: "по вайбу я из...",
+      async_value: "Зашёл на минутку — уже кто-то устроил разбор.",
+      no_simultaneous_required: "Впишешься, поддержишь или скипнешь?",
+      "introLines[0]": "Зашёл на минутку — уже кто-то устроил разбор.",
+      "introLines[1]": "Впишешься, поддержишь или скипнешь?",
+      start_reset: "Сбросить"
     }),
     alpha: Object.freeze({
       start_title: "Асинхрония",
-      birth_digits_label: "2 цифры года рождения",
       digit_up_first: "Увеличить первую цифру",
       digit_down_first: "Уменьшить первую цифру",
       digit_up_second: "Увеличить вторую цифру",
       digit_down_second: "Уменьшить вторую цифру",
-      profile_helper: "только стиль. год не сохраняем. сменить можно.",
-      fantasy_birth_label: "Год по ощущению",
-      async_value: "асинхронная игра · играй когда хочешь",
-      no_simultaneous_required: "все онлайн сразу не нужны",
       start_continue: "Продолжить игру",
-      start_start: "В игру",
-      start_reset: "Сброс",
-      rules_action: "Правила",
-      start_action: "В игру",
-    }),
+      start_start: "Начать",
+      rules_action: "Что за игра?",
+      start_action: "Начать",
+      "actions.start": "Начать",
+      "actions.rules": "Что за игра?",
+      "introLines[2]": "",
+      economyHonestyLine: "",
+      birth_digits_label: "2 цифры года рождения",
+      profile_helper: "это только стиль. год не сохраняем. сменить можно.",
+      fantasy_birth_label: "по вайбу я из...",
+      async_value: "в чате замес.",
+      no_simultaneous_required: "ты в деле или мимо?",
+      "introLines[0]": "в чате замес.",
+      "introLines[1]": "ты в деле или мимо?",
+      start_reset: "Сброс"
+    })
   });
   Data.UI_PROFILE_BOOMER_DIFF = Object.freeze({
     paceTempo: Object.freeze({
@@ -5654,10 +5674,10 @@ K YN A9: Нет.
           st.style.pointerEvents = "auto";
         }
         const b = btnStart();
-        if (b) b.textContent = getSeen() ? "Продолжить" : "Старт";
+        if (b) b.textContent = getSeen() ? "Продолжить игру" : "Начать";
         const r = btnReset();
         if (r) {
-          r.textContent = "Сбросить старт";
+          r.textContent = "Сбросить выбор";
           r.hidden = !getSeen();
           r.classList.toggle("hidden", !getSeen());
           r.style.display = getSeen() ? "" : "none";
@@ -5688,7 +5708,7 @@ K YN A9: Нет.
         idle();
         refresh();
         result.firstLaunchPrimaryText = text(btnStart());
-        result.freshStateShowsFirstLaunchOnboarding = visible(startScreen()) && result.firstLaunchPrimaryText === "Старт" && getSeen() === false;
+        result.freshStateShowsFirstLaunchOnboarding = visible(startScreen()) && result.firstLaunchPrimaryText === "Начать" && getSeen() === false;
         if (!result.freshStateShowsFirstLaunchOnboarding) fail("fresh_state_not_first_launch", { text: result.firstLaunchPrimaryText, seen: getSeen(), visible: visible(startScreen()) });
 
         result.startButtonEntersGame = clickStart() && !!(S && (S.isStarted === true || (S.flags && S.flags.started === true)));
@@ -5699,7 +5719,7 @@ K YN A9: Нет.
         idle();
         refresh();
         result.repeatLaunchPrimaryText = text(btnStart());
-        result.repeatLaunchShowsContinue = visible(startScreen()) && result.repeatLaunchPrimaryText === "Продолжить" && visible(btnReset());
+        result.repeatLaunchShowsContinue = visible(startScreen()) && result.repeatLaunchPrimaryText === "Продолжить игру" && visible(btnReset());
         if (!result.repeatLaunchShowsContinue) fail("repeat_launch_not_resume_mode", { text: result.repeatLaunchPrimaryText, resetVisible: visible(btnReset()), seen: getSeen() });
         const beforeContinuePoints = S && S.me ? S.me.points : null;
         const beforeContinueWins = S && S.me ? S.me.wins : null;
@@ -5719,7 +5739,7 @@ K YN A9: Нет.
         const afterReset = progressResourceSnapshot();
         result.resetPreservesProgressResources = JSON.stringify(beforeReset) === JSON.stringify(afterReset);
         if (!result.resetPreservesProgressResources) fail("reset_wiped_progress_or_resources", { beforeReset, afterReset });
-        result.resetShowsFirstLaunchAgain = visible(startScreen()) && text(btnStart()) === "Старт";
+        result.resetShowsFirstLaunchAgain = visible(startScreen()) && text(btnStart()) === "Начать";
         if (!result.resetShowsFirstLaunchAgain) fail("reset_did_not_show_first_launch", { text: text(btnStart()), visible: visible(startScreen()) });
         result.noLoopNoStuckState = result.startButtonEntersGame && result.continueButtonEntersGame && result.resetShowsFirstLaunchAgain;
         if (!result.noLoopNoStuckState) fail("loop_or_stuck_state", null);
@@ -11056,14 +11076,14 @@ K YN A9: Нет.
         };
         sourceRouteDiagnostics.hardcodedPlayerFacingCopyRemaining = [
           "Последние 2 цифры года рождения",
-          "Две цифры вайба",
-          "Только для интерфейса. Не сохраняем. Можно поменять позже.",
-          "Это только стиль интерфейса. Потом можно перекинуть.",
-          "Кажется, я родился в …",
-          "по вайбу я родился в …",
-          "Продолжить",
-          "Погнали",
-          "Сбросить старт",
+          "Последние 2 цифры года",
+          "Подбираем оформление по году. Сам год не храним, стиль можно сменить позже.",
+          "Это чисто для внешнего вида. Год не сохраняем, стиль можно сменить.",
+          "А по ощущениям я из...",
+          "по вайбу я из...",
+          "Продолжить игру",
+          "Продолжить игру",
+          "Сбросить выбор",
           "Сбросить выбор",
           "Правила коротко",
           "Войти",
@@ -11158,30 +11178,30 @@ K YN A9: Нет.
         ].every(([input, expected]) => typeof Data.resolveUiProfileFromBirthYearValue === "function" && Data.resolveUiProfileFromBirthYearValue(input) === expected);
         startDom.docsMirrorUpdated = !!(Data && Data.START_SCREEN_PROFILE_TEXTS && Data.START_SCREEN_PROFILE_TEXTS.millennial && Data.START_SCREEN_PROFILE_TEXTS.zoomer
           && startDom.samples.birth_digits_label.millennial === "Последние 2 цифры года рождения"
-          && startDom.samples.birth_digits_label.zoomer === "Две цифры вайба"
-          && startDom.samples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть."
-          && startDom.samples.rules_action.zoomer === "Правила коротко"
-          && startDom.samples.start_action.zoomer === "Войти");
+          && startDom.samples.birth_digits_label.zoomer === "Последние 2 цифры года"
+          && startDom.samples.profile_helper.zoomer === "Это чисто для внешнего вида. Год не сохраняем, стиль можно сменить."
+          && startDom.samples.rules_action.zoomer === "Что за игра?"
+          && startDom.samples.start_action.zoomer === "Начать");
         startDom.ok = startDom.routeConnected
           && startDom.noBirthYearSaved
           && startDom.noNewStorageKeys
           && startDom.profileSelectionStillWorks
           && startDom.docsMirrorUpdated
           && startDom.samples.birth_digits_label.millennial === "Последние 2 цифры года рождения"
-          && startDom.samples.birth_digits_label.zoomer === "Две цифры вайба"
-          && startDom.samples.profile_helper.millennial === "Только для интерфейса. Не сохраняем. Можно поменять позже."
-          && startDom.samples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть."
-          && startDom.samples.fantasy_birth_label.millennial === "Кажется, я родился в …"
-          && startDom.samples.fantasy_birth_label.zoomer === "по вайбу я родился в …"
+          && startDom.samples.birth_digits_label.zoomer === "Последние 2 цифры года"
+          && startDom.samples.profile_helper.millennial === "Подбираем оформление по году. Сам год не храним, стиль можно сменить позже."
+          && startDom.samples.profile_helper.zoomer === "Это чисто для внешнего вида. Год не сохраняем, стиль можно сменить."
+          && startDom.samples.fantasy_birth_label.millennial === "А по ощущениям я из..."
+          && startDom.samples.fantasy_birth_label.zoomer === "по вайбу я из..."
           && startDom.samples.start_continue.millennial === "Продолжить игру"
           && startDom.samples.start_continue.zoomer === "Продолжить игру"
-          && startDom.samples.start_start.default === "Старт"
-          && startDom.samples.start_start.millennial === "Старт"
-          && startDom.samples.start_start.zoomer === "Старт"
-          && startDom.samples.start_reset.millennial === "Сбросить старт"
+          && startDom.samples.start_start.default === "Начать"
+          && startDom.samples.start_start.millennial === "Начать"
+          && startDom.samples.start_start.zoomer === "Начать"
+          && startDom.samples.start_reset.millennial === "Сбросить выбор"
           && startDom.samples.start_reset.zoomer === "Сбросить выбор"
-          && startDom.samples.rules_action.zoomer === "Правила коротко"
-          && startDom.samples.start_action.zoomer === "Войти"
+          && startDom.samples.rules_action.zoomer === "Что за игра?"
+          && startDom.samples.start_action.zoomer === "Начать"
           && startDom.usesStartScreenResolver === true
           && startDom.resolverLayer === "start_screen";
         result.startScreenChecks = startDom;
@@ -11322,14 +11342,14 @@ K YN A9: Нет.
           ok: false
         };
         const docsExpectedStart = {
-          birth_digits_label: { millennial: "Последние 2 цифры года рождения", zoomer: "Две цифры вайба" },
-          profile_helper: { millennial: "Только для интерфейса. Не сохраняем. Можно поменять позже.", zoomer: "Это только стиль интерфейса. Потом можно перекинуть." },
-          fantasy_birth_label: { millennial: "Кажется, я родился в …", zoomer: "по вайбу я родился в …" },
+          birth_digits_label: { millennial: "Последние 2 цифры года рождения", zoomer: "Последние 2 цифры года" },
+          profile_helper: { millennial: "Подбираем оформление по году. Сам год не храним, стиль можно сменить позже.", zoomer: "Это чисто для внешнего вида. Год не сохраняем, стиль можно сменить." },
+          fantasy_birth_label: { millennial: "А по ощущениям я из...", zoomer: "по вайбу я из..." },
           start_continue: { millennial: "Продолжить игру", zoomer: "Продолжить игру" },
-          start_start: { millennial: "Старт", zoomer: "Старт" },
-          start_reset: { millennial: "Сбросить старт", zoomer: "Сбросить выбор" },
-          rules_action: { millennial: "Правила", zoomer: "Правила коротко" },
-          start_action: { millennial: "Старт", zoomer: "Войти" }
+          start_start: { millennial: "Начать", zoomer: "Начать" },
+          start_reset: { millennial: "Сбросить выбор", zoomer: "Сбросить выбор" },
+          rules_action: { millennial: "Что за игра?", zoomer: "Что за игра?" },
+          start_action: { millennial: "Начать", zoomer: "Начать" }
         };
         const docsExpectedMenu = {
           menu_title: { millennial: "Меню", zoomer: "Меню" },
@@ -11680,14 +11700,14 @@ K YN A9: Нет.
         start.usesStartScreenResolver === true
         && start.resolverLayer === "start_screen"
         && startSamples.birth_digits_label && startSamples.birth_digits_label.millennial === "Последние 2 цифры года рождения"
-        && startSamples.birth_digits_label && startSamples.birth_digits_label.zoomer === "Две цифры вайба"
-        && startSamples.profile_helper && startSamples.profile_helper.zoomer === "Это только стиль интерфейса. Потом можно перекинуть."
-        && startSamples.fantasy_birth_label && startSamples.fantasy_birth_label.zoomer === "по вайбу я родился в …"
+        && startSamples.birth_digits_label && startSamples.birth_digits_label.zoomer === "Последние 2 цифры года"
+        && startSamples.profile_helper && startSamples.profile_helper.zoomer === "Это чисто для внешнего вида. Год не сохраняем, стиль можно сменить."
+        && startSamples.fantasy_birth_label && startSamples.fantasy_birth_label.zoomer === "по вайбу я из..."
         && startSamples.start_continue && startSamples.start_continue.zoomer === "Продолжить игру"
-        && startSamples.start_start && startSamples.start_start.zoomer === "Старт"
+        && startSamples.start_start && startSamples.start_start.zoomer === "Начать"
         && startSamples.start_reset && startSamples.start_reset.zoomer === "Сбросить выбор"
-        && startSamples.rules_action && startSamples.rules_action.zoomer === "Правила коротко"
-        && startSamples.start_action && startSamples.start_action.zoomer === "Войти"
+        && startSamples.rules_action && startSamples.rules_action.zoomer === "Что за игра?"
+        && startSamples.start_action && startSamples.start_action.zoomer === "Начать"
       );
       const menuSamplesOk = !!(
         menuSamples.menu_title && menuSamples.menu_title.zoomer === "Меню"
@@ -12766,7 +12786,7 @@ K YN A9: Нет.
       { id: "TXT_0003", from: "Оппонент задаёт риск.", to: "Есть риск со стороны оппонента." },
       { id: "TXT_0004", from: "Ставка списывает ресурс.", to: "При ставке можно потерять ресурс." },
       { id: "TXT_0006", from: "Цена и итог сразу.", to: "Цена и итог видны заранее." },
-      { id: "TXT_0014", from: "Только для интерфейса. Не сохраняем. Можно поменять позже.", to: "Данные используются только для интерфейса. Их можно изменить позже." },
+      { id: "TXT_0014", from: "Подбираем оформление по году. Сам год не храним, стиль можно сменить позже.", to: "Данные используются только для интерфейса. Их можно изменить позже." },
       { id: "TXT_0025", from: "Не хватает 💰.", to: "Не хватает 💰. Лучше проверить баланс." },
       { id: "TXT_0026", from: "Мало 💰 на баттл.", to: "Для баттла может не хватить 💰. Лучше проверить баланс." },
       { id: "TXT_0027", from: "Недоступно.", to: "Пока недоступно. Лучше проверить условия." },

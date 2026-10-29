@@ -1,0 +1,222 @@
+#!/usr/bin/env python3
+"""Static regressions for the mobile tabs, gestures, layout and mirror contract."""
+from pathlib import Path
+import re
+import unittest
+
+ROOT = Path(__file__).resolve().parents[1]
+WEB = ROOT / "AsyncScene" / "Web"
+DOCS = ROOT / "docs"
+
+
+def read(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+
+class MobileFirstInterfaceContract(unittest.TestCase):
+    def test_01_mobile_tablist_has_three_connected_tabs(self):
+        html = read(WEB / "index.html")
+        self.assertIn('id="mobilePanelTabs" class="mobilePanelTabs" role="tablist"', html)
+        expected = {
+            "mobileTabDm": ("dm", "dmBlock", "Личка"),
+            "mobileTabBattles": ("battles", "battlesBlock", ""),
+            "mobileTabEvents": ("events", "eventsBlock", "События"),
+        }
+        for button_id, (key, panel_id, label) in expected.items():
+            match = re.search(rf'<button id="{button_id}"([^>]*)>(.*?)</button>', html, re.S)
+            self.assertIsNotNone(match, button_id)
+            self.assertIn('role="tab"', match.group(1))
+            self.assertIn(f'aria-controls="{panel_id}"', match.group(1))
+            self.assertIn(f'data-mobile-tab="{key}"', match.group(1))
+            if label:
+                self.assertIn(label, match.group(2))
+            elif button_id == "mobileTabBattles":
+                self.assertIn("<span>", match.group(2))
+            self.assertIn(f'data-mobile-count="{key}"', match.group(2))
+
+    def test_02_mobile_only_css_keeps_desktop_shell_unmodified(self):
+        css = read(WEB / "ui" / "mobile-ui.css")
+        block = css.split("/* Mobile-first tabs keep the existing panel DOM mounted", 1)[1]
+        self.assertIn("@media (max-width: 860px)", block)
+        self.assertIn(".mobilePanelShell{display:contents}", block)
+        self.assertIn("#mobilePanelTabs.mobilePanelTabs", block)
+        self.assertIn("overflow-y:auto", block)
+        self.assertIn("touch-action:pan-y", block)
+        self.assertNotIn("touch-action:none", block)
+        self.assertIn("env(safe-area-inset-top", block)
+        self.assertIn("env(safe-area-inset-bottom", block)
+        self.assertIn("100dvh", block)
+
+    def test_03_tab_switch_changes_visibility_without_game_renders(self):
+        mobile = read(WEB / "ui" / "ui-mobile.js")
+        selector = mobile.split("function selectTab(key, focus)", 1)[1].split("function onTabKeydown", 1)[0]
+        self.assertIn("syncA11yAndVisibility()", selector)
+        self.assertNotIn("renderAll", selector)
+        self.assertNotIn("renderDM", selector)
+        self.assertNotIn("renderBattles", selector)
+        self.assertNotIn("renderEvents", selector)
+        self.assertIn("const panelScroll = new Map()", mobile)
+        self.assertIn("savePanelScroll(previousPanel)", selector)
+        self.assertIn("restorePanelScroll(panelElement(key))", selector)
+
+    def test_04_tabs_use_existing_rendered_counters_and_never_auto_switch(self):
+        mobile = read(WEB / "ui" / "ui-mobile.js")
+        self.assertIn('dm: ["dmHeaderCount"]', mobile)
+        self.assertIn('battles: ["battleCount"]', mobile)
+        self.assertIn('events: ["eventsHeaderCount"]', mobile)
+        self.assertIn("new MutationObserver(updateCounters)", mobile)
+        self.assertIn('["dmBlockHeader", "battlesHeader", "eventsHeader"]', mobile)
+        self.assertNotIn('selectTab("events"', mobile)
+        self.assertNotIn('selectTab("battles"', mobile)
+
+    def test_05_swipes_are_panel_scoped_directional_and_cancelable(self):
+        mobile = read(WEB / "ui" / "ui-mobile.js")
+        self.assertIn('target.closest(".panelBody")', mobile)
+        self.assertIn('const blocks = document.getElementById("blocks")', mobile)
+        self.assertIn("lower tabpanel surface empty", mobile)
+        self.assertIn('event.pointerType !== "touch" && event.pointerType !== "pen"', mobile)
+        self.assertIn("Math.abs(dx) < 56", mobile)
+        self.assertIn("Math.abs(dx) <= Math.abs(dy) * 1.25", mobile)
+        self.assertIn('document.addEventListener("pointercancel", resetPointerSwipe', mobile)
+        self.assertIn('document.addEventListener("lostpointercapture", resetPointerSwipe', mobile)
+        self.assertIn('document.addEventListener("touchcancel", resetTouchSwipe', mobile)
+        self.assertIn("function resetPointerSwipe(event)", mobile)
+        self.assertIn("function resetTouchSwipe(event)", mobile)
+        self.assertIn("resetPointerSwipe();", mobile)
+        self.assertIn('button,input,textarea,select,a,[contenteditable', mobile)
+        self.assertIn("isHorizontalScroller", mobile)
+        self.assertIn('document.addEventListener("touchstart", startTouchSwipe', mobile)
+        self.assertIn('document.addEventListener("touchmove", moveTouchSwipe', mobile)
+        self.assertIn('document.addEventListener("touchend", finishTouchSwipe', mobile)
+        interactive = mobile.split("const INTERACTIVE = ", 1)[1].split(";", 1)[0]
+        self.assertNotIn(".battleCard,.eventCard", interactive)
+        self.assertIn('"#battlesHeader .battleTitleText"', mobile)
+
+    def test_06_resize_uses_existing_handle_and_keeps_preferences_in_page_memory(self):
+        core = read(WEB / "ui" / "ui-core.js")
+        self.assertIn('const handle = document.getElementById("chatResizeHandle")', core)
+        self.assertIn("root.__mobilePinnedChatController", core)
+        controller = core[core.index("function ensureMobilePinnedChatLayout") : core.index("UI.ensureMobilePinnedChatLayout")]
+        self.assertIn('document.addEventListener("pointercancel",', controller)
+        self.assertIn('handle.addEventListener("lostpointercapture",', controller)
+        self.assertIn('event.key === "ArrowUp"', core)
+        self.assertIn('event.key === "ArrowDown"', core)
+        self.assertIn('event.key === "Home"', core)
+        self.assertIn('event.key === "End"', core)
+        self.assertNotIn("localStorage", core[core.index("function ensureMobilePinnedChatLayout") : core.index("UI.ensureMobilePinnedChatLayout")])
+        self.assertIn("UI.applyMobilePanelDefaults = function(){ return false; }", core)
+
+    def test_07_long_press_targets_help_surfaces_and_preserves_short_taps(self):
+        mobile = read(WEB / "ui" / "ui-mobile.js")
+        self.assertIn("520", mobile)
+        self.assertIn("Math.hypot(event.clientX - longPress.x, event.clientY - longPress.y) > 9", mobile)
+        self.assertIn('found.closest(".statToast,.lotteryToast,#statToastHost")', mobile)
+        self.assertIn('document.addEventListener("contextmenu"', mobile)
+        self.assertIn("if (hintTarget(event.target)) event.preventDefault()", mobile)
+        self.assertNotIn('document.addEventListener("pointerleave"', mobile)
+        self.assertNotIn("setTimeout(() =>.*statToast", mobile)
+
+    def test_07a_active_stat_cap_hint_precedes_generic_icon_hint(self):
+        mobile = read(WEB / "ui" / "ui-mobile.js")
+        target = mobile.split("function hintTarget(target)", 1)[1].split("function ensureTooltip", 1)[0]
+        self.assertIn('target.closest("[data-stat-cap-hint]")', target)
+        self.assertIn("capText && capText.trim()", target)
+        self.assertIn("const owner = target.closest", target)
+        self.assertIn('return value.trim() ? { element: owner, text: value.trim() }', target)
+        harness = read(ROOT / "tools" / "test_mobile_first_interface.html")
+        self.assertIn('".pointsWrap .statIcon"', harness)
+        self.assertIn("'[data-profile-stat=\"rep\"] .statIcon'", harness)
+        self.assertIn("touched stat icon remains the hint's ARIA owner", harness)
+        self.assertIn("touch-shaped DOM events", harness)
+        self.assertIn('mixedTouchSwipe(win,doc,touchActionTarget,"pointercancel",-90)', harness)
+        self.assertIn('mixedTouchSwipe(win,doc,captureBattleBody,"lostpointercapture",-90)', harness)
+        self.assertIn('touch(win,"touchcancel",doc', harness)
+        self.assertIn("switch exactly once", harness)
+        self.assertIn("pointer-only horizontal gesture", harness)
+        self.assertIn("vertical touch movement", harness)
+        self.assertIn("five renderer-provided tone titles", harness)
+        self.assertIn("non-control battle-card text", harness)
+        self.assertIn("horizontal scroller must not change tabs", harness)
+
+    def test_07b_active_tabs_preserve_renderer_hidden_states(self):
+        css = read(WEB / "ui" / "mobile-ui.css")
+        self.assertIn('#blocks[data-active-tab="dm"] > #dmBlock:not(.hidden)', css)
+        self.assertIn('#battlesBody:not(.hidden)', css)
+        self.assertIn('#eventsBody:not(.hidden)', css)
+        self.assertIn('#dmBlockHeader,#battlesHeader,#eventsHeader{display:none!important}', css)
+        self.assertNotIn('#blocks[data-active-tab="dm"] > #dmBlock{display:flex!important}', css)
+        harness = read(ROOT / "tools" / "test_mobile_first_interface.html")
+        self.assertIn("UI.closeDM must own the closed DM hidden state", harness)
+        self.assertIn("UI.closeDM must own the closed DM hidden state", harness)
+        self.assertIn("selected battle tab must preserve gated/closed hidden state", harness)
+        self.assertIn("renderer's collapsed hidden body", harness)
+
+    def test_07c_mobile_collapsed_preference_does_not_hide_allowed_content(self):
+        css = read(WEB / "ui" / "mobile-ui.css")
+        self.assertIn("#dmBlock.panel--collapsed:not(.hidden) .panelBody:not(.hidden)", css)
+        self.assertIn("#battlesBlock.panel--collapsed:not(.hidden) #battlesBody:not(.hidden)", css)
+        self.assertIn("#eventsBlock.panel--collapsed:not(.hidden) #eventsBody:not(.hidden)", css)
+        harness = read(ROOT / "tools" / "test_mobile_first_interface.html")
+        self.assertIn("persisted collapsed size", harness)
+        self.assertIn("desktop collapsed preference must still hide its body", harness)
+
+    def test_05b_empty_closed_dm_panel_can_swipe_without_game_actions(self):
+        harness = read(ROOT / "tools" / "test_mobile_first_interface.html")
+        self.assertIn("fresh closed-DM lower panel", harness)
+        self.assertIn("fresh empty-panel swipes must not open DM or alter game state", harness)
+
+    def test_08_existing_toast_and_desktop_hint_contracts_remain(self):
+        core = read(WEB / "ui" / "ui-core.js")
+        self.assertIn("COALESCE_MS = 90", read(WEB / "ui" / "ui-profile-visual-tone-repair.js"))
+        self.assertIn("UI.showStatToast", core)
+        self.assertIn("installImmediateHoverHints", core)
+        self.assertIn('addEventListener("focusin"', core)
+        self.assertIn('addEventListener("pointerenter"', core)
+        self.assertIn("mobileLongPressHint", read(WEB / "ui" / "ui-mobile.js"))
+        self.assertIn(".statToast", read(WEB / "ui" / "ui-mobile.js"))
+
+    def test_09_mobile_module_is_wired_after_existing_renderers_and_mirrors_match(self):
+        html = read(WEB / "index.html")
+        self.assertIn('src="ui/ui-mobile.js?v=mobile_first_interface_20261014a_empty_events_visible_surface_20261015a"', html)
+        self.assertGreater(html.index('src="ui/ui-stage7-essence.js'), html.index('src="ui/ui-boot.js'))
+        for relative in (
+            Path("index.html"),
+            Path("style-base.css"),
+            Path("ui/ui-core.js"),
+            Path("ui/ui-battles.js"),
+            Path("ui/ui-events.js"),
+            Path("ui/ui-dm.js"),
+            Path("ui/ui-mobile.js"),
+            Path("ui/mobile-ui.css"),
+        ):
+            self.assertEqual(read(WEB / relative), read(DOCS / relative), str(relative))
+
+    def test_10_mobile_assets_use_current_cache_versions_and_css_contract(self):
+        main_css_version = "mobile_first_interface_20261014a"
+        expected_css_version = "mobile_first_issue434_20261016a"
+        index_paths = (WEB / "index.html", DOCS / "index.html")
+        html_by_path = {path: read(path) for path in index_paths}
+        css_versions = {}
+        for path, html in html_by_path.items():
+            match = re.search(r'<link[^>]+href="ui/mobile-ui\.css\?v=([^"&]+)"', html)
+            self.assertIsNotNone(match, f"mobile-ui.css link missing in {path}")
+            css_versions[path] = match.group(1)
+        self.assertEqual(set(css_versions.values()), {expected_css_version})
+        self.assertNotEqual(expected_css_version, main_css_version)
+
+        css = read(WEB / "ui" / "mobile-ui.css")
+        self.assertIn("#eventsBlock.mobile-empty-events", css)
+        self.assertIn("#eventsBody.mobile-empty-events-body", css)
+        mobile_rules = css.split("@media (max-width: 860px)", 1)[1]
+        self.assertRegex(mobile_rules, r"input,textarea,select[^{}]*\{font-size:16px\}")
+
+        for html in html_by_path.values():
+            self.assertRegex(html, r'ui/ui-events\.js\?v=[^" ]+first_event_mobile_empty_20261015a')
+            self.assertRegex(html, r'ui/ui-mobile\.js\?v=[^" ]+empty_events_visible_surface_20261015a')
+
+        for relative in (Path("index.html"), Path("ui/mobile-ui.css"), Path("ui/ui-events.js"), Path("ui/ui-mobile.js")):
+            self.assertEqual((WEB / relative).read_bytes(), (DOCS / relative).read_bytes(), str(relative))
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)

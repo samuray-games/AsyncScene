@@ -665,10 +665,13 @@ window.Game = window.Game || {};
     return scrollToEventCard(ne.id);
   };
 
-  function renderFirstEventEntry(body, state, ui, expandEvents, rerender) {
-    const eligible = !!(Game.Stage715Demo
+  function isFirstEventEntryEligible(state) {
+    return !!(Game.Stage715Demo
       && typeof Game.Stage715Demo.isFirstEventEligible === "function"
       && Game.Stage715Demo.isFirstEventEligible(state));
+  }
+
+  function renderFirstEventEntry(body, state, ui, expandEvents, rerender, eligible) {
     if (!eligible || !body) return false;
     const entry = document.createElement("div");
     entry.className = "eventCard stage715FirstEventEntry";
@@ -792,6 +795,7 @@ window.Game = window.Game || {};
     } catch(_) {}
 
     header.onclick = (ev) => {
+      if (UI && typeof UI.isMobilePanelMode === "function" && UI.isMobilePanelMode()) return;
       try {
         if (header && header.classList) header.classList.remove("panelHeader--hot");
         if (UI && typeof UI.resetCollapsedCounter === "function") UI.resetCollapsedCounter("events");
@@ -821,6 +825,16 @@ window.Game = window.Game || {};
       .flatMap((store) => Array.isArray(store.battles) ? store.battles : [])
       .find((battle) => battle && battle.meta && battle.meta.stage715OlegEscape === true
         && battle.escapeVote && !battle.escapeVote.decided) || null;
+
+    // Mark the empty panel for mobile presentation and safe swipe arbitration.
+    // This does not reveal the body or override its renderer-owned .hidden state.
+    // This entry is a real Events action even when there are no ordinary
+    // events. Keep the same eligibility result for both the empty marker and
+    // the rendered card so the mobile layout cannot clip actionable content.
+    const firstEventEligible = isFirstEventEntryEligible(S);
+    const emptyEventsState = open.length === 0 && !scriptedOlegBattle && !firstEventEligible;
+    if (rootBlock) rootBlock.classList.toggle("mobile-empty-events", emptyEventsState);
+    body.classList.toggle("mobile-empty-events-body", emptyEventsState);
 
     // Keep the Events panel updating while crowd voting is active (NPC votes should continue after player vote)
     scheduleEventsAutoRefresh(open);
@@ -859,7 +873,7 @@ window.Game = window.Game || {};
     const activeCount = open.filter(e => e && !e.resolved).length;
     const resolvedCount = open.filter(e => e && e.resolved).length;
 
-    renderFirstEventEntry(body, S, UI, ensureEventsExpanded, rerenderEventsOnly);
+    renderFirstEventEntry(body, S, UI, ensureEventsExpanded, rerenderEventsOnly, firstEventEligible);
 
     if (scriptedOlegBattle) {
       const vote = scriptedOlegBattle.escapeVote;
@@ -1326,7 +1340,7 @@ window.Game = window.Game || {};
 
     if (open.length) {
       open.forEach(renderOne);
-    } else if (!scriptedOlegBattle) {
+    } else if (!scriptedOlegBattle && !firstEventEligible) {
       const empty = document.createElement("div");
       empty.className = "pill";
       empty.textContent = t("events_empty");

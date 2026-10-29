@@ -1614,6 +1614,7 @@ UI.renderBattles = () => {
      header.__toggleBound = true;
      header.onpointerdown = null;
      header.onclick = (ev) => {
+       if (UI && typeof UI.isMobilePanelMode === "function" && UI.isMobilePanelMode()) return;
        const t = ev && ev.target;
        if (t && (t.tagName === "BUTTON" || (t.closest && t.closest("button")))) return;
        try {
