@@ -1,5 +1,5 @@
 import { createBattleClient } from "./api.mjs";
-import { createSessionEpoch } from "./session_epoch.mjs";
+import { createSessionEpoch, createSessionViewGate } from "./session_epoch.mjs";
 import {
   attackActionInfo, battleProgressText, defenseActionInfo, describeResult, formatActionLine, localDate,
   moveStatus, participantDescription, participantSide, readableError,
@@ -17,6 +17,7 @@ const fields = {
   deadline: $("deadline"), result: $("result"),
 };
 const sessionEpoch = createSessionEpoch();
+const sessionViewGate = createSessionViewGate();
 let playerToken = "";
 let battleId = "";
 let client = null;
@@ -64,6 +65,7 @@ function renderResult(view) {
 }
 
 function updateView(view) {
+  if (!sessionViewGate.accept(view)) return false;
   currentView = view;
   const side = participantSide(view);
   fields.players.textContent = participantDescription(view);
@@ -76,6 +78,7 @@ function updateView(view) {
   fields.commit.disabled = !side || view.selfCommitted === true ||
     view.revealed === true || view.phase === "expired";
   renderResult(view);
+  return true;
 }
 
 async function refresh() {
@@ -86,12 +89,13 @@ async function refresh() {
   if (!requestClient || !requestToken || !requestBattleId) return null;
   const view = await requestClient.getView(requestBattleId, requestToken);
   if (!sessionEpoch.isCurrent(epoch)) return null;
-  updateView(view);
+  if (!updateView(view)) return null;
   return view;
 }
 
 fields.connect.addEventListener("click", async () => {
   const epoch = sessionEpoch.begin();
+  sessionViewGate.reset();
   const candidateBattleId = fields.battleId.value.trim();
   const candidateToken = fields.token.value.trim();
   fields.token.value = "";
@@ -127,6 +131,7 @@ fields.connect.addEventListener("click", async () => {
 
 fields.disconnect.addEventListener("click", () => {
   sessionEpoch.invalidate();
+  sessionViewGate.reset();
   playerToken = "";
   battleId = "";
   client = null;
@@ -171,7 +176,7 @@ fields.form.addEventListener("submit", async event => {
   try {
     const result = await requestClient.commit(requestBattleId, requestToken, selection);
     if (!sessionEpoch.isCurrent(epoch)) return;
-    updateView(result.view);
+    if (!updateView(result.view)) return;
     setStatus(fields.battleStatus, battleProgressText(result.view));
   } catch (error) {
     if (!sessionEpoch.isCurrent(epoch)) return;

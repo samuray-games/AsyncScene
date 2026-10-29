@@ -190,7 +190,7 @@ export function createRemoteClientApp({
       activeBattleId = saved.battleId;
       tokenInput.value = saved.token;
       battleInput.value = saved.battleId;
-      ownSelection = pending?.selection || null;
+      ownSelection = view.selfCommitted ? null : pending?.selection || null;
       retryPendingMode = Boolean(pending);
       highestViewVersion = Number.isSafeInteger(view.version) ? view.version : -1;
       display(view);
@@ -220,7 +220,7 @@ export function createRemoteClientApp({
 
       activeBattleId = battleId;
       activeToken = token;
-      ownSelection = pending?.selection || null;
+      ownSelection = view.selfCommitted ? null : pending?.selection || null;
       retryPendingMode = Boolean(pending);
       highestViewVersion = Number.isSafeInteger(view.version) ? view.version : -1;
       display(view);

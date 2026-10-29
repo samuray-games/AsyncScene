@@ -41,6 +41,32 @@ test("browser API client is limited to loopback and omits ambient credentials", 
   });
 });
 
+test("ambiguous local commit retries keep the original commandId and selection", async () => {
+  const posts = [];
+  let failFirstPost = true;
+  let idCount = 0;
+  const client = createBattleClient({
+    fetchImpl: async (_url, options) => {
+      if (options.method === "GET") return { ok: true, json: async () => ({ phase: "created", version: 0 }) };
+      const body = JSON.parse(options.body);
+      posts.push(body);
+      if (failFirstPost) { failFirstPost = false; throw new Error("NETWORK_UNCERTAIN"); }
+      return { ok: true, json: async () => ({ view: { phase: "waiting", version: 1, selfCommitted: true } }) };
+    },
+    idFactory: () => "00000000-0000-4000-8000-" + String(++idCount).padStart(12, "0"),
+  });
+  await client.getView(battleId, tokenA);
+  await assert.rejects(client.commit(battleId, tokenA, selection), /NETWORK_UNCERTAIN/);
+  await client.getView(battleId, tokenA); // stale server read may still show the old uncommitted state
+  const changedSelection = { ...selection, attackColor: "r", attackType: "T" };
+  await client.commit(battleId, tokenA, changedSelection);
+  assert.equal(posts.length, 2);
+  assert.equal(idCount, 1, "an uncertain retry must not mint another command identity");
+  assert.equal(posts[1].commandId, posts[0].commandId);
+  assert.deepEqual(posts[1].selection, posts[0].selection);
+  assert.deepEqual(posts[0].selection, selection, "the original user intent is immutable after an uncertain response");
+});
+
 test("browser client rejects non-loopback, HTTPS, credentialed, and path-bearing endpoints", () => {
   for (const url of [
     "https://example.com", "http://192.168.1.2:8787", "http://127.0.0.1.evil.test:8787",

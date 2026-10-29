@@ -17,6 +17,7 @@ export function createBattleClient({ baseUrl = LOCAL_API_BASE, fetchImpl = globa
   idFactory = () => globalThis.crypto.randomUUID() } = {}) {
   const base = assertLoopbackApiBase(baseUrl);
   if (typeof fetchImpl !== "function") throw new Error("Fetch is unavailable");
+  let pendingCommand = null;
   async function request(battleId, token, method, body) {
     if (!UUID.test(battleId)) throw new Error("Enter a valid battle ID");
     if (!TOKEN.test(token)) throw new Error("Enter the 43-character player token");
@@ -37,9 +38,18 @@ export function createBattleClient({ baseUrl = LOCAL_API_BASE, fetchImpl = globa
   return Object.freeze({
     getView(battleId, token) { return request(battleId, token, "GET"); },
     commit(battleId, token, selection) {
-      const commandId = "harness-" + idFactory();
-      if (!COMMAND_ID.test(commandId)) throw new Error("Generated command ID is invalid");
-      return request(battleId, token, "POST", { commandId, selection });
+      if (!pendingCommand) {
+        const commandId = "harness-" + idFactory();
+        if (!COMMAND_ID.test(commandId)) throw new Error("Generated command ID is invalid");
+        pendingCommand = { battleId, token, commandId, selection: { ...selection } };
+      } else if (pendingCommand.battleId !== battleId || pendingCommand.token !== token) {
+        throw new Error("Previous local command outcome is uncertain; reconnect before starting another battle");
+      }
+      // An ambiguous response must retry the same immutable intent and commandId.
+      return request(battleId, token, "POST", {
+        commandId: pendingCommand.commandId,
+        selection: pendingCommand.selection,
+      });
     },
   });
 }

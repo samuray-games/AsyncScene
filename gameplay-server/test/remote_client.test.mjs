@@ -436,6 +436,52 @@ await test("separate IndexedDB connections serialize concurrent same-token comma
   assert.equal(durable.commandId, prepared[0].commandId);
 });
 
+await test("manual reconnect never labels a pending selection as committed when server already has a move", async () => {
+  const storage = createMemoryStorage();
+  const staleSelection = { ...selection, attackColor: "o", attackType: "T" };
+  const transport = makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true, storage,
+    idFactory: () => "manual-reconnect-stale-command",
+    fetchImpl: async (_url, init) => init.method === "GET"
+      ? new Response(JSON.stringify(validView({ phase: "waiting", version: 2, selfCommitted: true })), { status: 200 })
+      : new Response("{}", { status: 500 }) });
+  const pending = await transport.prepareCommit(battle, tokenA, staleSelection);
+  const doc = fakeDocument();
+  const app = createRemoteClientApp({ document: doc, storage, transport, FormDataImpl: FakeFormData,
+    setIntervalImpl: () => 1, clearIntervalImpl: () => {} });
+  await app.restorePromise;
+  doc.elements.get("battle-id").value = battle;
+  doc.elements.get("token").value = tokenA;
+  await doc.elements.get("connect-form").dispatch("submit");
+
+  assert.equal(doc.elements.get("own-state").textContent, "Ваш статус: ход подтверждён.",
+    "the pending T selection must not be attributed to the server-confirmed move");
+  assert.equal(doc.elements.get("commit-button").textContent, "Повторить исходную команду");
+  assert.equal((await storage.getPending(battle, tokenA)).commandId, pending.commandId,
+    "retain the original command identity for reconciliation");
+});
+
+await test("auto-restore never labels a pending selection as committed when server already has a move", async () => {
+  const storage = createMemoryStorage();
+  const staleSelection = { ...selection, attackColor: "o", attackType: "T" };
+  await storage.saveToken(tokenA, battle);
+  const transport = makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true, storage,
+    idFactory: () => "auto-restore-stale-command",
+    fetchImpl: async (_url, init) => init.method === "GET"
+      ? new Response(JSON.stringify(validView({ phase: "waiting", version: 2, selfCommitted: true })), { status: 200 })
+      : new Response("{}", { status: 500 }) });
+  const pending = await transport.prepareCommit(battle, tokenA, staleSelection);
+  const doc = fakeDocument();
+  const app = createRemoteClientApp({ document: doc, storage, transport, FormDataImpl: FakeFormData,
+    setIntervalImpl: () => 1, clearIntervalImpl: () => {} });
+  await app.restorePromise;
+
+  assert.equal(doc.elements.get("own-state").textContent, "Ваш статус: ход подтверждён.",
+    "auto-restore must not claim the pending T selection was the accepted move");
+  assert.equal(doc.elements.get("commit-button").textContent, "Повторить исходную команду");
+  assert.equal((await storage.getPending(battle, tokenA)).commandId, pending.commandId,
+    "retain the original command identity for reconciliation");
+});
+
 await test("stale second tab reconciles ALREADY_COMMITTED by readback without accepting its own selection", async () => {
   const storage = createMemoryStorage();
   let gets = 0;
