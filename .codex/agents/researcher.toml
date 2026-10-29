@@ -1,6 +1,6 @@
 name = "researcher"
 description = "Read-only documentation and history researcher for reconciling repository authority, configuration, and external references."
-model = "gpt-5.6-luna"
+model = "gpt-6-luna"
 model_reasoning_effort = "low"
 sandbox_mode = "read-only"
 developer_instructions = """

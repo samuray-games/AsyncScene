@@ -46,6 +46,8 @@ No silent or untraceable economy deltas, duplicate settlements, lost remainders 
 
 Configured Codex agent-team/model routing is the ordinary mechanism. No user-operated selector handshake or special continuation command is required for ordinary work.
 
+Before requesting a review, the coordinating agent must classify task risk. Route routine and medium-risk work to `reviewer`. Invoke `critical_reviewer` only for high-risk work, including security or authorization, economy or ledger, persistence or data integrity, and dangerous cross-branch integrations. If a high-risk review cannot use `critical_reviewer`, stop and report the gap instead of silently substituting `reviewer`.
+
 ## Parallel work
 
 Use the configured scope-planning mechanism when multiple tasks exist. Serialize shared registries, boot wiring, smoke exports, runtime mirrors and documentation ownership. Do not merge, rebase or absorb another lane without an explicit integration task.
