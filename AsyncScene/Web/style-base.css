@@ -1562,36 +1562,42 @@ button:disabled{opacity:.55; cursor:not-allowed}
     gap:5px;
   }
   body.mobile-keyboard-open #topBar{
-    display:grid;
-    grid-template-columns:minmax(0,1fr) 64px;
-    grid-template-rows:auto auto;
-    grid-template-areas:"balance menu" "cap menu";
-    align-items:center;
-    justify-content:start;
-    min-width:0;
-  }
-  body.mobile-keyboard-open #balance{
-    grid-area:balance;
+    display:flex;
     flex-wrap:nowrap;
+    justify-content:flex-start;
+    align-items:center;
     min-width:0;
-    width:auto;
-    max-width:100%;
+    padding-right:72px;
     overflow-x:auto;
     overflow-y:hidden;
     overscroll-behavior-x:contain;
     scrollbar-width:none;
   }
-  body.mobile-keyboard-open #balance::-webkit-scrollbar{display:none}
+  body.mobile-keyboard-open #topBar::-webkit-scrollbar{display:none}
+  body.mobile-keyboard-open #balance{
+    flex-wrap:nowrap;
+    flex:0 0 auto;
+    min-width:max-content;
+    width:max-content;
+    max-width:none;
+    overflow-x:visible;
+    overflow-y:hidden;
+  }
   body.mobile-keyboard-open #balance .statChip{flex:0 0 auto}
   body.mobile-keyboard-open #weeklyCapLine{
-    grid-area:cap;
+    flex:0 0 auto;
     min-width:0;
     margin-top:0;
+    white-space:nowrap;
   }
+  body.mobile-keyboard-open #meNamePill{flex:0 0 auto}
+  body.mobile-keyboard-open #topBar .topPills{flex:0 0 auto;flex-direction:row!important;gap:5px!important}
   body.mobile-keyboard-open #btnMenu{
-    grid-area:menu;
-    justify-self:end;
-    flex:0 0 auto;
+    position:absolute;
+    top:50%;
+    right:7px;
+    z-index:2;
+    transform:translateY(-50%);
   }
   body.mobile-keyboard-open #chatInputRow,
   body.mobile-keyboard-open .chatInputRow{padding:5px;gap:5px}

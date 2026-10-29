@@ -37,9 +37,9 @@
     const results = [];
     let completedCheckCount = 0;
     let completedPassCount = 0;
-    const runId = params.get("run") || String(Date.now());
     const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
     const assert = (condition, code, details) => ({pass:!!condition,code,details:details||""});
+    const skip = (code,details) => ({pass:false,skipped:true,code,details:details||""});
     const rect = (node) => {
       const value = node && node.getBoundingClientRect();
       return value ? {x:Math.round(value.x),y:Math.round(value.y),top:Math.round(value.top),right:Math.round(value.right),bottom:Math.round(value.bottom),left:Math.round(value.left),width:Math.round(value.width),height:Math.round(value.height)} : null;
@@ -52,7 +52,7 @@
     const diagnostic = (win,doc,inputId,inputs) => ({
       viewport:{innerWidth:win.innerWidth,innerHeight:win.innerHeight,scrollX:win.scrollX,scrollY:win.scrollY,visual:{offsetLeft:win.visualViewport&&win.visualViewport.offsetLeft||0,offsetTop:win.visualViewport&&win.visualViewport.offsetTop||0,width:win.visualViewport&&win.visualViewport.width||win.innerWidth,height:win.visualViewport&&win.visualViewport.height||win.innerHeight,scale:win.visualViewport&&win.visualViewport.scale||1},visibleBottom:(win.visualViewport&&win.visualViewport.offsetTop||0)+(win.visualViewport&&win.visualViewport.height||win.innerHeight)},
       active:nodeState(doc.activeElement,win),
-      elements:Object.fromEntries(["topBar","balance","weeklyCapLine","left","chatInputRow","chatLog","mobilePanelShell","mobilePanelTabs","dmBlock","dmPanelBody","dmLog","dmInputRow","dmExtraRow","chatInput","dmInput","reportInput","menuBlock","btnMenu"].map((id)=>[id,nodeState(id==="dmPanelBody"?doc.querySelector("#dmBlock > .panelBody"):doc.getElementById(id),win)])),
+      elements:Object.fromEntries(["topBar","balance","meNamePill","weeklyCapLine","left","chatInputRow","chatLog","mobilePanelShell","mobilePanelTabs","dmBlock","dmPanelBody","dmLog","dmInputRow","dmExtraRow","chatInput","dmInput","reportInput","menuBlock","btnMenu","argTierPill","argNextPill"].map((id)=>[id,nodeState(id==="dmPanelBody"?doc.querySelector("#dmBlock > .panelBody"):doc.getElementById(id),win)])),
       focusedScenario:inputId,fields:Object.fromEntries(Object.entries(inputs).map(([id,node])=>[id,nodeState(node,win)])),
       layoutVars:Object.fromEntries(["--mobile-vv-top","--mobile-vv-height","--mobile-topbar-height","--mobile-menu-stack-height","--mobile-chat-height","--mobile-chat-min","--mobile-panels-top","--mobile-panels-height"].map((key)=>[key,doc.documentElement.style.getPropertyValue(key)])),
     });
@@ -68,14 +68,14 @@
       const top=box.top+ancestor.clientTop, left=box.left+ancestor.clientLeft;
       return target.bottom>top&&target.top<top+ancestor.clientHeight&&target.right>left&&target.left<left+ancestor.clientWidth;
     };
-    const revealInScrollport = (node,scrollport) => {
-      if (!node||!scrollport) return {before:null,after:null,moved:false};
-      const before=scrollport.scrollTop, target=node.getBoundingClientRect(), box=scrollport.getBoundingClientRect();
-      const top=box.top+scrollport.clientTop, bottom=top+scrollport.clientHeight;
-      if (target.top<top) scrollport.scrollTop-=top-target.top;
-      else if (target.bottom>bottom) scrollport.scrollTop+=target.bottom-bottom;
-      const after=scrollport.scrollTop;
-      return {before:Math.round(before),after:Math.round(after),moved:Math.abs(after-before)>0};
+    const revealHorizontally = (node,scrollport,reservedRight=0) => {
+      if (!node||!scrollport) return false;
+      const target=node.getBoundingClientRect(), box=scrollport.getBoundingClientRect();
+      const left=box.left+scrollport.clientLeft, right=left+scrollport.clientWidth-reservedRight;
+      if (target.left<left) scrollport.scrollLeft-=left-target.left;
+      else if (target.right>right) scrollport.scrollLeft+=target.right-right;
+      const after=node.getBoundingClientRect();
+      return after.right>left&&after.left<right&&after.top>=box.top&&after.bottom<=box.bottom;
     };
     const probeScroll = (node,axis) => {
       if (!node) return {supported:false,moved:false};
@@ -122,18 +122,6 @@
       const game = win && win.Game;
       const ui = game && game.UI;
       const mobileInterface = game && game.__DEV && game.__DEV.mobileInterface;
-      if (doc && !doc.querySelector('link[data-mobile-regression-style="' + index + '"]')) {
-        await new Promise((resolve) => {
-          const freshStyle = doc.createElement("link");
-          freshStyle.rel = "stylesheet";
-          freshStyle.dataset.mobileRegressionStyle = String(index);
-          freshStyle.href = "/AsyncScene/style-base.css?mobileShellRegressionStyle=" + runId + "-" + index;
-          freshStyle.onload = resolve;
-          freshStyle.onerror = resolve;
-          doc.head.appendChild(freshStyle);
-        });
-        if (ui && ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
-      }
       const state = game && game.__S;
       const uiInitialState = ui ? {
         activeTab:mobileInterface && mobileInterface.getActiveTab ? mobileInterface.getActiveTab() : "dm",
@@ -153,6 +141,9 @@
       const blocks = doc && doc.getElementById("blocks");
       const handle = doc && doc.getElementById("chatResizeHandle");
       const mobile = width <= 860;
+      const appStyleLink=doc&&doc.querySelector('link[rel="stylesheet"][href*="style.css"]');
+      const baseImport=appStyleLink&&appStyleLink.sheet&&Array.from(appStyleLink.sheet.cssRules).find((rule)=>rule.href&&rule.href.includes("style-base.css"));
+      const baseStyleLoadedThroughApp=!!(baseImport&&baseImport.styleSheet);
       const stageLocked = doc && doc.documentElement.classList.contains("stage7-first-experience-active");
       if (stageLocked && doc && mobileInterface) {
         doc.documentElement.classList.remove("stage7-first-experience-active");
@@ -165,6 +156,7 @@
       checks.push(assert(!!game && !!ui && !!mobileInterface,"app_booted"));
       checks.push(assert(dims.width === width && dims.height === height,"fixture_viewport_exact",JSON.stringify(dims)));
       checks.push(assert(dims.scrollWidth <= width,"no_horizontal_overflow",dims.scrollWidth + "/" + width));
+      checks.push(assert(baseStyleLoadedThroughApp,"base_stylesheet_loaded_in_original_import_cascade",JSON.stringify({href:appStyleLink&&appStyleLink.href,baseImport:baseImport&&baseImport.href,loaded:!!(baseImport&&baseImport.styleSheet)})));
       if (mobile) {
         const buttons = Array.from(tabs ? tabs.querySelectorAll('[role="tab"]') : []);
         checks.push(assert(tabs && win.getComputedStyle(tabs).display !== "none" && bounds.tabs.height >= 40,"three_tabs_visible",JSON.stringify(bounds.tabs)));
@@ -215,7 +207,7 @@
           checks.push(assert(!!doc.getElementById("battleInviteInput"),"game_action_entry_opens_on_first_click"));
           if (ui._battleInvite) ui._battleInvite.open = false;
           if (ui.renderBattles) ui.renderBattles();
-        } else checks.push(assert(true,"game_action_entry_unavailable_without_battle_fixture","The isolated start state contains no battle action to open."));
+        } else checks.push(skip("game_action_entry_unavailable_without_battle_fixture","The isolated start state contains no battle action to open."));
 
         const scrollBody = doc.getElementById("battlesBody");
         if (scrollBody && scrollBody.scrollHeight > scrollBody.clientHeight + 1) {
@@ -224,7 +216,7 @@
           buttons[2].click();
           buttons[1].click();
           checks.push(assert(scrollBody.scrollTop === savedScrollTop,"panel_scroll_position_preserved",scrollBody.scrollTop + "/" + savedScrollTop));
-        } else checks.push(assert(true,"panel_scroll_position_preserved","no overflow content in this fixture"));
+        } else checks.push(skip("panel_scroll_position_preserved","no overflow content in this fixture"));
         const battleBody = doc.getElementById("battlesBody");
         mobileInterface.selectTab("battles",false);
         dispatchDrag(battleBody,[Math.round(width*.5),Math.round(height*.6)],[Math.round(width*.5)+4,Math.round(height*.6)+90],102);
@@ -304,35 +296,29 @@
               const input=doc.getElementById(inputId);
               const menu=doc.getElementById("menuBlock");
               if (!input||!input.isConnected) throw new Error("Focused field is missing: "+inputId);
+              const panelBody=inputId==="chatInput"?null:doc.querySelector("#dmBlock > .panelBody");
+              const dmLog=inputId==="chatInput"?null:doc.getElementById("dmLog");
               const baseline={chat:Math.round(chat.getBoundingClientRect().height),panels:Math.round(shell.getBoundingClientRect().height)};
               ui.showMenu();
               input.focus();
+              const focusScrollBefore=panelBody?Math.round(panelBody.scrollTop):0;
               const menuStartedOpen=menu.classList.contains("menu-open")&&doc.activeElement===input;
               Object.defineProperty(win,"visualViewport",{configurable:true,value:reducedVV()});
+              const controllerScrollBefore=panelBody?panelBody.scrollTop:0;
               ui.ensureMobilePinnedChatLayout();
+              const controllerScrollAfter=panelBody?panelBody.scrollTop:0;
               const menuClosedForSpace=!menu.classList.contains("menu-open");
               const visibleTop=win.visualViewport.offsetTop;
               const visibleBottom=visibleTop+win.visualViewport.height;
-              const panelBody=inputId==="chatInput"?null:doc.querySelector("#dmBlock > .panelBody");
-              const dmLog=inputId==="chatInput"?null:doc.getElementById("dmLog");
-              let logScroll={required:false,moved:false,topBefore:0,topAfter:0,max:0};
               let panelScroll={required:false,moved:false,topBefore:0,topAfter:0,max:0};
+              const panelScrollMax=panelBody?Math.max(0,panelBody.scrollHeight-panelBody.clientHeight):0;
+              let logReachableByScrolling=false;
               if (dmLog&&panelBody) {
-                revealInScrollport(dmLog,panelBody);
-                const logInPanel=intersects(dmLog,panelBody);
-                const logBefore=dmLog.scrollTop;
-                dmLog.scrollTop=0;
-                const logTop=dmLog.scrollTop;
-                dmLog.scrollTop=dmLog.scrollHeight;
-                const logAfter=dmLog.scrollTop;
-                logScroll={required:dmLog.scrollHeight>dmLog.clientHeight+1,moved:logAfter>logTop,topBefore:Math.round(logBefore),topAfter:Math.round(logAfter),max:Math.max(0,dmLog.scrollHeight-dmLog.clientHeight),insidePanel:logInPanel};
-                dmLog.scrollTop=logBefore;
+                panelBody.scrollTop=Math.min(160,panelScrollMax);
+                logReachableByScrolling=intersects(dmLog,panelBody);
+                panelBody.scrollTop=controllerScrollAfter;
               }
-              input.focus();
-              const panelBefore=panelBody?panelBody.scrollTop:0;
-              if (panelBody) revealInScrollport(input,panelBody);
-              const panelAfter=panelBody?panelBody.scrollTop:0;
-              panelScroll={required:!!(panelBody&&panelBody.scrollHeight>panelBody.clientHeight+1),moved:Math.abs(panelAfter-panelBefore)>0,topBefore:Math.round(panelBefore),topAfter:Math.round(panelAfter),max:panelBody?Math.max(0,panelBody.scrollHeight-panelBody.clientHeight):0};
+              panelScroll={required:!!(panelBody&&panelScrollMax>0),moved:Math.abs(controllerScrollAfter-controllerScrollBefore)>0,topBefore:Math.round(controllerScrollBefore),topAfter:Math.round(controllerScrollAfter),max:panelScrollMax};
               const inputRect=input.getBoundingClientRect();
               const topRect=top.getBoundingClientRect();
               const leftRect=chat.getBoundingClientRect();
@@ -347,19 +333,32 @@
               const keyboardMin=Number.parseFloat(doc.documentElement.style.getPropertyValue("--mobile-chat-min"))||0;
               const chatLogScroll=probeScroll(chatLog,"y");
               const chatLogScrollable=chatLogScroll.supported&&chatLogScroll.moved;
+              const panelBodyScroll=panelBody?probeScroll(panelBody,"y"):{supported:false,moved:false};
               const balance=doc.getElementById("balance");
               const statChips=Array.from(balance.querySelectorAll(".statChip"))
                 .filter((node)=>win.getComputedStyle(node).display!=="none"&&win.getComputedStyle(node).visibility!=="hidden");
-              const balanceNeedsScroll=balance.scrollWidth>balance.clientWidth+1;
-              const balanceScrollStart=balance.scrollLeft;
-              if(balanceNeedsScroll) balance.scrollLeft=balance.scrollWidth;
-              const balanceAtEnd=balance.scrollLeft;
-              const lastStatReachable=statChips.length>0&&isInside(statChips[statChips.length-1],balance);
-              balance.scrollLeft=balanceScrollStart;
-              const firstStatReachable=statChips.length>0&&isInside(statChips[0],balance);
-              const balanceScroll={required:balanceNeedsScroll,topBefore:Math.round(balanceScrollStart),topAfter:Math.round(balanceAtEnd),max:Math.max(0,balance.scrollWidth-balance.clientWidth)};
-              balance.scrollLeft=balanceScrollStart;
-              const balanceAccessible=firstStatReachable&&lastStatReachable&&(!balanceNeedsScroll||balanceScroll.max>0);
+              const profileItems=[...statChips,doc.getElementById("meNamePill"),doc.getElementById("argTierPill"),doc.getElementById("argNextPill"),doc.getElementById("weeklyCapLine")]
+                .filter((node)=>node&&node.isConnected&&win.getComputedStyle(node).display!=="none"&&win.getComputedStyle(node).visibility!=="hidden"&&(node.getBoundingClientRect().width>0||node.getBoundingClientRect().height>0));
+              const topbarScrollStart=top.scrollLeft;
+              const topbarScrollMax=Math.max(0,top.scrollWidth-top.clientWidth);
+              const profileReachability=profileItems.map((node)=>{
+                top.scrollLeft=0;
+                const leftVisible=revealHorizontally(node,top,menuButtonRect?menuButtonRect.width+14:72);
+                const leftRect=rect(node);
+                const start=top.scrollLeft;
+                const width=node.getBoundingClientRect().width;
+                const viewportWidth=Math.max(1,top.clientWidth-(menuButtonRect?menuButtonRect.width+14:72));
+                if(width>viewportWidth) top.scrollLeft=Math.min(topbarScrollMax,start+width-viewportWidth);
+                const rightVisible=revealHorizontally(node,top,menuButtonRect?menuButtonRect.width+14:72);
+                return {id:node.id||node.className,leftVisible,rightVisible,rect:leftRect,scrollLeft:Math.round(top.scrollLeft)};
+              });
+              const topbarScrollProbe=probeScroll(top,"x");
+              const profileAccessible=profileReachability.length>=statChips.length+2
+                &&profileReachability.every((entry)=>entry.leftVisible&&entry.rightVisible)
+                &&(topbarScrollMax===0||topbarScrollProbe.moved);
+              top.scrollLeft=topbarScrollStart;
+              const balanceScroll={required:topbarScrollMax>0,topBefore:Math.round(topbarScrollStart),topAfter:Math.round(topbarScrollMax),max:topbarScrollMax};
+              const balanceAccessible=profileAccessible;
               const chatInputVisible=inputId!=="chatInput"||(inputRect.top>=visibleTop&&inputRect.bottom<=visibleBottom&&isInside(input,chat)&&isInside(chatInputRow,chat));
               const activeInputVisible=inputRect.height>0&&inputRect.top>=visibleTop&&inputRect.bottom<=visibleBottom
                 &&(inputId==="chatInput"?isInside(input,chat):isInside(input,panelBody));
@@ -375,15 +374,15 @@
                 &&chatInput.getBoundingClientRect().height>0
                 &&(inputId!=="chatInput"||chatInputVisible)
                 &&chatLogState.clientHeight>0&&(chatLogState.overflowY==="auto"||chatLogState.overflowY==="scroll")&&chatLogScrollable;
-              const dmLogAccessible=inputId==="chatInput"||!!(panelScroll.required&&panelScroll.moved&&logScroll.insidePanel);
-              const panelScrollValid=inputId==="chatInput"||(!panelScroll.required||panelScroll.moved||activeInputVisible);
+              const dmLogAccessible=inputId==="chatInput"||!!(panelBodyScroll.supported&&panelBodyScroll.moved&&logReachableByScrolling);
+              const panelScrollValid=inputId==="chatInput"||(!panelScroll.required||panelScroll.moved)&&activeInputVisible;
               const geometryAccessible=menuStartedOpen&&menuClosedForSpace&&doc.activeElement===input&&!input.disabled
                 &&activeInputVisible&&topbarCompact&&balanceAccessible&&shellAndTabsVisible&&chatAreaUsable&&dmLogAccessible&&panelScrollValid
                 &&(inputId==="chatInput"||(!panelBody||panelBody.clientHeight>0));
               const label=inputId.replace(/[A-Z]/g,(letter)=>"_"+letter.toLowerCase());
               const inputs={chatInput,dmInput:doc.getElementById("dmInput"),reportInput:doc.getElementById("reportInput")};
               const topBarStyle=win.getComputedStyle(top);
-              const evidence={menuStartedOpen,menuClosedForSpace,activeInputVisible,topbarCompact,topBarGrid:{columns:topBarStyle.gridTemplateColumns,rows:topBarStyle.gridTemplateRows,justify:topBarStyle.justifyContent,contentWidth:top.clientWidth},balanceAccessible,balanceScroll,statChips:statChips.map((node)=>rect(node)),shellAndTabsVisible,chatAreaUsable,chatLogScrollable,chatLogScroll,dmLogAccessible,logScroll,panelScroll,panelScrollValid,keyboardMin,diagnostic:diagnostic(win,doc,inputId,inputs)};
+              const evidence={menuStartedOpen,menuClosedForSpace,activeInputVisible,focusScrollBefore,panelScroll,panelBodyScroll,logReachableByScrolling,topbarCompact,topBarLayout:{display:topBarStyle.display,overflowX:topBarStyle.overflowX,scrollWidth:top.scrollWidth,clientWidth:top.clientWidth},balanceAccessible,balanceScroll,profileReachability,statChips:statChips.map((node)=>rect(node)),shellAndTabsVisible,chatAreaUsable,chatLogScrollable,chatLogScroll,dmLogAccessible,panelScrollValid,keyboardMin,diagnostic:diagnostic(win,doc,inputId,inputs)};
               keyboardFocusResults.push(assert(geometryAccessible,"short_keyboard_menu_focus_geometry_"+label,JSON.stringify(evidence)));
               keyboardFocusResults.push(assert(true,"keyboard_focus_case_completed_"+label,JSON.stringify({inputId,scenario:inputId==="reportInput"?"live cop report flow":inputId==="dmInput"?"live DM flow":"public chat composer"})));
               restoreVV();
@@ -514,11 +513,14 @@
         checks.push(assert(chat && top && bounds.chat.height > 0 && bounds.top.height > 0,"desktop_chat_and_topbar_visible"));
         checks.push(assert(!handle || win.getComputedStyle(handle).display === "none","desktop_splitter_hidden"));
       }
-      const failures = checks.filter((item) => !item.pass);
-      results.push({size:width + "x" + height,kind:kind,passed:checks.length-failures.length,total:checks.length,failures:failures,checks:checks,bounds:bounds,dims:dims});
-      completedCheckCount += checks.length;
-      completedPassCount += checks.length-failures.length;
-      report.textContent = results.map((result) => (result.passed===result.total?"PASS":"FAIL") + " " + result.size + " " + result.kind + ": " + result.passed + "/" + result.total + (result.failures.length ? "\n  " + result.failures.map((item) => item.code + " " + item.details).join("\n  ") : "")).join("\n");
+      const failures = checks.filter((item) => !item.pass&&!item.skipped);
+      const skipped = checks.filter((item) => item.skipped);
+      const total = checks.filter((item) => !item.skipped).length;
+      const passed = checks.filter((item) => item.pass).length;
+      results.push({size:width + "x" + height,kind:kind,passed:passed,total:total,skipped:skipped,failures:failures,checks:checks,bounds:bounds,dims:dims});
+      completedCheckCount += total;
+      completedPassCount += passed;
+      report.textContent = results.map((result) => (result.passed===result.total&&result.failures.length===0?"PASS":"FAIL") + " " + result.size + " " + result.kind + ": " + result.passed + "/" + result.total + (result.skipped.length ? " ("+result.skipped.length+" skipped)" : "") + (result.failures.length ? "\n  " + result.failures.map((item) => item.code + " " + item.details).join("\n  ") : "") + (result.skipped.length ? "\n  " + result.skipped.map((item) => "SKIP " + item.code + " " + item.details).join("\n  ") : "")).join("\n");
       report.className = failures.length ? "fail" : "pass";
       identity.textContent = "Headless Chromium fixture " + width + "×" + height + "; exact iframe viewport " + dims.width + "×" + dims.height + "; app " + frame.contentDocument.title;
       frame.contentWindow.scrollTo(0,0);
@@ -528,11 +530,13 @@
       for (const [index,size] of selectedRuns) await loadSize(size,index);
       const total = results.reduce((sum,item) => sum + item.total,0);
       const passed = results.reduce((sum,item) => sum + item.passed,0);
+      const skippedCount=results.reduce((sum,item)=>sum+item.skipped.length,0);
       const expectedRunCount=requestedView===null?sizes.length:1;
       const complete=selectedRuns.length===expectedRunCount&&results.length===selectedRuns.length&&selectedRuns.length>0;
       const finalPass=complete&&passed===total;
       report.className = finalPass?"pass":"fail";
       report.textContent += "\n\nTOTAL " + passed + "/" + total + " " + (finalPass?"PASS":"FAIL");
+      if (skippedCount) report.textContent += "\nSKIPPED " + skippedCount + " (excluded from PASS total)";
       if (!complete) report.textContent += "\nRUNS INCOMPLETE " + results.length + "/" + selectedRuns.length;
       identity.textContent = "Finished " + results.length + " exact-size Headless Chromium iframe runs. " + results.map((item) => item.size + " " + item.passed + "/" + item.total).join("; ");
       frame.title = "Asynchronia viewport fixture: " + report.textContent.replace(/\n/g," | ");

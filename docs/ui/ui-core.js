@@ -1642,6 +1642,18 @@ window.Game = window.Game || {};
       handle.setAttribute("aria-valuemax", String(maxChat));
       handle.setAttribute("aria-valuenow", String(chatHeight));
       handle.setAttribute("aria-valuetext", `Высота чата ${chatHeight} пикселей`);
+
+      if (keyboardOpen && editingChat && activeEditor.matches("#dmInput, #reportInput")) {
+        const scrollport = activeEditor.closest("#dmBlock > .panelBody");
+        if (scrollport) {
+          const editorRect = activeEditor.getBoundingClientRect();
+          const portRect = scrollport.getBoundingClientRect();
+          const visibleTop = Math.max(portRect.top + scrollport.clientTop, vv.top);
+          const visibleBottom = Math.min(portRect.top + scrollport.clientTop + scrollport.clientHeight, vv.top + vv.height);
+          if (editorRect.top < visibleTop) scrollport.scrollTop -= visibleTop - editorRect.top;
+          else if (editorRect.bottom > visibleBottom) scrollport.scrollTop += editorRect.bottom - visibleBottom;
+        }
+      }
     };
 
     if (!controller.initialized) {
