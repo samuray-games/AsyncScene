@@ -384,6 +384,26 @@
               const topBarStyle=win.getComputedStyle(top);
               const evidence={menuStartedOpen,menuClosedForSpace,activeInputVisible,focusScrollBefore,panelScroll,panelBodyScroll,logReachableByScrolling,topbarCompact,topBarLayout:{display:topBarStyle.display,overflowX:topBarStyle.overflowX,scrollWidth:top.scrollWidth,clientWidth:top.clientWidth},balanceAccessible,balanceScroll,profileReachability,statChips:statChips.map((node)=>rect(node)),shellAndTabsVisible,chatAreaUsable,chatLogScrollable,chatLogScroll,dmLogAccessible,panelScrollValid,keyboardMin,diagnostic:diagnostic(win,doc,inputId,inputs)};
               keyboardFocusResults.push(assert(geometryAccessible,"short_keyboard_menu_focus_geometry_"+label,JSON.stringify(evidence)));
+              const menuAtStart=rect(menuButton);
+              top.scrollLeft=topbarScrollMax;
+              const menuAtProfileEnd=rect(menuButton);
+              const menuCenter={x:Math.floor((menuAtProfileEnd.left+menuAtProfileEnd.right)/2),y:Math.floor((menuAtProfileEnd.top+menuAtProfileEnd.bottom)/2)};
+              const hitTarget=doc.elementFromPoint(menuCenter.x,menuCenter.y);
+              const menuRemainsPinned=menuAtStart&&menuAtProfileEnd
+                &&Math.abs(menuAtStart.left-menuAtProfileEnd.left)<=1&&Math.abs(menuAtStart.right-menuAtProfileEnd.right)<=1
+                &&menuAtProfileEnd.left>=0&&menuAtProfileEnd.right<=width
+                &&menuAtProfileEnd.top>=visibleTop&&menuAtProfileEnd.bottom<=visibleBottom;
+              keyboardFocusResults.push(assert(menuRemainsPinned,"menu_button_stays_visible_at_profile_scroll_end_"+label,JSON.stringify({menuAtStart,menuAtProfileEnd,scrollLeft:top.scrollLeft,scrollMax:topbarScrollMax})));
+              keyboardFocusResults.push(assert(hitTarget===menuButton||menuButton.contains(hitTarget),"menu_button_receives_hit_test_at_profile_scroll_end_"+label,JSON.stringify({menuCenter,target:hitTarget&&hitTarget.id,menuAtProfileEnd})));
+              input.blur();
+              menuButton.click();
+              await wait(40);
+              const menuClickOpened=menu.classList.contains("menu-open")&&win.getComputedStyle(menu).display!=="none"&&menu.getBoundingClientRect().height>0;
+              keyboardFocusResults.push(assert(menuClickOpened,"menu_button_click_works_at_profile_scroll_end_"+label,JSON.stringify({open:menuClickOpened,rect:rect(menu)})));
+              ui.hideMenu();
+              top.scrollLeft=topbarScrollStart;
+              input.focus();
+              ui.ensureMobilePinnedChatLayout();
               keyboardFocusResults.push(assert(true,"keyboard_focus_case_completed_"+label,JSON.stringify({inputId,scenario:inputId==="reportInput"?"live cop report flow":inputId==="dmInput"?"live DM flow":"public chat composer"})));
               restoreVV();
               input.blur();

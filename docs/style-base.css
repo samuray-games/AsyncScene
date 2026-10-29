@@ -1593,11 +1593,10 @@ button:disabled{opacity:.55; cursor:not-allowed}
   body.mobile-keyboard-open #meNamePill{flex:0 0 auto}
   body.mobile-keyboard-open #topBar .topPills{flex:0 0 auto;flex-direction:row!important;gap:5px!important}
   body.mobile-keyboard-open #btnMenu{
-    position:absolute;
-    top:50%;
-    right:7px;
-    z-index:2;
-    transform:translateY(-50%);
+    position:fixed;
+    top:calc(var(--mobile-vv-top) + var(--mobile-safe-top) + var(--mobile-edge) + 4px);
+    right:calc(env(safe-area-inset-right, 0px) + var(--mobile-edge) + 7px);
+    z-index:91;
   }
   body.mobile-keyboard-open #chatInputRow,
   body.mobile-keyboard-open .chatInputRow{padding:5px;gap:5px}
