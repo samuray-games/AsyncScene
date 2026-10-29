@@ -1,9 +1,9 @@
 # Chat03 Two-Person Access Contract V1
 
-**Status: OPTION A AUTHENTICATION AND DEVICE-OPT-IN STORAGE APPROVED / OPERATOR READBACK IMPLEMENTED IN SOURCE AND LOCALLY TESTED / NO HOSTED DEPLOYMENT OR RECOVERY-PROCEDURE APPROVAL**  
-**Prepared:** 2026-10-28  
-**Repository baseline:** `main@31b7a077820914e92de81239e5ab4099e3dfa558` (after merged PR #448).  
-**Related source branches:** PR #449, `de6a6130622097d7123b3f4d6ce2da18bea1d9d3`; PR #450, `6cb4c5886f49e94240ed0b4ba133c151bc205eae`; PR #451, `8c42352136c8ded7d72cb87fac156f916e58cf1c`; and PR #454, `a0c1fcd564498e12c204c68aed3420e3e701f445`. These remain separate open, unmerged PRs during this integration. PR #449's owner-reported Safari PASS is only for its local synthetic two-window harness.  
+**Status: OPTION A AUTHENTICATION AND DEVICE-OPT-IN STORAGE APPROVED / OPERATOR READBACK IMPLEMENTED IN SOURCE AND LOCALLY TESTED / NO HOSTED DEPLOYMENT OR RECOVERY-PROCEDURE APPROVAL**<br>
+**Prepared:** 2026-10-28<br>
+**Repository baseline:** `main@31b7a077820914e92de81239e5ab4099e3dfa558` (after merged PR #448).<br>
+**Related source branches:** PR #449, `de6a6130622097d7123b3f4d6ce2da18bea1d9d3`; PR #450, `6cb4c5886f49e94240ed0b4ba133c151bc205eae`; PR #451, `8c42352136c8ded7d72cb87fac156f916e58cf1c`; and PR #454, `a0c1fcd564498e12c204c68aed3420e3e701f445`. These remain separate open, unmerged PRs during this integration. PR #449's owner-reported Safari PASS is only for its local synthetic two-window harness.<br>
 **Scope:** Proposed accountless access contract for exactly the project owner (A) and one trusted invitee (B, Керил). It proposes a next implementation atom; it changes no runtime, SQL, UI, Worker, Cloudflare resource, secret, or policy.
 
 The owner has accepted Option A and the per-device token-storage contract in this document. The operator capability status-readback route now exists in the integrated source and passed local Worker/D1 tests, but it has not been deployed to a server or verified against a hosted Worker/D1. The real operator identity, credential custody, recovery procedure, exact page/Worker origins and CSP remain open. No other PA gate, retention period, staging access, deployment, or real-person invitation is approved.
