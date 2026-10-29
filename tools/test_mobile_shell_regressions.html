@@ -183,10 +183,26 @@
         checks.push(assert(chatAfter !== chatBefore,"splitter_drag_changes_chat_height",Math.round(chatBefore) + "->" + Math.round(chatAfter)));
         checks.push(assert(chatAfter >= chatMin && panelHeight >= 88,"splitter_minimum_heights",Math.round(chatAfter) + "/" + chatMin + "; panels=" + panelHeight));
 
-        const activePanel = doc.querySelector("#blocks > #battlesBlock");
         const originalVV = Object.getOwnPropertyDescriptor(win,"visualViewport");
         let keyboardResponsive = false;
+        let keyboardMenuAccessible = false;
+        let keyboardRestore = false;
+        let keyboardBaseline = null;
+        let keyboardMenuStart = false;
         try {
+          if (index === 0) {
+            ui.hideMenu();
+            ui.ensureMobilePinnedChatLayout();
+            keyboardBaseline = {
+              chat:Math.round(chat.getBoundingClientRect().height),
+              panels:Math.round(shell.getBoundingClientRect().height),
+            };
+            ui.showMenu();
+            const chatInput = doc.getElementById("chatInput");
+            chatInput.focus();
+            keyboardMenuStart = doc.getElementById("menuBlock").classList.contains("menu-open")
+              && doc.activeElement === chatInput;
+          }
           Object.defineProperty(win,"visualViewport",{configurable:true,value:{height:Math.max(240,height-180),offsetTop:24,addEventListener:function(){}}});
           ui.ensureMobilePinnedChatLayout();
           const vvHeight = Number.parseFloat(doc.documentElement.style.getPropertyValue("--mobile-vv-height")) || 0;
@@ -194,11 +210,52 @@
           keyboardResponsive = doc.body.classList.contains("mobile-keyboard-open")
             && vvHeight === Math.max(240,height-180) && vvTop === 24
             && (Number.parseFloat(doc.documentElement.style.getPropertyValue("--mobile-chat-min")) || 0) >= 72;
+          if (index === 0) {
+            const chatInput = doc.getElementById("chatInput");
+            const chatLog = doc.getElementById("chatLog");
+            const panelBody = doc.querySelector("#blocks > .panel:not(.hidden) .panelBody:not(.hidden), #blocks > .panel:not(.hidden) #battlesBody:not(.hidden), #blocks > .panel:not(.hidden) #eventsBody:not(.hidden)");
+            const menuClosedForSpace = !doc.getElementById("menuBlock").classList.contains("menu-open");
+            const viewBottom = vvTop + vvHeight;
+            const inputRect = chatInput.getBoundingClientRect();
+            const logRect = chatLog.getBoundingClientRect();
+            const shellRect = shell.getBoundingClientRect();
+            const panelBodyHeight = panelBody ? panelBody.getBoundingClientRect().height : 0;
+            keyboardMenuAccessible = keyboardMenuStart && menuClosedForSpace
+              && doc.activeElement === chatInput
+              && inputRect.height > 0 && inputRect.top >= vvTop && inputRect.bottom <= viewBottom
+              && logRect.height > 0 && logRect.top >= vvTop && logRect.bottom <= viewBottom
+              && shellRect.height >= 112 && shellRect.top >= vvTop && shellRect.bottom <= viewBottom
+              && panelBodyHeight > 0;
+          }
         } catch (_) {}
         if (originalVV) Object.defineProperty(win,"visualViewport",originalVV);
         else delete win.visualViewport;
         ui.ensureMobilePinnedChatLayout();
         checks.push(assert(keyboardResponsive,"visual_viewport_keyboard_compaction"));
+        if (index === 0) {
+          const afterKeyboardClose = {
+            chat:Math.round(chat.getBoundingClientRect().height),
+            panels:Math.round(shell.getBoundingClientRect().height),
+          };
+          const chatInput = doc.getElementById("chatInput");
+          chatInput.blur();
+          ui.showMenu();
+          const menuOpenSize = Math.round(chat.getBoundingClientRect().height);
+          ui.hideMenu();
+          ui.ensureMobilePinnedChatLayout();
+          const restored = {
+            chat:Math.round(chat.getBoundingClientRect().height),
+            panels:Math.round(shell.getBoundingClientRect().height),
+          };
+          keyboardRestore = !doc.body.classList.contains("mobile-keyboard-open")
+            && Math.abs(afterKeyboardClose.chat-keyboardBaseline.chat) <= 2
+            && Math.abs(afterKeyboardClose.panels-keyboardBaseline.panels) <= 2
+            && menuOpenSize > 0
+            && Math.abs(restored.chat-keyboardBaseline.chat) <= 2
+            && Math.abs(restored.panels-keyboardBaseline.panels) <= 2;
+          checks.push(assert(keyboardMenuAccessible,"short_keyboard_menu_focus_geometry",JSON.stringify({input:rect(chatInput),chat:rect(chat),shell:rect(shell)})));
+          checks.push(assert(keyboardRestore,"keyboard_and_menu_close_restore_sizes",JSON.stringify({baseline:keyboardBaseline,afterKeyboardClose,restored,menuOpenSize})));
+        }
 
         const hintTarget = doc.querySelector("#balance [data-stat-hover-hint]");
         if (hintTarget) {

@@ -1589,7 +1589,7 @@ window.Game = window.Game || {};
       const gap = 8;
       const topHeight = topbarHeight();
       const tabSize = tabHeight();
-      const menuHeight = menuStackHeight();
+      let menuHeight = menuStackHeight();
       const desiredPanelHeight = Math.min(148, Math.max(88, Math.round(vv.height * 0.22)));
       const chatHeader = document.getElementById("chatHeader");
       const chatInputRow = document.getElementById("chatInputRow");
@@ -1599,24 +1599,36 @@ window.Game = window.Game || {};
       const keyboardChatMin = Math.ceil(headerHeight + Math.min(inputHeight, 48) + handleHeight + 18);
       const edgeHeight = edge * 2 + safeTop + safeBottom;
       const layoutGaps = gap * 3;
-      const fixedHeight = edgeHeight + topHeight + menuHeight + layoutGaps + tabSize;
-      const panelFloor = keyboardOpen ? Math.min(88, Math.max(48, Math.round(vv.height * 0.16))) : desiredPanelHeight;
-      const chatCeilingForPanelFloor = Math.max(72, vv.height - fixedHeight - panelFloor);
-      const minChatHeight = Math.min(168, Math.max(
-        keyboardOpen ? Math.min(keyboardChatMin, chatCeilingForPanelFloor) : 72,
+      let fixedHeight = edgeHeight + topHeight + menuHeight + layoutGaps;
+      const chatInput = document.getElementById("chatInput");
+      const editingChat = !!(chatInput && document.activeElement === chatInput);
+      const minimumPanelsHeight = keyboardOpen ? 112 : 88;
+      if (keyboardOpen && editingChat && menuHeight > 0
+          && vv.height - fixedHeight < keyboardChatMin + minimumPanelsHeight) {
+        // The menu and editor cannot both fit on a short keyboard viewport.
+        // Close the menu through its normal controller, which re-enters sync.
+        if (UI.hideMenu) {
+          UI.hideMenu();
+          return;
+        }
+      }
+      const panelFloor = keyboardOpen ? Math.max(112, Math.round(vv.height * 0.28)) : desiredPanelHeight;
+      const chatCapacity = Math.max(0, vv.height - fixedHeight - panelFloor);
+      const minChatHeight = Math.min(chatCapacity, 168, Math.max(
+        keyboardOpen ? Math.min(keyboardChatMin, chatCapacity) : 72,
         Math.round(vv.height * 0.27),
       ));
-      const minPanelHeight = Math.max(0, Math.min(desiredPanelHeight, vv.height - fixedHeight - minChatHeight));
+      const minPanelHeight = Math.max(0, Math.min(panelFloor, vv.height - fixedHeight - minChatHeight));
       const chatTop = vv.top + safeTop + edge + topHeight + gap + menuHeight;
-      const maxChat = Math.max(minChatHeight, vv.height - safeTop - safeBottom - edge * 2 - topHeight - menuHeight - gap * 3 - tabSize - minPanelHeight);
+      const maxChat = Math.max(0, vv.height - safeTop - safeBottom - edge * 2 - topHeight - menuHeight - gap * 3 - minPanelHeight);
       if (Number.isFinite(requestedHeight)) controller.preferredHeight = Math.max(minChatHeight, Math.min(maxChat, requestedHeight));
       if (!controller.preferredHeight) {
-        const splitSpace = Math.max(minChatHeight, vv.height - safeTop - safeBottom - edge * 2 - topHeight - menuHeight - gap * 3 - tabSize);
+        const splitSpace = Math.max(minChatHeight, vv.height - safeTop - safeBottom - edge * 2 - topHeight - menuHeight - gap * 3);
         controller.preferredHeight = splitSpace * (activeBattleExists() ? 0.40 : 0.55);
       }
-      const chatHeight = Math.round(Math.max(minChatHeight, Math.min(maxChat, controller.preferredHeight)));
+      const chatHeight = Math.round(Math.max(0, Math.min(maxChat, Math.max(minChatHeight, controller.preferredHeight))));
       const panelsTop = chatTop + chatHeight + gap;
-      const panelsHeight = Math.max(88, vv.height - safeBottom - edge - (panelsTop - vv.top));
+      const panelsHeight = Math.max(0, vv.height - safeBottom - edge - (panelsTop - vv.top));
       root.style.setProperty("--mobile-vv-top", `${vv.top}px`);
       root.style.setProperty("--mobile-vv-height", `${vv.height}px`);
       root.style.setProperty("--mobile-topbar-height", `${topHeight}px`);
