@@ -139,6 +139,12 @@ function adminAuthorized(req, env) {
     secretEquals(bearer(req), secret);
 }
 
+function operatorReadAuthorized(req, env) {
+  const secret = env.OPERATOR_READ_TOKEN;
+  return typeof secret === "string" && secret.length >= 32 &&
+    secretEquals(bearer(req), secret);
+}
+
 function config(env) {
   if (!env.DB || typeof env.ADMIN_CONTROL_TOKEN !== "string" || env.ADMIN_CONTROL_TOKEN.length < 32) {
     throw new Error("GAMEPLAY_CONFIG_MISSING");
@@ -562,12 +568,35 @@ async function commit(db, id, authorized, body) {
 }
 
 async function api(request, env) {
+  const pathname = new URL(request.url).pathname;
+  const capabilityStatusMatch = /^\/v1\/admin\/battles\/([^/]+)\/capabilities\/([^/]+)\/status$/.exec(pathname);
+  if (capabilityStatusMatch) {
+    // Status readback is a separate server-to-server, read-only credential.
+    // It never opts into browser CORS and does not require mutation authority.
+    if (request.headers.has("origin") || request.method === "OPTIONS") {
+      return encodeJSON({ error: "ORIGIN_FORBIDDEN" }, 403);
+    }
+    if (request.method !== "GET") return encodeJSON({ error: "METHOD_NOT_ALLOWED" }, 405);
+    const [, battleId, side] = capabilityStatusMatch;
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(battleId) ||
+        !["A", "B"].includes(side)) {
+      return encodeJSON({ error: "NOT_FOUND" }, 404);
+    }
+    if (!operatorReadAuthorized(request, env)) return encodeJSON({ error: "UNAUTHORIZED" }, 401);
+    if (!env.DB) throw new Error("GAMEPLAY_CONFIG_MISSING");
+    const capability = await env.DB.prepare(
+      `SELECT generation,status FROM gameplay_battle_capabilities
+       WHERE battle_id=? AND side=?`
+    ).bind(battleId, side).first();
+    if (!capability) return encodeJSON({ error: "NOT_FOUND" }, 404);
+    return encodeJSON({ generation: capability.generation, status: capability.status });
+  }
+
   config(env);
   const origin = request.headers.get("origin");
   if (origin && (typeof env.ALLOWED_ORIGIN !== "string" || origin !== env.ALLOWED_ORIGIN)) {
     return encodeJSON({ error: "ORIGIN_FORBIDDEN" }, 403);
   }
-  const pathname = new URL(request.url).pathname;
   const operatorMatch = /^\/v1\/admin\/battles\/([a-f0-9-]{36})\/capabilities\/([AB])\/(revoke|replace)$/.exec(pathname);
   if (operatorMatch) {
     // These server-to-server controls never opt into browser CORS, including
