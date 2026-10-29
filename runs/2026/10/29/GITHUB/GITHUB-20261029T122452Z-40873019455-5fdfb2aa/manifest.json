@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "codex/chat03-integrate-pr449-450-451-454-20261029",
+  "createdAtJst": "2026-10-29 21:24:52 JST",
+  "createdAtUtc": "2026-10-29T12:24:52Z",
+  "packagePath": "runs/2026/10/29/GITHUB/GITHUB-20261029T122452Z-40873019455-5fdfb2aa",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20261029T122452Z-40873019455-5fdfb2aa",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
