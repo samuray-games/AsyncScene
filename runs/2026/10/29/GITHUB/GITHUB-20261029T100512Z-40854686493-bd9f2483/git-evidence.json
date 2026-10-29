@@ -1,0 +1,106 @@
+{
+  "branch": "codex/chat04-1-general-chat-ui-20261029",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T10:05:12Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T10:05:12Z",
+      "stderr": "",
+      "stdout": "codex/chat04-1-general-chat-ui-20261029\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T10:05:12Z",
+      "stderr": "",
+      "stdout": "0dab38e875089f2ab07d6f4795977c549d785a88\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T10:05:12Z",
+      "stderr": "",
+      "stdout": "# branch.oid 0dab38e875089f2ab07d6f4795977c549d785a88\n# branch.head codex/chat04-1-general-chat-ui-20261029\n# branch.upstream origin/codex/chat04-1-general-chat-ui-20261029\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T10:05:12Z",
+      "stderr": "",
+      "stdout": "0dab38e8 (HEAD -> codex/chat04-1-general-chat-ui-20261029, origin/codex/chat04-1-general-chat-ui-20261029) fix(chat04.1): reserve scrollable feed on short mobile viewports\n641eea7c test(chat04.1): guard preview flex layout for chat scrolling\n1ea0eca6 fix(chat04.1): constrain isolated preview chat as flex column\nf9defa39 test(chat04.1): cover initial tab focus order\ne69c2599 fix(chat04.1): initialize accessible tab focus order\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T10:05:12Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 0dab38e875089f2ab07d6f4795977c549d785a88\nbranch refs/heads/codex/chat04-1-general-chat-ui-20261029\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T10:05:12Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T10:05:12Z",
+      "stderr": "",
+      "stdout": "31b7a077820914e92de81239e5ab4099e3dfa558\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "0dab38e875089f2ab07d6f4795977c549d785a88",
+  "observedAtUtc": "2026-10-29T10:05:12Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
