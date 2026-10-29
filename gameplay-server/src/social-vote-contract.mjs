@@ -1,1 +1,32 @@
-const READY_PHRASE = "Готовая фраза";\n\nfunction normalizeAuthoredText(value) {\n  return String(value ?? "")\n    .normalize("NFKC")\n    .toLocaleLowerCase("ru")\n    .replace(/[\\p{P}\\p{S}\\p{Z}\\p{C}]/gu, "");\n}\n\n/** Pure Chat05A trigger contract. Not wired to an HTTP route. */\nexport function shouldOpenSocialVote({\n  mechanicalResult,\n  previousAuthoredText,\n  nextAuthoredText,\n  readyPhrase = READY_PHRASE,\n}) {\n  if (mechanicalResult === "draw") return true;\n  const next = String(nextAuthoredText ?? "").normalize("NFKC").trim();\n  if (next === String(readyPhrase).normalize("NFKC").trim()) return false;\n  return normalizeAuthoredText(previousAuthoredText) !== normalizeAuthoredText(next);\n}\n\n/** One vote per battle; persistence must enforce a unique insert on this ID. */\nexport async function deriveSocialVoteId(battleId) {\n  if (typeof battleId !== "string" || !battleId.trim()) {\n    throw new TypeError("battleId must be a non-empty string");\n  }\n  const input = new TextEncoder().encode("asynchronia:chat05a:social-vote:v1:" + battleId.trim());\n  const digest = await crypto.subtle.digest("SHA-256", input);\n  const hex = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");\n  return "sv1_" + hex;\n\n}
+const READY_PHRASE = "Готовая фраза";
+
+function normalizeAuthoredText(value) {
+  return String(value ?? "")
+    .normalize("NFKC")
+    .toLocaleLowerCase("ru")
+    .replace(/[\p{P}\p{S}\p{Z}\p{C}]/gu, "");
+}
+
+/** Pure Chat05A trigger contract. Not wired to an HTTP route. */
+export function shouldOpenSocialVote({
+  mechanicalResult,
+  previousAuthoredText,
+  nextAuthoredText,
+  readyPhrase = READY_PHRASE,
+}) {
+  if (mechanicalResult === "draw") return true;
+  const next = String(nextAuthoredText ?? "").normalize("NFKC").trim();
+  if (next === String(readyPhrase).normalize("NFKC").trim()) return false;
+  return normalizeAuthoredText(previousAuthoredText) !== normalizeAuthoredText(next);
+}
+
+/** One vote per battle; persistence must enforce a unique insert on this ID. */
+export async function deriveSocialVoteId(battleId) {
+  if (typeof battleId !== "string" || !battleId.trim()) {
+    throw new TypeError("battleId must be a non-empty string");
+  }
+  const input = new TextEncoder().encode("asynchronia:chat05a:social-vote:v1:" + battleId.trim());
+  const digest = await crypto.subtle.digest("SHA-256", input);
+  const hex = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return "sv1_" + hex;
+}
