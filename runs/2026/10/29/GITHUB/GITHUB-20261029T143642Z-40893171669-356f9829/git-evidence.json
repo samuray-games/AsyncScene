@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T14:36:42Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T14:36:42Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T14:36:42Z",
+      "stderr": "",
+      "stdout": "b35e178c431c2118a2436e6d69047a95fc80b92d\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T14:36:42Z",
+      "stderr": "",
+      "stdout": "# branch.oid b35e178c431c2118a2436e6d69047a95fc80b92d\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T14:36:42Z",
+      "stderr": "",
+      "stdout": "b35e178c (HEAD, pull/459/merge) Merge 3f08806f7e0264c2861d2dcbeb727b6012917de7 into 31b7a077820914e92de81239e5ab4099e3dfa558\n3f08806f (origin/codex/agent-cost-optimization-20261029) chore(codex): optimize project subagent model routing\n31b7a077 (origin/main) Merge pull request #448 from samuray-games/codex/chat03-private-alpha-readiness-gate-20261028\n0ee4d07d (origin/codex/chat03-private-alpha-readiness-gate-20261028) docs(chat03): propose private-alpha operator and staging safety gates\n1e05ffd7 Merge pull request #447 from samuray-games/codex/chat03-postmerge-memory-sync-20261028\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T14:36:42Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD b35e178c431c2118a2436e6d69047a95fc80b92d\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T14:36:42Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T14:36:42Z",
+      "stderr": "",
+      "stdout": "31b7a077820914e92de81239e5ab4099e3dfa558\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "b35e178c431c2118a2436e6d69047a95fc80b92d",
+  "observedAtUtc": "2026-10-29T14:36:42Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
