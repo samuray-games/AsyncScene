@@ -432,7 +432,7 @@ try {
   const fixturePath = path.join(dir, "expired-fixture.sql");
   writeFileSync(fixturePath, fixtureSql);
   migrate(fixturePath);
-  console.log("PASS: D1 migrations 0001 through 0007 and local fixtures");
+  console.log("PASS: D1 migrations 0001 through 0008 and local fixtures");
   const testWrapperConfig = writeTestWorkerWrapper();
   executeSqlExpectFailure(`INSERT INTO gameplay_apply_participant_transition (
       battle_id,expected_version,command_id,fingerprint,receipt_code,
@@ -475,6 +475,18 @@ try {
       logs = (logs + value).slice(-30000);
     });
     return child;
+  }
+  async function restartApi() {
+    const previous = worker;
+    if (previous && previous.exitCode === null) {
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => reject(Error("LOCAL_WORKER_RESTART_TIMEOUT")), 10000);
+        previous.once("exit", () => { clearTimeout(timeout); resolve(); });
+        previous.kill("SIGTERM");
+      });
+    }
+    worker = spawnApi();
+    await start(base);
   }
   worker = spawnApi();
   await start(base);
@@ -1456,6 +1468,12 @@ try {
   const ballotAfterReload = await request(base, "POST", `/v1/battles/${drawBattle.battleId}/votes`,
     capOne.token, { choice: "A" });
   assert.deepEqual(ballotAfterReload, { status: 200, voteId: expectedVoteId, choice: "A", replayed: true });
+  await restartApi(); // same local D1 persist directory, new Worker process
+  const ballotAfterWorkerRestart = await request(base, "POST",
+    `/v1/battles/${drawBattle.battleId}/votes`, capOne.token, { choice: "A" });
+  assert.deepEqual(ballotAfterWorkerRestart,
+    { status: 200, voteId: expectedVoteId, choice: "A", replayed: true });
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_social_votes WHERE battle_id='${drawBattle.battleId}'`)[0].count, 1);
   assert.equal((await request(base, "POST", `/v1/battles/${drawBattle.battleId}/votes`,
     capOne.token, { choice: "B" })).status, 409);
   const storedSecret = query(`SELECT token_sha256 FROM gameplay_battle_spectator_capabilities
