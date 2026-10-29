@@ -12,6 +12,7 @@ test("canonical DRAW mechanical outcome triggers a social vote", () => {
 test("substantive authored-text edit triggers a vote", () => {
   assert.equal(shouldOpenSocialVote({
     mechanicalResult: "A_WIN",
+    nextTextOrigin: "authored",
     previousAuthoredText: "Защищаю свою позицию",
     nextAuthoredText: "Защищаю позицию фактами",
   }), true);
@@ -26,6 +27,7 @@ test("punctuation-only and whitespace-only edits do not trigger a vote", () => {
         : "это   факт";
     assert.equal(shouldOpenSocialVote({
       mechanicalResult: "A_WIN",
+      nextTextOrigin: "authored",
       previousAuthoredText,
       nextAuthoredText,
     }), false);
@@ -35,22 +37,25 @@ test("punctuation-only and whitespace-only edits do not trigger a vote", () => {
 test("word boundaries and emoji sequences remain semantically significant", () => {
   assert.equal(shouldOpenSocialVote({
     mechanicalResult: "A_WIN",
+    nextTextOrigin: "authored",
     previousAuthoredText: "ab",
     nextAuthoredText: "a b",
   }), true);
   assert.equal(shouldOpenSocialVote({
     mechanicalResult: "A_WIN",
+    nextTextOrigin: "authored",
     previousAuthoredText: "Да 👍",
     nextAuthoredText: "Да 👎",
   }), true);
   assert.equal(shouldOpenSocialVote({
     mechanicalResult: "A_WIN",
+    nextTextOrigin: "authored",
     previousAuthoredText: "👩‍⚕️",
     nextAuthoredText: "👩⚕️",
   }), true);
 });
 
-test("trusted generated ready phrase changes do not trigger authored-text votes", () => {
+test("generated and unknown text provenance cannot trigger authored-text votes", () => {
   assert.equal(shouldOpenSocialVote({
     mechanicalResult: "A_WIN",
     previousAuthoredText: "Черновик",
@@ -63,6 +68,14 @@ test("trusted generated ready phrase changes do not trigger authored-text votes"
     nextAuthoredText: "Готовая фраза",
     nextTextOrigin: "authored",
   }), true);
+  for (const nextTextOrigin of [undefined, "unknown", "generated_ready_phrase", "browser_claimed_authored"]) {
+    assert.equal(shouldOpenSocialVote({
+      mechanicalResult: "A_WIN",
+      previousAuthoredText: "Черновик",
+      nextAuthoredText: "Поддельный авторский текст",
+      ...(nextTextOrigin === undefined ? {} : { nextTextOrigin }),
+    }), false);
+  }
 });
 
 test("vote ID is stable across reload-like calls and concurrent retries", async () => {

@@ -13,11 +13,12 @@ export function shouldOpenSocialVote({
   mechanicalResult,
   previousAuthoredText,
   nextAuthoredText,
-  // The future server caller must set this only from trusted phrase-generation provenance.
-  nextTextOrigin = "authored",
+  // Missing or unrecognized provenance is untrusted. Only a server-owned
+  // authored-text write may trigger this path.
+  nextTextOrigin = "unknown",
 }) {
   if (String(mechanicalResult ?? "").toUpperCase() === "DRAW") return true;
-  if (nextTextOrigin === "generated_ready_phrase") return false;
+  if (nextTextOrigin !== "authored") return false;
   return normalizeAuthoredText(previousAuthoredText) !== normalizeAuthoredText(nextAuthoredText);
 }
 

@@ -10,6 +10,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import "../../AsyncScene/Web/conflict/tactical-resolver.js";
 import "../../AsyncScene/Web/conflict/tactical-lifecycle.js";
+import { deriveSocialVoteId } from "../src/social-vote-contract.mjs";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const cli = process.env.WRANGLER_BIN || path.resolve(root, "../node_modules/.bin/wrangler");
@@ -186,8 +187,28 @@ function executeSqlExpectFailure(sql, marker) {
   assert.ok(r.error || r.status !== 0, "expected local D1 statement to be rejected");
   assert.match((r.stderr || "") + (r.stdout || ""), new RegExp(marker));
 }
+const registeredTestPeople = new Map();
+async function registerTestPerson(base, stableKey) {
+  if (registeredTestPeople.has(stableKey)) return registeredTestPeople.get(stableKey);
+  const idempotencyKey = createHash("sha256").update("chat05a-test-person:" + stableKey).digest("hex");
+  const registered = await request(base, "POST", "/v1/admin/persons", admin, {}, null,
+    { "idempotency-key": idempotencyKey });
+  assert.ok([200, 201].includes(registered.status), JSON.stringify(registered));
+  assert.match(registered.personId, /^[0-9a-f-]{36}$/i);
+  registeredTestPeople.set(stableKey, registered.personId);
+  return registered.personId;
+}
+
 async function request(base, method, route, token, body, origin, extraHeaders = {}) {
   const headers = { ...extraHeaders };
+  if (method === "POST" && route === "/v1/admin/battles" && token === admin &&
+      body?.participants && !body.personIds &&
+      /^[A-Za-z0-9_-]{32,128}$/.test(headers["idempotency-key"] || "")) {
+    body = { ...body, personIds: {
+      A: await registerTestPerson(base, body.participants.A.id),
+      B: await registerTestPerson(base, body.participants.B.id),
+    } };
+  }
   if (token) headers.authorization = "Bearer " + token;
   if (body) headers["content-type"] = "application/json";
   if (origin) headers.origin = origin;
@@ -287,6 +308,7 @@ try {
   migrate("migrations/0005_participant_transition_fence.sql");
   migrate("migrations/0006_creation_recovery_lifecycle.sql");
   migrate("migrations/0007_capability_operator_lifecycle.sql");
+  migrate("migrations/0008_chat05a_people_and_votes.sql");
   const expiredId = "11111111-1111-4111-8111-111111111111";
   const expiryToken = "expired-access-" + "z".repeat(36);
   const lc = globalThis.TacticalCombatLifecycleV1.createLifecycle(globalThis.Game.TacticalCombatV1);
@@ -1357,6 +1379,118 @@ try {
   assert.equal(oneSideRows.receipts, 2);
   assert.equal(oneSideRows.outbox, 3);
   console.log("PASS: timeout/no-show is once-only with both sides absent and after one side commits");
+
+  // Chat05A: operator registry is idempotent and accepts no browser identity fields.
+  const registryKey = createHash("sha256").update("chat05a-registry-idempotent-test").digest("hex");
+  const registryFirst = await request(base, "POST", "/v1/admin/persons", admin, {}, null,
+    { "idempotency-key": registryKey });
+  const registryReplay = await request(base, "POST", "/v1/admin/persons", admin, {}, null,
+    { "idempotency-key": registryKey });
+  assert.ok([200, 201].includes(registryFirst.status));
+  assert.equal(registryReplay.status, 200);
+  assert.equal(registryReplay.personId, registryFirst.personId);
+  assert.equal((await request(base, "POST", "/v1/admin/persons", "not-admin", {}, null,
+    { "idempotency-key": createHash("sha256").update("denied-person").digest("hex") })).status, 401);
+  assert.equal((await request(base, "POST", "/v1/admin/persons", admin,
+    { name: "must-not-be-stored" }, null,
+    { "idempotency-key": createHash("sha256").update("invalid-person").digest("hex") })).status, 400);
+
+  // Chat05A: the Worker opens the stable DRAW vote in the same D1 batch as reveal.
+  const drawBattle = await create(base, "chat05a-draw-vote");
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_social_votes WHERE battle_id='${drawBattle.battleId}'`)[0].count, 0,
+    "vote must not exist before a trigger");
+  const drawA = await commit(base, drawBattle, "A", "chat05a-draw-A");
+  const drawB = await commit(base, drawBattle, "B", "chat05a-draw-B");
+  assert.equal(drawA.status, 200, JSON.stringify(drawA));
+  assert.equal(drawB.status, 200, JSON.stringify(drawB));
+  const expectedVoteId = await deriveSocialVoteId(drawBattle.battleId);
+  let persistedVote = query(`SELECT vote_id,status FROM gameplay_social_votes WHERE battle_id='${drawBattle.battleId}'`);
+  assert.deepEqual(persistedVote, [{ vote_id: expectedVoteId, status: "open" }]);
+  assert.equal((await get(base, drawBattle, drawBattle.capabilities.A.token)).phase, "revealed");
+  const reloadCron = await fetch(cronUrl, { signal: AbortSignal.timeout(9000) });
+  assert.equal(reloadCron.status, 200);
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_social_votes WHERE battle_id='${drawBattle.battleId}'`)[0].count, 1,
+    "reload/retry must retain exactly one vote ID");
+  console.log("PASS: DRAW reveal atomically creates one stable vote ID across reload/retry");
+
+  const spectatorOne = await registerTestPerson(base, "chat05a-spectator-one");
+  const spectatorTwo = await registerTestPerson(base, "chat05a-spectator-two");
+  const spectatorThree = await registerTestPerson(base, "chat05a-spectator-three");
+  const issueSpectator = (personId, expectedGeneration = 0, origin = null) =>
+    request(base, "POST", `/v1/admin/battles/${drawBattle.battleId}/spectators/${personId}/capability`,
+      admin, { expectedGeneration }, origin);
+  const participantPerson = query(`SELECT person_id FROM gameplay_battle_persons
+    WHERE battle_id='${drawBattle.battleId}' AND side='A'`)[0].person_id;
+  assert.equal((await issueSpectator(participantPerson)).status, 409,
+    "a participant personId must not receive a spectator capability");
+  assert.equal((await issueSpectator(spectatorOne, 0, "https://allowed.example")).status, 403,
+    "spectator capabilities are server-to-server operator actions");
+  assert.equal((await request(base, "POST", `/v1/battles/${drawBattle.battleId}/votes`,
+    "uninvited-" + "x".repeat(40), { choice: "A" })).status, 401);
+  assert.equal((await request(base, "POST", `/v1/battles/${drawBattle.battleId}/votes`,
+    drawBattle.capabilities.A.token, { choice: "A" })).status, 401);
+  assert.equal((await request(base, "POST", `/v1/battles/${drawBattle.battleId}/votes`,
+    drawBattle.capabilities.B.token, { choice: "B" })).status, 401);
+
+  const capOne = await issueSpectator(spectatorOne);
+  const capTwo = await issueSpectator(spectatorTwo);
+  const capThree = await issueSpectator(spectatorThree);
+  assert.equal(capOne.status, 201, JSON.stringify(capOne));
+  assert.equal(capTwo.status, 201, JSON.stringify(capTwo));
+  assert.equal(capThree.status, 201, JSON.stringify(capThree));
+  const forged = await request(base, "POST", `/v1/battles/${drawBattle.battleId}/votes`,
+    capOne.token, { choice: "A", personId: participantPerson });
+  assert.equal(forged.status, 400, JSON.stringify(forged));
+  assert.equal(forged.error, "INVALID_BALLOT");
+
+  const firstBallot = await request(base, "POST", `/v1/battles/${drawBattle.battleId}/votes`,
+    capOne.token, { choice: "A" });
+  assert.deepEqual(firstBallot, { status: 200, voteId: expectedVoteId, choice: "A", replayed: false });
+  const ballotAfterReload = await request(base, "POST", `/v1/battles/${drawBattle.battleId}/votes`,
+    capOne.token, { choice: "A" });
+  assert.deepEqual(ballotAfterReload, { status: 200, voteId: expectedVoteId, choice: "A", replayed: true });
+  assert.equal((await request(base, "POST", `/v1/battles/${drawBattle.battleId}/votes`,
+    capOne.token, { choice: "B" })).status, 409);
+  const storedSecret = query(`SELECT token_sha256 FROM gameplay_battle_spectator_capabilities
+    WHERE battle_id='${drawBattle.battleId}' AND person_id='${spectatorOne}'`)[0].token_sha256;
+  assert.equal(storedSecret, createHash("sha256").update(capOne.token).digest("hex"));
+  assert.notEqual(storedSecret, capOne.token);
+
+  const samePersonRace = await Promise.all([
+    request(base, "POST", `/v1/battles/${drawBattle.battleId}/votes`, capTwo.token, { choice: "A" }),
+    request(base, "POST", `/v1/battles/${drawBattle.battleId}/votes`, capTwo.token, { choice: "B" }),
+  ]);
+  assert.equal(samePersonRace.filter(x => x.status === 200).length, 1, JSON.stringify(samePersonRace));
+  assert.equal(samePersonRace.filter(x => x.status === 409).length, 1, JSON.stringify(samePersonRace));
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_social_ballots
+    WHERE vote_id='${expectedVoteId}' AND person_id='${spectatorTwo}'`)[0].count, 1);
+  assert.equal((await request(base, "POST", `/v1/battles/${drawBattle.battleId}/votes`,
+    capThree.token, { choice: "B" })).status, 200,
+    "another invited person may vote independently");
+
+  const revoked = await request(base, "POST",
+    `/v1/admin/battles/${drawBattle.battleId}/spectators/${spectatorOne}/capability/revoke`,
+    admin, { expectedGeneration: 1 });
+  assert.deepEqual(revoked, { status: 200, personId: spectatorOne, capabilityStatus: "revoked", generation: 2 });
+  const revokedStatus = await request(base, "GET",
+    `/v1/admin/battles/${drawBattle.battleId}/spectators/${spectatorOne}/capability/status`,
+    admin);
+  assert.deepEqual(revokedStatus, { status: 200, generation: 2, capabilityStatus: "revoked" });
+  assert.equal((await request(base, "POST", `/v1/battles/${drawBattle.battleId}/votes`,
+    capOne.token, { choice: "A" })).status, 401,
+    "revoked bearer must not authenticate on reload");
+  const capOneReissued = await issueSpectator(spectatorOne, 2);
+  assert.equal(capOneReissued.status, 200, JSON.stringify(capOneReissued));
+  assert.equal(capOneReissued.generation, 3);
+  assert.notEqual(capOneReissued.token, capOne.token);
+  assert.equal((await request(base, "POST", `/v1/battles/${drawBattle.battleId}/votes`,
+    capOneReissued.token, { choice: "A" })).replayed, true);
+  assert.equal((await request(base, "POST", `/v1/battles/${drawBattle.battleId}/votes`,
+    capOneReissued.token, { choice: "B" })).status, 409,
+    "reissue must not replace an immutable person ballot");
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_social_ballots
+    WHERE vote_id='${expectedVoteId}' AND person_id='${spectatorOne}'`)[0].count, 1);
+  console.log("PASS: server identity, participant exclusion, forged identity, ballot races, revocation, and reissue");
 
   console.log("LOCAL_D1_SYNC_DIAGNOSTICS", JSON.stringify({ ...d1SyncStats,
     worker: { pid: worker?.pid ?? null, exitCode: worker?.exitCode ?? null,
