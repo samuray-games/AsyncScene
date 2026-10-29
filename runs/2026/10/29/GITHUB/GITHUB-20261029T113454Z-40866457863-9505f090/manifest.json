@@ -1,0 +1,12 @@
+{
+  "actor": "GITHUB",
+  "branch": "codex/chat03-operator-capability-status-readback-20261029",
+  "createdAtJst": "2026-10-29 20:34:54 JST",
+  "createdAtUtc": "2026-10-29T11:34:54Z",
+  "packagePath": "runs/2026/10/29/GITHUB/GITHUB-20261029T113454Z-40866457863-9505f090",
+  "repository": "samuray-games/AsyncScene",
+  "runId": "GITHUB-20261029T113454Z-40866457863-9505f090",
+  "schemaVersion": "AI_FORENSICS_V1",
+  "status": "UPLOAD_PENDING",
+  "taskId": null
+}
