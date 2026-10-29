@@ -8,9 +8,36 @@ const API = assertLoopbackApiBase("http://127.0.0.1:8787");
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const TOKEN = /^[A-Za-z0-9_-]{43}$/;
 
+async function registerSyntheticPerson({ base, adminToken, fetchImpl }) {
+  const response = await fetchImpl(base + "/v1/admin/persons", {
+    method: "POST",
+    credentials: "omit",
+    cache: "no-store",
+    redirect: "error",
+    headers: {
+      authorization: "Bearer " + adminToken,
+      "content-type": "application/json",
+      "idempotency-key": randomBytes(32).toString("base64url"),
+    },
+    body: "{}",
+  });
+  let body;
+  try { body = await response.json(); } catch { throw new Error("Local Worker returned invalid person JSON"); }
+  if (!response.ok || !UUID.test(body?.personId || "")) {
+    throw new Error("Local person registration failed (" + response.status + ", " + (body?.error || "invalid response") + ")");
+  }
+  return body.personId;
+}
+
 export async function createSyntheticBattle({ adminToken, fetchImpl = globalThis.fetch, baseUrl = API }) {
   const base = assertLoopbackApiBase(baseUrl);
   if (typeof adminToken !== "string" || adminToken.length < 32) throw new Error("Local admin token is missing or too short");
+  const participants = {
+    A: { id: "synthetic-A-" + randomUUID(), role: "citizen" },
+    B: { id: "synthetic-B-" + randomUUID(), role: "citizen" },
+  };
+  const [personA, personB] = await Promise.all(["A", "B"].map(side =>
+    registerSyntheticPerson({ base, adminToken, fetchImpl })));
   const response = await fetchImpl(base + "/v1/admin/battles", {
     method: "POST",
     credentials: "omit",
@@ -21,10 +48,7 @@ export async function createSyntheticBattle({ adminToken, fetchImpl = globalThis
       "content-type": "application/json",
       "idempotency-key": randomBytes(32).toString("base64url"),
     },
-    body: JSON.stringify({ participants: {
-      A: { id: "synthetic-A-" + randomUUID(), role: "citizen" },
-      B: { id: "synthetic-B-" + randomUUID(), role: "citizen" },
-    } }),
+    body: JSON.stringify({ participants, personIds: { A: personA, B: personB } }),
   });
   let body;
   try { body = await response.json(); } catch { throw new Error("Local Worker returned invalid JSON"); }

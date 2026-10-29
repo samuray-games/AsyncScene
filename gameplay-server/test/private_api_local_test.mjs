@@ -198,17 +198,15 @@ async function registerTestPerson(base, stableKey) {
   registeredTestPeople.set(stableKey, registered.personId);
   return registered.personId;
 }
+async function registeredIds(base, participants) {
+  return {
+    A: await registerTestPerson(base, participants.A.id),
+    B: await registerTestPerson(base, participants.B.id),
+  };
+}
 
 async function request(base, method, route, token, body, origin, extraHeaders = {}) {
   const headers = { ...extraHeaders };
-  if (method === "POST" && route === "/v1/admin/battles" && token === admin &&
-      body?.participants && !body.personIds &&
-      /^[A-Za-z0-9_-]{32,128}$/.test(headers["idempotency-key"] || "")) {
-    body = { ...body, personIds: {
-      A: await registerTestPerson(base, body.participants.A.id),
-      B: await registerTestPerson(base, body.participants.B.id),
-    } };
-  }
   if (token) headers.authorization = "Bearer " + token;
   if (body) headers["content-type"] = "application/json";
   if (origin) headers.origin = origin;
@@ -263,11 +261,12 @@ async function start(base) {
   throw Error("WRANGLER_TIMEOUT " + logs.slice(-3500));
 }
 async function createRequest(base, name, idempotencyKey) {
+  const participants = {
+    A: { id: name + "-A", role: "citizen" },
+    B: { id: name + "-B", role: "citizen" },
+  };
   return request(base, "POST", "/v1/admin/battles", admin, {
-    participants: {
-      A: { id: name + "-A", role: "citizen" },
-      B: { id: name + "-B", role: "citizen" },
-    },
+    participants, personIds: await registeredIds(base, participants),
   }, null, { "idempotency-key": idempotencyKey });
 }
 function testCreateKey(name) { return (`test-create-${name}-key-000000000001`).padEnd(48, "x"); }
@@ -907,10 +906,12 @@ try {
   assert.equal(query(`SELECT COUNT(*) count FROM gameplay_event_outbox WHERE battle_id='${battle.battleId}'`)[0].count, 1,
     "creation retry must not duplicate genesis event");
   console.log("PASS: repeated create returns one battle, original capabilities and one genesis event");
+  const changedParticipants = {
+    A: { id: "changed-A", role: "citizen" }, B: { id: "changed-B", role: "citizen" },
+  };
   const changedCreate = await request(base, "POST", "/v1/admin/battles", admin, {
-    participants: {
-      A: { id: "changed-A", role: "citizen" }, B: { id: "changed-B", role: "citizen" },
-    },
+    participants: changedParticipants,
+    personIds: await registeredIds(base, changedParticipants),
   }, null, { "idempotency-key": alphaKey });
   assert.equal(changedCreate.status, 409, JSON.stringify(changedCreate));
   assert.equal(changedCreate.error, "IDEMPOTENCY_KEY_REUSE");
@@ -969,6 +970,9 @@ try {
     { status: 410, error: "CREATION_RECOVERY_CLOSED" });
   assert.deepEqual(await request(base, "POST", "/v1/admin/battles", admin, {
     participants: { A: { id: "different-A", role: "citizen" }, B: { id: "different-B", role: "citizen" } },
+    personIds: await registeredIds(base, {
+      A: { id: "different-A" }, B: { id: "different-B" },
+    }),
   }, null, { "idempotency-key": tombstoneKey }),
   { status: 410, error: "CREATION_RECOVERY_CLOSED" });
   assert.equal(query("SELECT COUNT(*) count FROM gameplay_battles")[0].count, countBeforeTombstoneReplay);
@@ -1333,6 +1337,9 @@ try {
   const unstuck = await get(base, { battleId: stuckId }, stuckToken);
   assert.equal(unstuck.phase, "revealed", "101 healthy battles blocked reveal");
   assert.equal(unstuck.version, 3);
+  assert.equal(unstuck.mechanicalOutcome, "DRAW");
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_social_votes WHERE battle_id='${stuckId}'`)[0].count, 0,
+    "legacy DRAW without trusted person bindings reveals but cannot open a vote");
   console.log("PASS: pending 101 healthy battles cannot starve committed reveal");
   const expired = await get(base, { battleId: expiredId }, expiryToken);
   assert.equal(expired.status, 200, JSON.stringify(expired));

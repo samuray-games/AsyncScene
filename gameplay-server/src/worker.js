@@ -645,20 +645,31 @@ async function applySystem(db, id, type) {
     }, now);
     if (!result.ok) return false;
     try {
-      const writes = [transitionStatement(db, state, result, commandId, fingerprint, now)];
-      if (type === "reveal" && shouldOpenSocialVote({
+      const opensDrawVote = type === "reveal" && shouldOpenSocialVote({
         mechanicalResult: result.state.mechanicalOutcome,
         nextTextOrigin: "unknown",
-      })) {
+      });
+      // Battles created before the Chat05A identity migration have no trusted
+      // person bindings. Preserve their reveal transition and fail closed on
+      // social voting; never infer personId from a participant/client ID.
+      const bindingCount = opensDrawVote
+        ? await db.prepare("SELECT COUNT(*) AS count FROM gameplay_battle_persons WHERE battle_id=?").bind(id).first()
+        : null;
+      if (opensDrawVote && bindingCount?.count === 2) {
         const voteId = await deriveSocialVoteId(id);
-        writes.push(db.prepare(
-          `INSERT INTO gameplay_social_votes
-           (vote_id,battle_id,trigger_reason,status,created_at_ms)
-           VALUES (?,?, 'DRAW','open',?)`
-        ).bind(voteId, id, now));
+        await db.batch([
+          transitionStatement(db, state, result, commandId, fingerprint, now),
+          db.prepare(
+            `INSERT INTO gameplay_social_votes
+             (vote_id,battle_id,trigger_reason,status,created_at_ms)
+             VALUES (?,?, 'DRAW','open',?)`
+          ).bind(voteId, id, now),
+        ]);
+      } else {
+        // Reveal remains independent from Chat05A. This includes non-DRAW
+        // results and pre-registry battles that cannot be safely associated.
+        await insertTransition(db, state, result, commandId, fingerprint, now);
       }
-      if (writes.length === 1) await writes[0].run();
-      else await db.batch(writes);
       return true;
     } catch (error) {
       if (!String(error).includes("VERSION_CONFLICT")) throw error;
