@@ -141,13 +141,19 @@ function adminAuthorized(req, env) {
 
 function operatorReadAuthorized(req, env) {
   const secret = env.OPERATOR_READ_TOKEN;
+  const adminSecret = env.ADMIN_CONTROL_TOKEN;
   return typeof secret === "string" && secret.length >= 32 &&
+    !(typeof adminSecret === "string" && secretEquals(secret, adminSecret)) &&
     secretEquals(bearer(req), secret);
 }
 
 function config(env) {
   if (!env.DB || typeof env.ADMIN_CONTROL_TOKEN !== "string" || env.ADMIN_CONTROL_TOKEN.length < 32) {
     throw new Error("GAMEPLAY_CONFIG_MISSING");
+  }
+  if (typeof env.OPERATOR_READ_TOKEN === "string" &&
+      secretEquals(env.OPERATOR_READ_TOKEN, env.ADMIN_CONTROL_TOKEN)) {
+    throw new Error("GAMEPLAY_CONFIG_INVALID");
   }
   const windowMs = Number(env.COMMIT_WINDOW_MS);
   if (!Number.isSafeInteger(windowMs) || windowMs < 60000 || windowMs > 604800000) {
