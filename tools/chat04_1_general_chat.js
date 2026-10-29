@@ -15,6 +15,11 @@
   const legacy = ["chatLog", "chatInputRow", "chatResizeHandle"]
     .map((id) => document.getElementById(id)).filter(Boolean);
 
+  // Keep only the selected tab in the keyboard tab order from first render.
+  modeButtons.forEach((button) => {
+    button.tabIndex = button.getAttribute("aria-selected") === "true" ? 0 : -1;
+  });
+
   const FIXTURES = Object.freeze([
     ["text", "fixture-message-001", "Мира · тестовый игрок", "10:01", "Тестовое сообщение 01: привет, это синтетическая история.", 1001],
     ["system", "fixture-event-001", "Система · тестовые данные", "10:02", "Тестовое событие: открыта демонстрационная лента.", 1002],
