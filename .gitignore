@@ -25,3 +25,7 @@ AsyncScene/.git.backup/
 # backups
 *.zip
 AsyncScene 4.1.zip
+
+# Chat03 local gameplay harness secrets and state
+gameplay-server/.dev.vars
+gameplay-server/.wrangler/

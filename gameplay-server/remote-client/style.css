@@ -1,0 +1,17 @@
+:root { color-scheme: light; font: 16px/1.5 system-ui, sans-serif; background: #f4f6fa; color: #182235; }
+* { box-sizing: border-box; }
+body { margin: 0; padding: max(1rem, env(safe-area-inset-top)) 1rem max(1.5rem, env(safe-area-inset-bottom)); }
+main { max-width: 36rem; margin: 0 auto; background: #fff; padding: clamp(1rem, 5vw, 2rem); border-radius: 1.1rem; box-shadow: 0 0.5rem 2rem #18223514; }
+h1 { line-height: 1.15; margin: .2rem 0 .7rem; }
+.eyebrow { color: #435f91; font-weight: 700; font-size: .85rem; }
+form { display: grid; gap: .6rem; margin: 1.2rem 0; }
+input, select, button { font: inherit; min-height: 2.8rem; border: 1px solid #aab5c7; border-radius: .55rem; padding: .55rem .7rem; }
+button { cursor: pointer; background: #244d91; color: #fff; border-color: #244d91; font-weight: 700; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+button.secondary { background: #fff; color: #244d91; }
+.actions { display: grid; gap: .55rem; margin-top: .5rem; }
+#status { margin: 1rem 0; padding: .8rem; border-radius: .6rem; background: #edf2f9; overflow-wrap: anywhere; }
+#battle { border-top: 1px solid #dce2ec; margin-top: 1.3rem; padding-top: .4rem; }
+.note { color: #4f5b70; font-size: .9rem; }
+[hidden] { display: none !important; }
+@media (prefers-reduced-motion: no-preference) { button { transition: background-color .15s ease; } button:hover:not(:disabled) { background: #173a72; } }

@@ -1,0 +1,5 @@
+# Local-only values for the private Worker. Replace every placeholder before use.
+# Keep the real file gameplay-server/.dev.vars untracked and private.
+ADMIN_CONTROL_TOKEN=REPLACE_WITH_RANDOM_32_BYTE_BASE64URL
+CREATE_RECOVERY_KEYS={"local-v1":"REPLACE_WITH_RANDOM_32_BYTE_BASE64URL"}
+CREATE_RECOVERY_KEY_CURRENT=local-v1

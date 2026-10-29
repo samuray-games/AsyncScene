@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src http://127.0.0.1:8787; style-src 'self'; script-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'">
+  <title>Локальный тестовый бой · Asynchronia</title>
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./client.mjs"></script>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">CHAT03 · ЛОКАЛЬНЫЙ ТЕСТ</p>
+    <h1>Тестовый бой</h1>
+    <p class="intro">Эта страница подключается только к локальному игровому серверу на этом компьютере. Она не создаёт бой и не обращается к удалённым сервисам.</p>
+
+    <section class="panel" aria-labelledby="connect-title">
+      <h2 id="connect-title">Подключение игрока</h2>
+      <label for="battle-id">Номер боя
+        <input id="battle-id" autocomplete="off" spellcheck="false" placeholder="Вставь номер локального боя">
+      </label>
+      <label for="token">Ключ игрока
+        <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Вставь ключ только этого игрока">
+      </label>
+      <div class="actions">
+        <button id="connect" type="button">Подключиться</button>
+        <button id="disconnect" type="button" class="secondary" disabled>Очистить данные этого окна</button>
+      </div>
+      <p id="connection-status" class="status" role="status" aria-live="polite">Игрок пока не подключён.</p>
+    </section>
+
+    <section id="battle" class="panel" hidden aria-labelledby="battle-title">
+      <div class="heading-row">
+        <div><h2 id="battle-title">Состояние боя</h2><p id="players" class="muted"></p></div>
+        <button id="refresh" type="button" class="secondary">Обновить состояние</button>
+      </div>
+      <dl class="facts">
+        <div><dt>Что происходит</dt><dd id="phase">—</dd></div>
+        <div><dt>Твой ход</dt><dd id="self-committed">—</dd></div>
+        <div><dt>Ход соперника</dt><dd id="opponent-committed">—</dd></div>
+        <div><dt>Время хода до</dt><dd id="deadline">—</dd></div>
+      </dl>
+      <form id="move-form">
+        <h3>Выбери действия</h3>
+        <div class="choices">
+          <label for="attack-color">Цвет атаки<select id="attack-color"><option value="y">Жёлтый</option><option value="o">Оранжевый</option><option value="r">Красный</option></select></label>
+          <label for="defense-color">Цвет защиты<select id="defense-color"><option value="y">Жёлтый</option><option value="o">Оранжевый</option><option value="r">Красный</option></select></label>
+          <label for="attack-type">Тип атаки<select id="attack-type"><option value="N">Наезд</option><option value="P">Предъява</option><option value="T">Подкол</option></select><small id="attack-description" class="choice-help">Сильное прямое давление.</small></label>
+          <label for="defense-type">Тип защиты<select id="defense-type"><option value="S">Спокойная защита</option><option value="C">Контратака</option><option value="G">Агрессия</option></select><small id="defense-description" class="choice-help">Помогает удержать удар, снижая собственное давление.</small></label>
+        </div>
+        <p class="muted">Названия и пояснения соответствуют спецификации Chat01. Цвета и серверные коды отправляются без изменений.</p>
+        <p class="muted">В этом тесте оба участника созданы как обычные игроки. Чёрный цвет, доступный только мафии, здесь не используется.</p>
+        <button id="commit" type="submit">Отправить ход</button>
+      </form>
+      <p id="battle-status" class="status" role="status" aria-live="polite"></p>
+      <section id="result" class="result" hidden aria-live="polite">
+        <h3 id="result-outcome">Результат боя</h3>
+        <p id="result-explanation" class="result-explanation"></p>
+        <p id="result-action-note" class="muted">Результат и силы взяты из ответа сервера. Пояснения не меняют числовые правила.</p>
+        <div class="result-grid">
+          <article class="result-player"><h4>Игрок А</h4><p id="result-a-actions"></p><p id="result-a-stats"></p></article>
+          <article class="result-player"><h4>Игрок Б</h4><p id="result-b-actions"></p><p id="result-b-stats"></p></article>
+        </div>
+      </section>
+    </section>
+    <p class="footnote">Ключи хранятся только в памяти этого окна и удаляются при отключении или закрытии вкладки. Данные не записываются в хранилище браузера и не передаются в аналитику или общий сбор событий.</p>
+  </main>
+</body>
+</html>

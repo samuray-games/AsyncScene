@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; form-action 'none'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Закрытый бой - участник</title>
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">Закрытый бой · только для участника</p>
+      <h1>Подключиться к бою</h1>
+      <p>Введите ID боя и свой личный ключ участника. Сторону определяет сервер по ключу.</p>
+    </header>
+
+    <form id="connect-form" autocomplete="off">
+      <label for="battle-id">ID боя</label>
+      <input id="battle-id" name="battleId" inputmode="text" autocomplete="off" spellcheck="false" required>
+      <label for="token">Ваш bearer-токен</label>
+      <input id="token" name="token" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+      <div class="actions">
+        <button type="submit">Подключиться</button>
+        <button id="remember" type="button" class="secondary" disabled>Запомнить на этом устройстве</button>
+      </div>
+    </form>
+
+    <section id="status" role="status" aria-live="polite">Подключение недоступно, пока не собран клиент с утверждённым API origin.</section>
+    <section id="battle" hidden>
+      <h2>Состояние боя</h2>
+      <p id="own-state"></p>
+      <p id="opponent-state"></p>
+      <form id="commit-form" hidden>
+        <h3>Ваш скрытый ход</h3>
+        <p class="note">Если отправка оборвётся, клиент временно сохранит этот ход и его номер в IndexedDB, чтобы повторить ту же команду после перезапуска. Bearer-токен при этом не сохраняется без отдельного согласия.</p>
+        <label>Атака<select name="attackType"><option value="N">Наезд</option><option value="P">Предъява</option><option value="T">Подкол</option></select></label>
+        <label>Цвет атаки<select name="attackColor"><option value="y">Жёлтый</option><option value="o">Оранжевый</option><option value="r">Красный</option></select></label>
+        <label>Защита<select name="defenseType"><option value="S">Спокойная защита</option><option value="C">Контратака</option><option value="G">Агрессия</option></select></label>
+        <label>Цвет защиты<select name="defenseColor"><option value="y">Жёлтый</option><option value="o">Оранжевый</option><option value="r">Красный</option></select></label>
+        <label>Роль из приглашения<input name="role" maxlength="64" required></label>
+        <button id="commit-button" type="submit">Подтвердить скрытый ход</button>
+      </form>
+      <div id="result" hidden></div>
+    </section>
+    <button id="forget" type="button" class="secondary">Забыть это устройство</button>
+    <p class="note">«Забыть это устройство» удаляет сохранённый ключ только из этого браузера. Это не отзывает ключ на сервере.</p>
+  </main>
+</body>
+</html>
