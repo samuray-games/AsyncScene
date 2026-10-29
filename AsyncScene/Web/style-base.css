@@ -1561,10 +1561,49 @@ button:disabled{opacity:.55; cursor:not-allowed}
     padding:5px 7px;
     gap:5px;
   }
+  body.mobile-keyboard-open #topBar{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 64px;
+    grid-template-rows:auto auto;
+    grid-template-areas:"balance menu" "cap menu";
+    align-items:center;
+    justify-content:start;
+    min-width:0;
+  }
+  body.mobile-keyboard-open #balance{
+    grid-area:balance;
+    flex-wrap:nowrap;
+    min-width:0;
+    width:auto;
+    max-width:100%;
+    overflow-x:auto;
+    overflow-y:hidden;
+    overscroll-behavior-x:contain;
+    scrollbar-width:none;
+  }
+  body.mobile-keyboard-open #balance::-webkit-scrollbar{display:none}
+  body.mobile-keyboard-open #balance .statChip{flex:0 0 auto}
+  body.mobile-keyboard-open #weeklyCapLine{
+    grid-area:cap;
+    min-width:0;
+    margin-top:0;
+  }
+  body.mobile-keyboard-open #btnMenu{
+    grid-area:menu;
+    justify-self:end;
+    flex:0 0 auto;
+  }
   body.mobile-keyboard-open #chatInputRow,
   body.mobile-keyboard-open .chatInputRow{padding:5px;gap:5px}
   body.mobile-keyboard-open #chatInput{min-height:38px;padding:8px}
   body.mobile-keyboard-open #btnSend{min-height:38px;padding:7px 9px}
+  body.mobile-keyboard-open #mobilePanelShell{overflow:hidden}
+  body.mobile-keyboard-open #mobilePanelShell #dmBlock .panelBody{min-height:0;overflow:auto}
+  body.mobile-keyboard-open #mobilePanelShell #dmLog{min-height:36px;flex-shrink:0}
+  body.mobile-keyboard-open #mobilePanelShell #dmInputRow,
+  body.mobile-keyboard-open #mobilePanelShell #dmActions,
+  body.mobile-keyboard-open #mobilePanelShell #teachPanel,
+  body.mobile-keyboard-open #mobilePanelShell #dmExtraRow{flex-shrink:0}
   html body.mobile-keyboard-open #mobilePanelTabs.mobilePanelTabs{
     flex-basis:40px;
     min-height:40px;
@@ -1620,7 +1659,7 @@ button:disabled{opacity:.55; cursor:not-allowed}
   }
   #topBar,.topbar{
     position:fixed;
-    top:calc(env(safe-area-inset-top, 0px) + var(--mobile-edge));
+    top:calc(var(--mobile-vv-top) + env(safe-area-inset-top, 0px) + var(--mobile-edge));
     left:calc(env(safe-area-inset-left, 0px) + var(--mobile-edge));
     right:calc(env(safe-area-inset-right, 0px) + var(--mobile-edge));
     z-index:90;
@@ -1628,7 +1667,7 @@ button:disabled{opacity:.55; cursor:not-allowed}
   }
   #menuBlock.menu-open{
     position:fixed;
-    top:calc(env(safe-area-inset-top, 0px) + var(--mobile-edge) + var(--mobile-topbar-height) + var(--mobile-gap));
+    top:calc(var(--mobile-vv-top) + env(safe-area-inset-top, 0px) + var(--mobile-edge) + var(--mobile-topbar-height) + var(--mobile-gap));
     left:calc(env(safe-area-inset-left, 0px) + var(--mobile-edge));
     right:calc(env(safe-area-inset-right, 0px) + var(--mobile-edge));
     z-index:85;
@@ -1644,7 +1683,7 @@ button:disabled{opacity:.55; cursor:not-allowed}
   }
   #left,.left{
     position:fixed;
-    top:calc(env(safe-area-inset-top, 0px) + var(--mobile-edge) + var(--mobile-topbar-height) + var(--mobile-gap) + var(--mobile-menu-stack-height));
+    top:calc(var(--mobile-vv-top) + env(safe-area-inset-top, 0px) + var(--mobile-edge) + var(--mobile-topbar-height) + var(--mobile-gap) + var(--mobile-menu-stack-height));
     left:calc(env(safe-area-inset-left, 0px) + var(--mobile-edge));
     right:calc(env(safe-area-inset-right, 0px) + var(--mobile-edge));
     z-index:80;
