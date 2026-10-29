@@ -82,6 +82,10 @@ function wrappedEnv(env, request = null) {
   if (request?.headers.has("x-test-match-admin-read-token")) {
     wrapped.OPERATOR_READ_TOKEN = wrapped.ADMIN_CONTROL_TOKEN;
   }
+  if (request?.headers.has("x-test-match-admin-read-token-long")) {
+    wrapped.ADMIN_CONTROL_TOKEN = "x".repeat(513);
+    wrapped.OPERATOR_READ_TOKEN = wrapped.ADMIN_CONTROL_TOKEN;
+  }
   return wrapped;
 }
 export default {
@@ -530,6 +534,10 @@ try {
     { expectedGeneration: 1 }, null, { "x-test-match-admin-read-token": "1" }),
   { status: 500, error: "SERVER_ERROR" },
   "shared read/admin configuration must disable mutation routes too");
+  assert.deepEqual(await request(base, "GET", `/v1/battles/${statusProbeBattle.battleId}`,
+    statusProbeBattle.capabilities.A.token, null, null, { "x-test-match-admin-read-token-long": "1" }),
+  { status: 500, error: "SERVER_ERROR" },
+  "shared read/admin credentials longer than the bearer comparison limit must invalidate participant routes too");
   assert.deepEqual(await request(base, "GET", statusPath("A"), operatorReadToken, null, null,
     { "x-test-omit-operator-read-token": "1" }),
   { status: 401, error: "UNAUTHORIZED" }, "missing Worker read-key configuration must fail closed");
