@@ -333,7 +333,7 @@ window.Game = window.Game || {};
   }
 
   UI.updateMeNamePill = function(){
-    onst pill = ensureMeNamePillDOM();
+    const pill = ensureMeNamePillDOM();
     if (!pill) return;
     const name = displayName(S.me) || "Ты";
     pill.textContent = name;
@@ -851,7 +851,7 @@ window.Game = window.Game || {};
   };
 
   UI.pushIncomingSystem = (panel, kind, code, ctx, opts={}) => {
-  const key = String(panel || "").toLowerCase();
+    const key = String(panel || "").toLowerCase();
     const system = Game.System || null;
     const text = String((opts && opts.text) || (system && typeof system.say === "function" ? system.say(kind, code, ctx || {}) : "") || "");
     const collapsed = (typeof UI.isPanelCollapsed === "function") ? UI.isPanelCollapsed(key) : false;
@@ -1262,7 +1262,7 @@ window.Game = window.Game || {};
 
   // Action toast anchored to any element (e.g., button near an input).
   // Used for "Выбери игрока." under submit buttons.
-  UI.showActionTot = (anchorEl, text) => {
+  UI.showActionToast = (anchorEl, text) => {
     if (!anchorEl || !anchorEl.getBoundingClientRect) return;
     const id = `actionToast_${String(anchorEl.id || "anon")}`;
     let toast = document.getElementById(id);
