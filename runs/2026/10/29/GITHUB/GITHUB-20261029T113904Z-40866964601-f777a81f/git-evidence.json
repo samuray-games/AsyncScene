@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T11:39:04Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T11:39:04Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T11:39:04Z",
+      "stderr": "",
+      "stdout": "2f35e520abac1904db12419822ea7bf3d7f7ae41\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T11:39:04Z",
+      "stderr": "",
+      "stdout": "# branch.oid 2f35e520abac1904db12419822ea7bf3d7f7ae41\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T11:39:04Z",
+      "stderr": "",
+      "stdout": "2f35e520 (HEAD, pull/454/merge) Merge b3a0b2572e67e7c6b41d42fbbb0ff6bc7a9424bb into 31b7a077820914e92de81239e5ab4099e3dfa558\nb3a0b257 (origin/codex/chat03-operator-capability-status-readback-20261029) test(chat03): cover long shared operator secrets\nf7faa413 fix(chat03): fail closed on long shared operator secrets\nf8cb141d docs(chat03): document operator read key contract\n6d48c99f test(chat03): reject shared operator credentials\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T11:39:04Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 2f35e520abac1904db12419822ea7bf3d7f7ae41\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T11:39:04Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-29T11:39:04Z",
+      "stderr": "",
+      "stdout": "31b7a077820914e92de81239e5ab4099e3dfa558\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "2f35e520abac1904db12419822ea7bf3d7f7ae41",
+  "observedAtUtc": "2026-10-29T11:39:04Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
