@@ -142,6 +142,12 @@ export function createRemoteClientApp({
       const view = await transport.connect(battleId, token);
       if (!isCurrentSession(epoch, token, battleId) || requestEpoch !== viewRequestEpoch ||
           (Number.isSafeInteger(view.version) && view.version < highestViewVersion)) return;
+      if (retryPendingMode && view.selfCommitted) {
+        const pending = await storage.getPending(battleId, token);
+        if (!isCurrentSession(epoch, token, battleId) || requestEpoch !== viewRequestEpoch) return;
+        ownSelection = null;
+        if (!pending) retryPendingMode = false;
+      }
       if (retryPendingMode && ["expired", "final"].includes(view.phase) && !view.selfCommitted) {
         const pending = await storage.getPending(battleId, token);
         if (!isCurrentSession(epoch, token, battleId) || requestEpoch !== viewRequestEpoch) return;
@@ -295,6 +301,13 @@ export function createRemoteClientApp({
       show("Ход принят. Чужой выбор останется скрытым до серверного раскрытия.");
     } catch (error) {
       if (!isCurrentCommit()) return;
+      if (error.message === "NO_PENDING_COMMAND") {
+        await refresh(epoch, token, battleId);
+        if (!isCurrentCommit()) return;
+        if (retryPendingMode) show("Команда исчезла из локального хранилища. Серверное состояние обновлено; отправка без исходного commandId не выполнялась.");
+        else show("Сервер подтвердил ход ранее в другой вкладке. Локальная команда уже удалена; новый ход не отправлялся.");
+        return;
+      }
       if (error.message === "COMMIT_ALREADY_ACCEPTED") {
         try {
           const view = await transport.connect(battleId, token);

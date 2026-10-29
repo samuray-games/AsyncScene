@@ -517,6 +517,39 @@ await test("retry submits the exact command read by the app and never displays a
   assert.equal(doc.elements.get("own-state").textContent.includes("o/S"), false);
 });
 
+await test("stale retry tab reconciles a cleared shared pending from selfCommitted readback without posting", async () => {
+  const storage = createMemoryStorage();
+  const prep = makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true, storage,
+    idFactory: () => "shared-tab-command-1" });
+  await prep.prepareCommit(battle, tokenA, selection);
+  let gets = 0;
+  let posts = 0;
+  const transport = makeTransport({ apiOrigin: "https://game-api.example.test", originApproved: true, storage,
+    fetchImpl: async (_url, init) => {
+      if (init.method === "POST") { posts++; return new Response("{}", { status: 500 }); }
+      gets++;
+      return new Response(JSON.stringify(gets === 1
+        ? validView()
+        : validView({ phase: "waiting", version: 2, selfCommitted: true })), { status: 200 });
+    } });
+  const doc = fakeDocument();
+  const app = createRemoteClientApp({ document: doc, storage, transport,
+    setIntervalImpl: () => 1, clearIntervalImpl: () => {} });
+  await app.restorePromise;
+  doc.elements.get("battle-id").value = battle;
+  doc.elements.get("token").value = tokenA;
+  await doc.elements.get("connect-form").dispatch("submit");
+  assert.equal(doc.elements.get("commit-button").textContent, "Повторить исходную команду");
+
+  await storage.clearPending(battle, tokenA); // another tab received the server acknowledgement
+  await doc.elements.get("commit-form").dispatch("submit");
+  assert.equal(posts, 0, "missing shared command must never be replaced by a new POST");
+  assert.equal(await storage.getPending(battle, tokenA), null);
+  assert.equal(doc.elements.get("commit-form").hidden, true);
+  assert.equal(doc.elements.get("own-state").textContent, "Ваш статус: ход подтверждён.");
+  assert.match(doc.elements.get("status").textContent, /новый ход не отправлялся/);
+});
+
 await test("malformed GET and POST views fail closed without deleting the retry command", async () => {
   const storage = createMemoryStorage();
   let responseView = {};
@@ -850,4 +883,4 @@ await test("build is blocked without an exact approved origin and emits no publi
   } finally { await rm(temp, { recursive: true, force: true }); }
 });
 
-console.log(`REMOTE_CLIENT_TESTS_PASS ${assertions}/34`);
+console.log(`REMOTE_CLIENT_TESTS_PASS ${assertions}/35`);
