@@ -14,6 +14,10 @@ enabled = true
 mode = "limited"
 allow_local_binding = true
 
+[agents]
+default_subagent_model = "gpt-6-luna"
+default_subagent_reasoning_effort = "low"
+
 [agents.explorer]
 config_file = "agents/explorer.toml"
 
