@@ -1,10 +1,10 @@
-const READY_PHRASE = "Готовая фраза";
-
 function normalizeAuthoredText(value) {
   return String(value ?? "")
     .normalize("NFKC")
     .toLocaleLowerCase("ru")
-    .replace(/[\p{P}\p{S}\p{Z}\p{C}]/gu, "");
+    .replace(/[\p{P}\p{C}]/gu, "")
+    .replace(/\s+/gu, " ")
+    .trim();
 }
 
 /** Pure Chat05A trigger contract. Not wired to an HTTP route. */
@@ -12,12 +12,12 @@ export function shouldOpenSocialVote({
   mechanicalResult,
   previousAuthoredText,
   nextAuthoredText,
-  readyPhrase = READY_PHRASE,
+  // The future server caller must set this only from trusted phrase-generation provenance.
+  nextTextOrigin = "authored",
 }) {
-  if (mechanicalResult === "draw") return true;
-  const next = String(nextAuthoredText ?? "").normalize("NFKC").trim();
-  if (next === String(readyPhrase).normalize("NFKC").trim()) return false;
-  return normalizeAuthoredText(previousAuthoredText) !== normalizeAuthoredText(next);
+  if (String(mechanicalResult ?? "").toUpperCase() === "DRAW") return true;
+  if (nextTextOrigin === "generated_ready_phrase") return false;
+  return normalizeAuthoredText(previousAuthoredText) !== normalizeAuthoredText(nextAuthoredText);
 }
 
 /** One vote per battle; persistence must enforce a unique insert on this ID. */

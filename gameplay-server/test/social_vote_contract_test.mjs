@@ -5,13 +5,13 @@ import {
   shouldOpenSocialVote,
 } from "../src/social-vote-contract.mjs";
 
-test("mechanical draw always triggers a social vote", () => {
-  assert.equal(shouldOpenSocialVote({ mechanicalResult: "draw" }), true);
+test("canonical DRAW mechanical outcome triggers a social vote", () => {
+  assert.equal(shouldOpenSocialVote({ mechanicalResult: "DRAW" }), true);
 });
 
 test("substantive authored-text edit triggers a vote", () => {
   assert.equal(shouldOpenSocialVote({
-    mechanicalResult: "A",
+    mechanicalResult: "A_WIN",
     previousAuthoredText: "Защищаю свою позицию",
     nextAuthoredText: "Защищаю позицию фактами",
   }), true);
@@ -19,23 +19,43 @@ test("substantive authored-text edit triggers a vote", () => {
 
 test("punctuation-only and whitespace-only edits do not trigger a vote", () => {
   assert.equal(shouldOpenSocialVote({
-    mechanicalResult: "A",
+    mechanicalResult: "A_WIN",
     previousAuthoredText: "Это факт!",
     nextAuthoredText: "Это факт...",
   }), false);
   assert.equal(shouldOpenSocialVote({
-    mechanicalResult: "A",
-    previousAuthoredText: "это факт",
-    nextAuthoredText: "  это   факт  ",
+    mechanicalResult: "A_WIN",
+    previousAuthoredText: "это   факт",
+    nextAuthoredText: "это факт",
   }), false);
 });
 
-test("a generated ready phrase does not trigger a vote", () => {
+test("whitespace and emoji content remain semantically significant", () => {
   assert.equal(shouldOpenSocialVote({
-    mechanicalResult: "A",
-    previousAuthoredText: "черновик",
-    nextAuthoredText: "Готовая фраза",
+    mechanicalResult: "A_WIN",
+    previousAuthoredText: "ab",
+    nextAuthoredText: "a b",
+  }), true);
+  assert.equal(shouldOpenSocialVote({
+    mechanicalResult: "A_WIN",
+    previousAuthoredText: "Да 👍",
+    nextAuthoredText: "Да 👎",
+  }), true);
+});
+
+test("trusted generated ready phrase changes do not trigger authored-text votes", () => {
+  assert.equal(shouldOpenSocialVote({
+    mechanicalResult: "A_WIN",
+    previousAuthoredText: "Черновик",
+    nextAuthoredText: "↻ готовая фраза",
+    nextTextOrigin: "generated_ready_phrase",
   }), false);
+  assert.equal(shouldOpenSocialVote({
+    mechanicalResult: "A_WIN",
+    previousAuthoredText: "Черновик",
+    nextAuthoredText: "Готовая фраза",
+    nextTextOrigin: "authored",
+  }), true);
 });
 
 test("vote ID is stable across reload-like calls and concurrent retries", async () => {
