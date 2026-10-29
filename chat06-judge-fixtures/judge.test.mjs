@@ -193,6 +193,22 @@ test('fullInputHash schema rejects hidden, symbol, accessor, and inherited prope
 
   const inheritedField = Object.assign(Object.create({ unrecognized: true }), structuredClone(FIXTURE_INPUT));
   assert.throws(() => evaluateJudge(inheritedField, GOLDEN_JUDGES[0]), error => error.code === 'INVALID_OBJECT');
+
+  const arrayExtraField = structuredClone(FIXTURE_INPUT);
+  arrayExtraField.participantIds.unrecognized = true;
+  assert.throws(() => evaluateJudge(arrayExtraField, GOLDEN_JUDGES[0]), error => error.code === 'UNEXPECTED_FIELD');
+
+  const arraySymbolField = structuredClone(FIXTURE_INPUT);
+  arraySymbolField.participantIds[Symbol('unrecognized')] = true;
+  assert.throws(() => evaluateJudge(arraySymbolField, GOLDEN_JUDGES[0]), error => error.code === 'UNEXPECTED_FIELD');
+
+  const arrayAccessor = structuredClone(FIXTURE_INPUT);
+  Object.defineProperty(arrayAccessor.participantIds, '0', { get: () => 'participant_A', enumerable: true });
+  assert.throws(() => evaluateJudge(arrayAccessor, GOLDEN_JUDGES[0]), error => error.code === 'INVALID_FIELD_DESCRIPTOR');
+
+  const arrayPrototype = structuredClone(FIXTURE_INPUT);
+  Object.setPrototypeOf(arrayPrototype.participantIds, Object.create(Array.prototype));
+  assert.throws(() => evaluateJudge(arrayPrototype, GOLDEN_JUDGES[0]), error => error.code === 'INVALID_ARRAY');
 });
 
 test('public projection excludes internal scores, private hashes, and internal reason codes', () => {

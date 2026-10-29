@@ -52,6 +52,23 @@ function onlyKeys(value, allowed, path) {
     }
   }
 }
+function strictArray(value, path) {
+  if (!Array.isArray(value)) fail('INVALID_ARRAY', `${path} must be an array`);
+  if (Object.getPrototypeOf(value) !== Array.prototype) fail('INVALID_ARRAY', `${path} must be a plain array`);
+  for (const key of Reflect.ownKeys(value)) {
+    if (key === 'length') continue;
+    if (typeof key !== 'string' || !/^(0|[1-9][0-9]*)$/.test(key) || Number(key) >= value.length) {
+      fail('UNEXPECTED_FIELD', `${path}.${String(key)} is not part of the CHAT06-JUDGE-V1 array schema`);
+    }
+    const descriptor = Object.getOwnPropertyDescriptor(value, key);
+    if (!descriptor.enumerable || !Object.hasOwn(descriptor, 'value')) {
+      fail('INVALID_FIELD_DESCRIPTOR', `${path}[${key}] must be an enumerable data element`);
+    }
+  }
+  for (let index = 0; index < value.length; index += 1) {
+    if (!Object.hasOwn(value, String(index))) fail('INVALID_ARRAY', `${path} must not contain missing elements`);
+  }
+}
 function own(value, key, path) {
   if (!isObject(value)) fail('INVALID_OBJECT', `${path} must be an object`);
   if (!Object.hasOwn(value, key)) fail('MISSING_FIELD', `${path}.${key} is required`);
@@ -95,7 +112,9 @@ function validateInput(input, snapshot) {
   for (const key of ['voteId', 'battleId', 'algorithmVersion']) requiredString(own(input, key, 'input'), `input.${key}`);
   if (input.algorithmVersion !== ALGORITHM_VERSION) fail('UNSUPPORTED_ALGORITHM', `algorithmVersion must be ${ALGORITHM_VERSION}`);
   const participants = own(input, 'participantIds', 'input');
-  if (!Array.isArray(participants) || participants.length !== 2 || participants.some(id => typeof id !== 'string' || !id.length) || participants[0] === participants[1]) {
+  if (!Array.isArray(participants)) fail('INVALID_PARTICIPANTS', 'participantIds must contain exactly two distinct non-empty strings in A/B order');
+  strictArray(participants, 'input.participantIds');
+  if (participants.length !== 2 || participants.some(id => typeof id !== 'string' || !id.length) || participants[0] === participants[1]) {
     fail('INVALID_PARTICIPANTS', 'participantIds must contain exactly two distinct non-empty strings in A/B order');
   }
   participants.forEach((id, index) => requiredString(id, `input.participantIds[${index}]`));
@@ -119,7 +138,9 @@ function validateInput(input, snapshot) {
   }
 
   const lines = own(input, 'lines', 'input');
-  if (!Array.isArray(lines) || lines.length !== 4) fail('INVALID_LINES', 'exactly four revealed lines are required');
+  if (!Array.isArray(lines)) fail('INVALID_LINES', 'exactly four revealed lines are required');
+  strictArray(lines, 'input.lines');
+  if (lines.length !== 4) fail('INVALID_LINES', 'exactly four revealed lines are required');
   const claimById = new Map();
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
@@ -132,6 +153,7 @@ function validateInput(input, snapshot) {
     for (const key of ['aggression', 'factsEmotions', 'humor']) integerIn(own(line, key, `lines.${line.lineId}`), -2, 2, `lines.${line.lineId}.${key}`);
     const claims = own(line, 'claims', `lines.${line.lineId}`);
     if (!Array.isArray(claims)) fail('INVALID_CLAIMS', `${line.lineId}.claims must be an array`);
+    strictArray(claims, `input.lines[${i}].claims`);
     for (const claim of claims) {
       if (!isObject(claim)) fail('INVALID_CLAIM', `${line.lineId} claim must be an object`);
       onlyKeys(claim, ['claimId', 'provenance', 'availableAt', 'status', 'supportUnits'], `${line.lineId}.claim`);
@@ -153,6 +175,7 @@ function validateInput(input, snapshot) {
 
   const knownFacts = own(snapshot, 'knownFacts', 'snapshot');
   if (!Array.isArray(knownFacts)) fail('INVALID_KNOWN_FACTS', 'knownFacts must be an array');
+  strictArray(knownFacts, 'snapshot.knownFacts');
   const knownById = new Map();
   for (const known of knownFacts) {
     if (!isObject(known)) fail('INVALID_KNOWN_FACT', 'known fact must be an object');
