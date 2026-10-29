@@ -94,4 +94,9 @@ check(html.includes("тестовые данные и ничего не отпр
 const previewLayoutRule = html.match(/\.previewShell\s*>\s*\.chat\s*\{([^}]*)\}/)?.[1]?.replace(/\s+/g, "") || "";
 check(["display:flex", "flex-direction:column", "min-height:0", "overflow:hidden"].every((value) => previewLayoutRule.includes(value)), "isolated preview has a bounded flex column for scrollable feed");
 
+const css = fs.readFileSync(new URL("./chat04_1_general_chat.css", import.meta.url), "utf8");
+check(css.includes("@media (max-width: 600px) and (max-height: 650px)") &&
+  css.includes(".previewShell .chatHeader { display: none; }") &&
+  css.includes(".generalChatActions { display: grid;"), "compact mobile layout reserves space for chat feed");
+
 process.stdout.write("CHAT04_1_UI_FIXTURES_PASS\n");
