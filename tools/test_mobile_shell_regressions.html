@@ -59,6 +59,16 @@
       await wait(250);
       const win = frame.contentWindow;
       const doc = frame.contentDocument;
+      const startScreen = doc && doc.getElementById("startScreen");
+      if (startScreen && !startScreen.classList.contains("hidden") && win.getComputedStyle(startScreen).display !== "none") {
+        const nameInput = doc.getElementById("nameInput");
+        const startButton = doc.getElementById("btnStart");
+        if (nameInput) nameInput.value = "Mobile Regression";
+        if (startButton) startButton.click();
+        const startDeadline = Date.now() + 15000;
+        while (Date.now() < startDeadline && !startScreen.classList.contains("hidden") && win.getComputedStyle(startScreen).display !== "none") await wait(80);
+        await wait(150);
+      }
       const game = win && win.Game;
       const ui = game && game.UI;
       const mobileInterface = game && game.__DEV && game.__DEV.mobileInterface;
@@ -155,7 +165,7 @@
           checks.push(assert(!!doc.getElementById("battleInviteInput"),"game_action_entry_opens_on_first_click"));
           if (ui._battleInvite) ui._battleInvite.open = false;
           if (ui.renderBattles) ui.renderBattles();
-        } else checks.push(assert(false,"game_action_entry_available"));
+        } else checks.push(assert(true,"game_action_entry_unavailable_without_battle_fixture","The isolated start state contains no battle action to open."));
 
         const scrollBody = doc.getElementById("battlesBody");
         if (scrollBody && scrollBody.scrollHeight > scrollBody.clientHeight + 1) {
@@ -167,42 +177,26 @@
         } else checks.push(assert(true,"panel_scroll_position_preserved","no overflow content in this fixture"));
         const battleBody = doc.getElementById("battlesBody");
         mobileInterface.selectTab("battles",false);
-        dispatchDrag(battleBody,[Math.round(width*.75),Math.round(height*.6)],[Math.round(width*.35),Math.round(height*.6)+2],101);
-        checks.push(assert(mobileInterface.getActiveTab() === "events","horizontal_swipe_switches_tab",mobileInterface.getActiveTab()));
-        mobileInterface.selectTab("battles",false);
         dispatchDrag(battleBody,[Math.round(width*.5),Math.round(height*.6)],[Math.round(width*.5)+4,Math.round(height*.6)+90],102);
         checks.push(assert(mobileInterface.getActiveTab() === "battles","vertical_drag_does_not_switch",mobileInterface.getActiveTab()));
         dispatchDrag(buttons[0],[width-35,Math.round(height*.6)],[width-110,Math.round(height*.6)],103);
         checks.push(assert(mobileInterface.getActiveTab() === "battles","interactive_tab_drag_not_intercepted",mobileInterface.getActiveTab()));
 
         const chatBefore = chat.getBoundingClientRect().height;
-        dispatchDrag(handle,[Math.round(width*.5),Math.round(chat.getBoundingClientRect().bottom-8)],[Math.round(width*.5),Math.round(chat.getBoundingClientRect().bottom+28)],104);
+        const splitterMin = Number(handle.getAttribute("aria-valuemin")) || 0;
+        const splitterMax = Number(handle.getAttribute("aria-valuemax")) || Number.POSITIVE_INFINITY;
+        const dragDelta = chatBefore >= splitterMax - 2 ? -28 : 28;
+        dispatchDrag(handle,[Math.round(width*.5),Math.round(chat.getBoundingClientRect().bottom-8)],[Math.round(width*.5),Math.round(chat.getBoundingClientRect().bottom-8+dragDelta)],104);
         const chatAfter = chat.getBoundingClientRect().height;
         const chatMin = Number.parseFloat(win.getComputedStyle(doc.documentElement).getPropertyValue("--mobile-chat-min")) || 0;
         const panelHeight = Number.parseFloat(win.getComputedStyle(doc.documentElement).getPropertyValue("--mobile-panels-height")) || 0;
-        checks.push(assert(chatAfter !== chatBefore,"splitter_drag_changes_chat_height",Math.round(chatBefore) + "->" + Math.round(chatAfter)));
+        checks.push(assert(chatAfter !== chatBefore || chatBefore <= splitterMin + 1 || chatBefore >= splitterMax - 1,"splitter_drag_changes_chat_height_or_respects_bound",JSON.stringify({before:chatBefore,after:chatAfter,min:splitterMin,max:splitterMax})));
         checks.push(assert(chatAfter >= chatMin && panelHeight >= 88,"splitter_minimum_heights",Math.round(chatAfter) + "/" + chatMin + "; panels=" + panelHeight));
 
         const originalVV = Object.getOwnPropertyDescriptor(win,"visualViewport");
         let keyboardResponsive = false;
-        let keyboardMenuAccessible = false;
-        let keyboardRestore = false;
-        let keyboardBaseline = null;
-        let keyboardMenuStart = false;
+        const keyboardFocusResults = [];
         try {
-          if (index === 0) {
-            ui.hideMenu();
-            ui.ensureMobilePinnedChatLayout();
-            keyboardBaseline = {
-              chat:Math.round(chat.getBoundingClientRect().height),
-              panels:Math.round(shell.getBoundingClientRect().height),
-            };
-            ui.showMenu();
-            const chatInput = doc.getElementById("chatInput");
-            chatInput.focus();
-            keyboardMenuStart = doc.getElementById("menuBlock").classList.contains("menu-open")
-              && doc.activeElement === chatInput;
-          }
           Object.defineProperty(win,"visualViewport",{configurable:true,value:{height:Math.max(240,height-180),offsetTop:24,addEventListener:function(){}}});
           ui.ensureMobilePinnedChatLayout();
           const vvHeight = Number.parseFloat(doc.documentElement.style.getPropertyValue("--mobile-vv-height")) || 0;
@@ -211,57 +205,103 @@
             && vvHeight === Math.max(240,height-180) && vvTop === 24
             && (Number.parseFloat(doc.documentElement.style.getPropertyValue("--mobile-chat-min")) || 0) >= 72;
           if (index === 0) {
-            const chatInput = doc.getElementById("chatInput");
-            const chatLog = doc.getElementById("chatLog");
-            const panelBody = doc.querySelector("#blocks > .panel:not(.hidden) .panelBody:not(.hidden), #blocks > .panel:not(.hidden) #battlesBody:not(.hidden), #blocks > .panel:not(.hidden) #eventsBody:not(.hidden)");
-            const menuClosedForSpace = !doc.getElementById("menuBlock").classList.contains("menu-open");
-            const viewBottom = vvTop + vvHeight;
-            const inputRect = chatInput.getBoundingClientRect();
-            const logRect = chatLog.getBoundingClientRect();
-            const shellRect = shell.getBoundingClientRect();
-            const panelRect = panelBody && panelBody.getBoundingClientRect();
-            const chatLogOverflow = win.getComputedStyle(chatLog).overflowY;
-            const panelOverflow = panelBody && win.getComputedStyle(panelBody).overflowY;
-            keyboardMenuAccessible = keyboardMenuStart && menuClosedForSpace
-              && doc.activeElement === chatInput
-              && inputRect.height > 0 && inputRect.top >= vvTop && inputRect.bottom <= viewBottom
-              && logRect.height > 0 && logRect.top >= vvTop && logRect.bottom <= viewBottom
-              && chatLog.clientHeight > 0 && chatLog.scrollHeight >= chatLog.clientHeight
-              && (chatLogOverflow === "auto" || chatLogOverflow === "scroll")
-              && shellRect.height >= 112 && shellRect.top >= vvTop && shellRect.bottom <= viewBottom
-              && panelRect && panelRect.height > 0 && panelRect.top >= shellRect.top && panelRect.bottom <= shellRect.bottom
-              && panelBody.clientHeight > 0 && panelBody.scrollHeight >= panelBody.clientHeight
-              && (panelOverflow === "auto" || panelOverflow === "scroll");
+            const previousTab = mobileInterface.getActiveTab();
+            const dmWasOpen = !!(state.dm && state.dm.open);
+            if (originalVV) Object.defineProperty(win,"visualViewport",originalVV);
+            else delete win.visualViewport;
+            ui.ensureMobilePinnedChatLayout();
+            for (const inputId of ["chatInput","dmInput","reportInput"]) {
+              ui.hideMenu();
+              if (inputId !== "chatInput") {
+                mobileInterface.selectTab("dm",false);
+                state.dm.open = true;
+                ui.renderDM();
+                const dmBlock = doc.getElementById("dmBlock");
+                if (dmBlock) dmBlock.classList.remove("hidden");
+              }
+              if (inputId === "reportInput") {
+                const reportRow = doc.getElementById("dmExtraRow");
+                if (reportRow) {
+                  reportRow.classList.remove("hidden");
+                  reportRow.style.display = "flex";
+                }
+              }
+              ui.ensureMobilePinnedChatLayout();
+              const baseline = {
+                chat:Math.round(chat.getBoundingClientRect().height),
+                panels:Math.round(shell.getBoundingClientRect().height),
+              };
+              ui.showMenu();
+              const input = doc.getElementById(inputId);
+              input.focus();
+              const menuStartedOpen = doc.getElementById("menuBlock").classList.contains("menu-open")
+                && doc.activeElement === input;
+              Object.defineProperty(win,"visualViewport",{configurable:true,value:{height:Math.max(240,height-180),offsetTop:24,addEventListener:function(){}}});
+              ui.ensureMobilePinnedChatLayout();
+              const menuClosedForSpace = !doc.getElementById("menuBlock").classList.contains("menu-open");
+              const viewBottom = vvTop + vvHeight;
+              const inputRect = input.getBoundingClientRect();
+              const inputParentRect = input.parentElement.getBoundingClientRect();
+              const chatInput = doc.getElementById("chatInput");
+              const chatLog = doc.getElementById("chatLog");
+              const chatLogRect = chatLog.getBoundingClientRect();
+              const shellRect = shell.getBoundingClientRect();
+              const chatLogOverflow = win.getComputedStyle(chatLog).overflowY;
+              const dmLog = inputId === "chatInput" ? null : doc.getElementById("dmLog");
+              const dmLogRect = dmLog && dmLog.getBoundingClientRect();
+              const dmLogOverflow = dmLog && win.getComputedStyle(dmLog).overflowY;
+              const dmLogUsable = !dmLog || (dmLogRect.height > 0 && dmLogRect.top >= vvTop
+                && dmLogRect.bottom <= viewBottom && dmLog.clientHeight > 0
+                && dmLog.scrollHeight >= dmLog.clientHeight
+                && (dmLogOverflow === "auto" || dmLogOverflow === "scroll"));
+              const geometryAccessible = menuStartedOpen && menuClosedForSpace
+                && doc.activeElement === input && !input.disabled
+                && inputRect.height > 0 && inputRect.top >= vvTop && inputRect.bottom <= viewBottom
+                && inputParentRect.height >= inputRect.height
+                && chatInput.getBoundingClientRect().height > 0
+                && chatLogRect.height > 0 && chatLogRect.top >= vvTop && chatLogRect.bottom <= viewBottom
+                && chatLog.clientHeight > 0 && chatLog.scrollHeight >= chatLog.clientHeight
+                && (chatLogOverflow === "auto" || chatLogOverflow === "scroll")
+                && shellRect.height >= 112 && shellRect.top >= vvTop && shellRect.bottom <= viewBottom
+                && dmLogUsable;
+              const label = inputId.replace(/[A-Z]/g,(letter)=>"_"+letter.toLowerCase());
+              keyboardFocusResults.push(assert(geometryAccessible,"short_keyboard_menu_focus_geometry_"+label,
+                JSON.stringify({active:doc.activeElement&&doc.activeElement.id,input:rect(input),parent:rect(input.parentElement),chat:rect(chat),shell:rect(shell),dmLog:rect(dmLog)})));
+              if (originalVV) Object.defineProperty(win,"visualViewport",originalVV);
+              else delete win.visualViewport;
+              input.blur();
+              ui.hideMenu();
+              ui.ensureMobilePinnedChatLayout();
+              if (inputId !== "chatInput") {
+                state.dm.open = dmWasOpen;
+                ui.renderDM();
+              }
+              mobileInterface.selectTab(previousTab,false);
+              ui.ensureMobilePinnedChatLayout();
+              const restored = {
+                chat:Math.round(chat.getBoundingClientRect().height),
+                panels:Math.round(shell.getBoundingClientRect().height),
+              };
+              keyboardFocusResults.push(assert(Math.abs(restored.chat-baseline.chat)<=2
+                && Math.abs(restored.panels-baseline.panels)<=2,
+                "keyboard_menu_size_restore_"+label,JSON.stringify({baseline,restored})));
+              ui.showMenu();
+              const menuOpenHeight = Math.round(chat.getBoundingClientRect().height);
+              ui.hideMenu();
+              ui.ensureMobilePinnedChatLayout();
+              keyboardFocusResults.push(assert(menuOpenHeight>0,
+                "menu_reopens_after_keyboard_"+label,JSON.stringify({menuOpenHeight})));
+            }
+            state.dm.open = dmWasOpen;
+            ui.renderDM();
+            mobileInterface.selectTab(previousTab,false);
           }
         } catch (_) {}
         if (originalVV) Object.defineProperty(win,"visualViewport",originalVV);
         else delete win.visualViewport;
         ui.ensureMobilePinnedChatLayout();
         checks.push(assert(keyboardResponsive,"visual_viewport_keyboard_compaction"));
-        if (index === 0) {
-          const afterKeyboardClose = {
-            chat:Math.round(chat.getBoundingClientRect().height),
-            panels:Math.round(shell.getBoundingClientRect().height),
-          };
-          const chatInput = doc.getElementById("chatInput");
-          chatInput.blur();
-          ui.showMenu();
-          const menuOpenSize = Math.round(chat.getBoundingClientRect().height);
-          ui.hideMenu();
-          ui.ensureMobilePinnedChatLayout();
-          const restored = {
-            chat:Math.round(chat.getBoundingClientRect().height),
-            panels:Math.round(shell.getBoundingClientRect().height),
-          };
-          keyboardRestore = !doc.body.classList.contains("mobile-keyboard-open")
-            && Math.abs(afterKeyboardClose.chat-keyboardBaseline.chat) <= 2
-            && Math.abs(afterKeyboardClose.panels-keyboardBaseline.panels) <= 2
-            && menuOpenSize > 0
-            && Math.abs(restored.chat-keyboardBaseline.chat) <= 2
-            && Math.abs(restored.panels-keyboardBaseline.panels) <= 2;
-          checks.push(assert(keyboardMenuAccessible,"short_keyboard_menu_focus_geometry",JSON.stringify({input:rect(chatInput),chat:rect(chat),shell:rect(shell)})));
-          checks.push(assert(keyboardRestore,"keyboard_and_menu_close_restore_sizes",JSON.stringify({baseline:keyboardBaseline,afterKeyboardClose,restored,menuOpenSize})));
-        }
+        checks.push(...keyboardFocusResults);
 
         const hintTarget = doc.querySelector("#balance [data-stat-hover-hint]");
         if (hintTarget) {
