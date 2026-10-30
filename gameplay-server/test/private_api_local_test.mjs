@@ -352,6 +352,14 @@ try {
       type: "finalize", actorId: "system", recognizedOutcome: "A_WIN" }, 4);
     assert.equal(bypass.ok, false);
     assert.equal(bypass.error, "FINALIZATION_GATE_REQUIRED");
+    const forgedFinal = structuredClone(revealed.state);
+    forgedFinal.version += 1;
+    forgedFinal.phase = "final";
+    forgedFinal.socialOutcome = "NONE";
+    forgedFinal.recognizedOutcome = "A_WIN";
+    forgedFinal.events.push({ eventId: forgedFinal.battleId + ":final", type: "battle.finalized" });
+    assert.equal(pureLifecycle.restore(JSON.stringify(forgedFinal)).ok, false,
+      "serialized final state cannot erase a pending authored-text vote trigger");
   }
   const expiredId = "11111111-1111-4111-8111-111111111111";
   const expiryToken = "expired-access-" + "z".repeat(36);

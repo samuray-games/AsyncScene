@@ -195,10 +195,13 @@
         return "revealed social state is invalid";
       }
     }
-    if (state.phase === "final" &&
-        (state.mechanicalOutcome === "DRAW" ||
-         state.recognizedOutcome !== state.mechanicalOutcome || state.socialOutcome !== "NONE")) {
-      return "final recognition state is invalid";
+    if (state.phase === "final") {
+      const trigger = state.socialVoteTrigger ??
+        (state.mechanicalOutcome === "DRAW" ? "DRAW" : "NONE");
+      if (trigger !== "NONE" || state.mechanicalOutcome === "DRAW" ||
+          state.recognizedOutcome !== state.mechanicalOutcome || state.socialOutcome !== "NONE") {
+        return "final recognition state is invalid";
+      }
     }
     if (!hasReveal && (state.recognizedOutcome !== null || state.socialOutcome !== null ||
         hasOwn(state, "socialVoteTrigger"))) {
@@ -357,8 +360,11 @@
           if (currentState.phase !== "revealed") {
             return error("FINALIZATION_NOT_READY", "mechanical outcome must be revealed first");
           }
-          if (currentState.mechanicalOutcome === "DRAW") {
-            return error("FINALIZATION_GATE_REQUIRED", "draw requires a separate approved recognition gate");
+          const trigger = currentState.socialVoteTrigger ??
+            (currentState.mechanicalOutcome === "DRAW" ? "DRAW" : "NONE");
+          if (currentState.mechanicalOutcome === "DRAW" || currentState.socialOutcome === "PENDING" ||
+              trigger !== "NONE") {
+            return error("FINALIZATION_GATE_REQUIRED", "a required social outcome must resolve before finalization");
           }
           if (command.recognizedOutcome !== currentState.mechanicalOutcome) {
             return error("INVALID_RECOGNITION", "final recognized outcome must match the mechanical result");
