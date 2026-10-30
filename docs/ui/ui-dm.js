@@ -1590,10 +1590,28 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
         const state = UI._copReport;
 
+        const clearReportPositionListeners = () => {
+          const binding = state._reportPositionBinding;
+          if (!binding) return;
+          window.removeEventListener("resize", binding.handler);
+          window.removeEventListener("scroll", binding.handler, true);
+          document.removeEventListener("scroll", binding.handler, true);
+          if (binding.viewport) {
+            binding.viewport.removeEventListener("resize", binding.handler);
+            binding.viewport.removeEventListener("scroll", binding.handler);
+          }
+          if (binding.scrollport) binding.scrollport.removeEventListener("scroll", binding.handler);
+          state._reportPositionBinding = null;
+        };
+
         const closeDropdown = () => {
           state.dropdownOpen = false;
           const el = document.getElementById("reportList");
-          if (el) el.style.display = "none";
+          if (el) {
+            el.style.display = "none";
+            el.setAttribute("aria-hidden", "true");
+          }
+          clearReportPositionListeners();
         };
 
         const ensureDropdown = (inputEl) => {
@@ -1604,6 +1622,15 @@ console.warn("UI_RESPECT_HOOKS_READY", {
             listWrap.className = "mention-list";
             listWrap.style.position = "fixed";
             listWrap.style.zIndex = "9999";
+            listWrap.style.boxSizing = "border-box";
+            listWrap.style.overflowY = "auto";
+            listWrap.style.overscrollBehavior = "contain";
+            listWrap.setAttribute("role", "listbox");
+            listWrap.setAttribute("aria-label", "Игроки для жалобы");
+            listWrap.setAttribute("aria-hidden", "true");
+            listWrap.addEventListener("pointerdown", (event) => {
+              if (event.target && event.target.closest && event.target.closest(".mention-item")) event.preventDefault();
+            });
             document.body.appendChild(listWrap);
           }
           const isReportable = (p) => {
@@ -1624,11 +1651,49 @@ console.warn("UI_RESPECT_HOOKS_READY", {
           };
           const getReportables = () => Object.values(getS().players || {}).filter(isReportable);
           const position = () => {
-            if (!inputEl) return;
-            const rect = inputEl.getBoundingClientRect();
-            listWrap.style.left = `${rect.left}px`;
-            listWrap.style.top = `${rect.bottom + 4}px`;
-            listWrap.style.width = `${Math.max(rect.width, 220)}px`;
+            const liveInput = document.getElementById("reportInput");
+            if (!liveInput || !liveInput.isConnected || !listWrap.isConnected) return;
+            const rect = liveInput.getBoundingClientRect();
+            const viewport = window.visualViewport;
+            const viewportLeft = Math.max(0, viewport && Number.isFinite(viewport.offsetLeft) ? viewport.offsetLeft : 0);
+            const viewportTop = Math.max(0, viewport && Number.isFinite(viewport.offsetTop) ? viewport.offsetTop : 0);
+            const viewportWidth = Math.max(1, viewport && viewport.width ? viewport.width : window.innerWidth);
+            const viewportHeight = Math.max(1, viewport && viewport.height ? viewport.height : window.innerHeight);
+            const viewportRight = viewportLeft + viewportWidth;
+            const viewportBottom = viewportTop + viewportHeight;
+            const gutter = 8;
+            const gap = 4;
+            const width = Math.min(Math.max(rect.width, 220), Math.max(1, viewportWidth - gutter * 2));
+            const left = Math.max(viewportLeft + gutter, Math.min(rect.left, viewportRight - gutter - width));
+            const desiredHeight = Math.min(240, Math.max(44, listWrap.scrollHeight));
+            const aboveSpace = Math.max(0, rect.top - gap - viewportTop - gutter);
+            const belowSpace = Math.max(0, viewportBottom - gutter - rect.bottom - gap);
+            const placeAbove = belowSpace < Math.min(desiredHeight, 96) && aboveSpace > belowSpace;
+            const available = placeAbove ? aboveSpace : belowSpace;
+            const maxHeight = Math.max(1, Math.min(desiredHeight, available));
+            const top = placeAbove
+              ? Math.max(viewportTop + gutter, rect.top - gap - maxHeight)
+              : Math.min(viewportBottom - gutter - maxHeight, rect.bottom + gap);
+            listWrap.style.left = `${left}px`;
+            listWrap.style.top = `${top}px`;
+            listWrap.style.width = `${width}px`;
+            listWrap.style.maxHeight = `${maxHeight}px`;
+            listWrap.style.webkitOverflowScrolling = "touch";
+          };
+          const bindPositionListeners = () => {
+            if (state._reportPositionBinding) return;
+            const handler = () => window.requestAnimationFrame(position);
+            const viewport = window.visualViewport || null;
+            const scrollport = document.querySelector("#dmBlock > .panelBody");
+            window.addEventListener("resize", handler, { passive: true });
+            window.addEventListener("scroll", handler, true);
+            document.addEventListener("scroll", handler, true);
+            if (viewport) {
+              viewport.addEventListener("resize", handler, { passive: true });
+              viewport.addEventListener("scroll", handler, { passive: true });
+            }
+            if (scrollport) scrollport.addEventListener("scroll", handler, { passive: true });
+            state._reportPositionBinding = { handler, viewport, scrollport };
           };
           const render = () => {
             const q = String(state.q || "").trim().toLowerCase();
@@ -1641,9 +1706,13 @@ console.warn("UI_RESPECT_HOOKS_READY", {
             if (!list.length) {
               const it = document.createElement("div");
               it.className = "mention-item";
+              it.setAttribute("role", "option");
+              it.setAttribute("aria-selected", "false");
               it.textContent = "Тут пусто.";
               listWrap.appendChild(it);
               listWrap.style.display = "block";
+              listWrap.setAttribute("aria-hidden", "false");
+              bindPositionListeners();
               position();
               return;
             }
@@ -1651,6 +1720,9 @@ console.warn("UI_RESPECT_HOOKS_READY", {
             list.forEach((p, idx) => {
               const it = document.createElement("div");
               it.className = "mention-item" + (idx === (state.sel || 0) ? " active" : "");
+              it.setAttribute("role", "option");
+              it.setAttribute("aria-selected", idx === (state.sel || 0) ? "true" : "false");
+              it.id = `reportOption-${idx}`;
               it.textContent = String(p.name || "");
               it.onclick = (e) => {
                 stop(e);
@@ -1664,10 +1736,18 @@ console.warn("UI_RESPECT_HOOKS_READY", {
                 } catch (_) {}
                 state.dropdownOpen = false;
                 listWrap.style.display = "none";
+                listWrap.setAttribute("aria-hidden", "true");
+                clearReportPositionListeners();
+                if (inputEl) {
+                  try { inputEl.focus({ preventScroll: true }); }
+                  catch (_) { inputEl.focus(); }
+                }
               };
               listWrap.appendChild(it);
             });
             listWrap.style.display = "block";
+            listWrap.setAttribute("aria-hidden", "false");
+            bindPositionListeners();
             position();
           };
 

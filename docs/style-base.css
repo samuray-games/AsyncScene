@@ -1604,11 +1604,15 @@ button:disabled{opacity:.55; cursor:not-allowed}
   body.mobile-keyboard-open #btnSend{min-height:38px;padding:7px 9px}
   body.mobile-keyboard-open #mobilePanelShell{overflow:hidden}
   body.mobile-keyboard-open #mobilePanelShell #dmBlock .panelBody{min-height:0;overflow:auto}
-  body.mobile-keyboard-open #mobilePanelShell #dmLog{min-height:36px;flex-shrink:0}
+  body.mobile-keyboard-open #mobilePanelShell #dmLog{flex:1 1 0%;min-height:36px;flex-shrink:1;overflow-y:auto}
   body.mobile-keyboard-open #mobilePanelShell #dmInputRow,
   body.mobile-keyboard-open #mobilePanelShell #dmActions,
   body.mobile-keyboard-open #mobilePanelShell #teachPanel,
   body.mobile-keyboard-open #mobilePanelShell #dmExtraRow{flex-shrink:0}
+  #mobilePanelShell #dmInputRow{display:flex;align-items:center;gap:6px;padding:6px 8px;flex-wrap:nowrap}
+  #mobilePanelShell #dmInputRow #dmInput{flex:1 1 0%;width:0;min-width:0}
+  #mobilePanelShell #dmInputRow #dmSend{flex:0 0 auto;white-space:nowrap}
+  #mobilePanelShell #dmLog{flex:1 1 0%;min-height:36px;flex-shrink:1;overflow-y:auto}
   html body.mobile-keyboard-open #mobilePanelTabs.mobilePanelTabs{
     flex-basis:40px;
     min-height:40px;
@@ -1715,6 +1719,12 @@ button:disabled{opacity:.55; cursor:not-allowed}
     overflow-x:hidden;
     -webkit-overflow-scrolling:touch;
     overscroll-behavior:contain;
+  }
+  #left.dm-priority #chatLog{
+    flex:0 1 0px;
+    min-height:0;
+    padding-block:0;
+    overflow:hidden;
   }
   #chatInputRow,.chatInputRow{
     flex:0 0 auto;

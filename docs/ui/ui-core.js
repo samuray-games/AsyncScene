@@ -1533,6 +1533,7 @@ window.Game = window.Game || {};
     const chat = document.getElementById("left");
     const handle = document.getElementById("chatResizeHandle");
     const tabs = document.getElementById("mobilePanelTabs");
+    const blocks = document.getElementById("blocks");
     const menu = getMenuBlockEl();
     if (!root || !topBar || !chat || !handle || !tabs) return;
 
@@ -1563,6 +1564,8 @@ window.Game = window.Game || {};
     if (!controller) {
       controller = {
         preferredHeight: readPx(root.style.getPropertyValue("--mobile-chat-height"), 0),
+        activeTab: null,
+        dmHeightOverride: false,
         dragging: false,
         pointerId: null,
         dragY: 0,
@@ -1583,6 +1586,13 @@ window.Game = window.Game || {};
       const vv = visual();
       const keyboardOpen = !!(window.visualViewport && window.innerHeight - vv.height > 120);
       document.body.classList.toggle("mobile-keyboard-open", keyboardOpen);
+      const activeTab = blocks && blocks.getAttribute("data-active-tab");
+      const dmTabActive = activeTab === "dm";
+      chat.classList.toggle("dm-priority", dmTabActive);
+      if (controller.activeTab !== activeTab) {
+        controller.activeTab = activeTab;
+        controller.dmHeightOverride = false;
+      }
       const safeTop = readSafe("--mobile-safe-top");
       const safeBottom = readSafe("--mobile-safe-bottom");
       const edge = Math.max(0, readPx(getComputedStyle(root).getPropertyValue("--mobile-edge"), 8));
@@ -1596,7 +1606,8 @@ window.Game = window.Game || {};
       const handleHeight = handle.getBoundingClientRect().height || 18;
       const headerHeight = chatHeader ? chatHeader.getBoundingClientRect().height : 44;
       const inputHeight = chatInputRow ? chatInputRow.getBoundingClientRect().height : 62;
-      const keyboardChatMin = Math.ceil(headerHeight + Math.min(inputHeight, 48) + handleHeight + 18);
+      const keyboardChatMin = Math.ceil(headerHeight + inputHeight + handleHeight + 2);
+      const functionalChatMin = Math.ceil(headerHeight + inputHeight + handleHeight + 2);
       const edgeHeight = edge * 2 + safeTop + safeBottom;
       const layoutGaps = gap * 3;
       let fixedHeight = edgeHeight + topHeight + menuHeight + layoutGaps;
@@ -1615,19 +1626,22 @@ window.Game = window.Game || {};
       }
       const panelFloor = keyboardOpen ? Math.max(112, Math.round(vv.height * 0.28)) : desiredPanelHeight;
       const chatCapacity = Math.max(0, vv.height - fixedHeight - panelFloor);
-      const minChatHeight = Math.min(chatCapacity, 168, Math.max(
-        keyboardOpen ? Math.min(keyboardChatMin, chatCapacity) : 72,
-        Math.round(vv.height * 0.27),
-      ));
+      if (Number.isFinite(requestedHeight)) {
+        controller.preferredHeight = Math.max(0, requestedHeight);
+        if (dmTabActive) controller.dmHeightOverride = true;
+      }
+      const minChatHeight = Math.min(chatCapacity, dmTabActive
+        ? (keyboardOpen ? keyboardChatMin : functionalChatMin)
+        : Math.max(keyboardOpen ? Math.min(keyboardChatMin, chatCapacity) : 72, Math.round(vv.height * 0.27)));
       const minPanelHeight = Math.max(0, Math.min(panelFloor, vv.height - fixedHeight - minChatHeight));
       const chatTop = vv.top + safeTop + edge + topHeight + gap + menuHeight;
       const maxChat = Math.max(0, vv.height - safeTop - safeBottom - edge * 2 - topHeight - menuHeight - gap * 3 - minPanelHeight);
-      if (Number.isFinite(requestedHeight)) controller.preferredHeight = Math.max(minChatHeight, Math.min(maxChat, requestedHeight));
       if (!controller.preferredHeight) {
         const splitSpace = Math.max(minChatHeight, vv.height - safeTop - safeBottom - edge * 2 - topHeight - menuHeight - gap * 3);
         controller.preferredHeight = splitSpace * (activeBattleExists() ? 0.40 : 0.55);
       }
-      const chatHeight = Math.round(Math.max(0, Math.min(maxChat, Math.max(minChatHeight, controller.preferredHeight))));
+      const preferredTarget = dmTabActive && !controller.dmHeightOverride ? minChatHeight : controller.preferredHeight;
+      const chatHeight = Math.round(Math.max(0, Math.min(maxChat, Math.max(minChatHeight, preferredTarget))));
       const panelsTop = chatTop + chatHeight + gap;
       const panelsHeight = Math.max(0, vv.height - safeBottom - edge - (panelsTop - vv.top));
       root.style.setProperty("--mobile-vv-top", `${vv.top}px`);

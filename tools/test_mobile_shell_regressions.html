@@ -52,7 +52,7 @@
     const diagnostic = (win,doc,inputId,inputs) => ({
       viewport:{innerWidth:win.innerWidth,innerHeight:win.innerHeight,scrollX:win.scrollX,scrollY:win.scrollY,visual:{offsetLeft:win.visualViewport&&win.visualViewport.offsetLeft||0,offsetTop:win.visualViewport&&win.visualViewport.offsetTop||0,width:win.visualViewport&&win.visualViewport.width||win.innerWidth,height:win.visualViewport&&win.visualViewport.height||win.innerHeight,scale:win.visualViewport&&win.visualViewport.scale||1},visibleBottom:(win.visualViewport&&win.visualViewport.offsetTop||0)+(win.visualViewport&&win.visualViewport.height||win.innerHeight)},
       active:nodeState(doc.activeElement,win),
-      elements:Object.fromEntries(["topBar","balance","meNamePill","weeklyCapLine","left","chatInputRow","chatLog","mobilePanelShell","mobilePanelTabs","dmBlock","dmPanelBody","dmLog","dmInputRow","dmExtraRow","chatInput","dmInput","reportInput","menuBlock","btnMenu","argTierPill","argNextPill"].map((id)=>[id,nodeState(id==="dmPanelBody"?doc.querySelector("#dmBlock > .panelBody"):doc.getElementById(id),win)])),
+      elements:Object.fromEntries(["topBar","balance","meNamePill","weeklyCapLine","left","chatInputRow","chatLog","mobilePanelShell","mobilePanelTabs","dmBlock","dmPanelBody","dmLog","dmActions","dmInputRow","dmSend","dmExtraRow","reportInput","reportList","menuBlock","btnMenu","argTierPill","argNextPill"].map((id)=>[id,nodeState(id==="dmPanelBody"?doc.querySelector("#dmBlock > .panelBody"):doc.getElementById(id),win)])),
       focusedScenario:inputId,fields:Object.fromEntries(Object.entries(inputs).map(([id,node])=>[id,nodeState(node,win)])),
       layoutVars:Object.fromEntries(["--mobile-vv-top","--mobile-vv-height","--mobile-topbar-height","--mobile-menu-stack-height","--mobile-chat-height","--mobile-chat-min","--mobile-panels-top","--mobile-panels-height"].map((key)=>[key,doc.documentElement.style.getPropertyValue(key)])),
     });
@@ -249,6 +249,7 @@
         });
         if (index === 0) {
           const previousTab = mobileInterface.getActiveTab();
+          const previousTabGeometry={chat:Math.round(chat.getBoundingClientRect().height),panels:Math.round(shell.getBoundingClientRect().height)};
           const dmSnapshot = JSON.parse(JSON.stringify(state.dm||{}));
           const copReportSnapshot = ui._copReport ? JSON.parse(JSON.stringify(ui._copReport)) : null;
           const dmTargets = Object.values(state.players||{}).filter((player)=>player&&player.id!==state.me?.id);
@@ -258,6 +259,34 @@
           if (syntheticCop) state.players[syntheticCop.id]=syntheticCop;
           const copRecipient = existingCop||syntheticCop;
           checks.push(assert(!!dmRecipient&&!!copRecipient,"keyboard_fixture_real_dm_and_cop_targets",JSON.stringify({dm:dmRecipient&&dmRecipient.id,cop:copRecipient&&copRecipient.id,syntheticCop:!!syntheticCop})));
+          const syntheticReportPlayers=[];
+          for (let i=0;i<14;i++) {
+            const player={id:"mobile-report-target-"+i,name:"Проверяемая жалоба "+String(i+1).padStart(2,"0"),role:"citizen",npc:true};
+            state.players[player.id]=player;
+            syntheticReportPlayers.push(player.id);
+          }
+          if (dmRecipient && ui.openDM) {
+            ui.openDM(dmRecipient.id);
+            state.dm.logs[dmRecipient.id]=Array.from({length:14},(_,i)=>({t:"12:00",from:i%2?String(state.me&&state.me.name||"Тестовый игрок"):String(dmRecipient.name||"Собеседник"),text:"Приоритетная личная переписка "+(i+1)}));
+            ui.renderDM();
+            mobileInterface.selectTab("battles",false);
+            const preferredBeforeDm=Math.round(chat.getBoundingClientRect().height);
+            mobileInterface.selectTab("dm",false);
+            const minimizedForDm=Math.round(chat.getBoundingClientRect().height);
+            const dmPanelHeight=Math.round(shell.getBoundingClientRect().height);
+            const dmPanelVisible=doc.getElementById("dmBlock")?.getBoundingClientRect().height>0;
+            checks.push(assert(minimizedForDm<preferredBeforeDm-12&&dmPanelHeight>112&&dmPanelVisible,
+              "dm_tab_minimizes_general_chat_and_expands_dm_panel",JSON.stringify({preferredBeforeDm,minimizedForDm,dmPanelHeight,dmPanelVisible})));
+            const generalHeader=doc.getElementById("chatHeader");
+            const generalComposer=doc.getElementById("chatInputRow");
+            const generalHandle=doc.getElementById("chatResizeHandle");
+            checks.push(assert(isInside(generalHeader,chat)&&isInside(generalComposer,chat)&&isInside(generalHandle,chat),
+              "minimized_general_chat_keeps_header_composer_and_resize_handle",JSON.stringify({header:rect(generalHeader),composer:rect(generalComposer),handle:rect(generalHandle),chat:rect(chat)})));
+            mobileInterface.selectTab("battles",false);
+            const restoredAfterDm=Math.round(chat.getBoundingClientRect().height);
+            checks.push(assert(Math.abs(restoredAfterDm-preferredBeforeDm)<=2,"dm_tab_restores_preferred_general_chat_height",JSON.stringify({preferredBeforeDm,restoredAfterDm})));
+            mobileInterface.selectTab("dm",false);
+          }
           const inputCases=[
             {id:"chatInput",recipient:null},
             {id:"dmInput",recipient:dmRecipient},
@@ -277,7 +306,7 @@
             ui.ensureMobilePinnedChatLayout();
             for (const {id:inputId,recipient} of inputCases) {
               restoreVV();
-              mobileInterface.selectTab("dm",false);
+              mobileInterface.selectTab(inputId==="chatInput"?"battles":"dm",false);
               ui.hideMenu();
               if (inputId!=="chatInput") {
                 if (!recipient||!ui.openDM||ui.openDM(recipient.id)===false) throw new Error("Could not open live DM fixture for "+inputId);
@@ -306,18 +335,33 @@
               Object.defineProperty(win,"visualViewport",{configurable:true,value:reducedVV()});
               const controllerScrollBefore=panelBody?panelBody.scrollTop:0;
               ui.ensureMobilePinnedChatLayout();
+              if (inputId==="reportInput") {
+                win.dispatchEvent(new Event("resize"));
+                await wait(40);
+              }
               const controllerScrollAfter=panelBody?panelBody.scrollTop:0;
               const menuClosedForSpace=!menu.classList.contains("menu-open");
               const visibleTop=win.visualViewport.offsetTop;
               const visibleBottom=visibleTop+win.visualViewport.height;
+              const visibleLeft=win.visualViewport.offsetLeft||0;
+              const visibleRight=visibleLeft+win.visualViewport.width;
               let panelScroll={required:false,moved:false,topBefore:0,topAfter:0,max:0};
               const panelScrollMax=panelBody?Math.max(0,panelBody.scrollHeight-panelBody.clientHeight):0;
               let logReachableByScrolling=false;
+              let logPanelScroll={from:0,to:0,visibleTop:0,visibleBottom:0};
               if (dmLog&&panelBody) {
-                panelBody.scrollTop=Math.min(160,panelScrollMax);
+                panelBody.scrollTop=0;
+                const panelBox=panelBody.getBoundingClientRect();
+                const panelVisibleTop=panelBox.top+panelBody.clientTop;
+                const panelVisibleBottom=panelVisibleTop+panelBody.clientHeight;
+                const logBeforeReveal=dmLog.getBoundingClientRect();
+                const revealDelta=Math.max(0,Math.ceil(logBeforeReveal.top-panelVisibleBottom+1));
+                panelBody.scrollTop=Math.min(panelScrollMax,revealDelta);
+                logPanelScroll={from:0,to:Math.round(panelBody.scrollTop),visibleTop:Math.round(panelVisibleTop),visibleBottom:Math.round(panelVisibleBottom)};
                 logReachableByScrolling=intersects(dmLog,panelBody);
                 panelBody.scrollTop=controllerScrollAfter;
               }
+              const dmLogScroll=inputId==="chatInput"?{supported:false,moved:false}:probeScroll(dmLog,"y");
               panelScroll={required:!!(panelBody&&panelScrollMax>0),moved:Math.abs(controllerScrollAfter-controllerScrollBefore)>0,topBefore:Math.round(controllerScrollBefore),topAfter:Math.round(controllerScrollAfter),max:panelScrollMax};
               const inputRect=input.getBoundingClientRect();
               const topRect=top.getBoundingClientRect();
@@ -369,21 +413,67 @@
               const shellAndTabsVisible=shellRect.height>=112&&shellRect.top>=visibleTop&&shellRect.bottom<=visibleBottom
                 &&tabsRect.height>=36&&tabsRect.top>=shellRect.top&&tabsRect.bottom<=shellRect.bottom
                 &&(inputId==="chatInput"||(dmPanel.getBoundingClientRect().height>0&&isInside(dmPanel,shell)&&isInside(panelBody,dmPanel)));
+              const chatLogAcceptable=inputId==="chatInput"
+                ?chatLogState.clientHeight>0&&(chatLogState.overflowY==="auto"||chatLogState.overflowY==="scroll")&&chatLogScrollable
+                :(chatLogState.clientHeight===0||(chatLogState.overflowY==="auto"||chatLogState.overflowY==="scroll")&&chatLogScrollable);
               const chatAreaUsable=leftRect.height>=72&&leftRect.top>=visibleTop&&leftRect.bottom<=visibleBottom
                 &&leftRect.height>=keyboardMin&&nodeState(chatInputRow,win).rect.height>0&&isInside(chatInputRow,chat)
                 &&chatInput.getBoundingClientRect().height>0
                 &&(inputId!=="chatInput"||chatInputVisible)
-                &&chatLogState.clientHeight>0&&(chatLogState.overflowY==="auto"||chatLogState.overflowY==="scroll")&&chatLogScrollable;
+                &&chatLogAcceptable;
               const dmLogAccessible=inputId==="chatInput"||!!(panelBodyScroll.supported&&panelBodyScroll.moved&&logReachableByScrolling);
-              const panelScrollValid=inputId==="chatInput"||(!panelScroll.required||panelScroll.moved)&&activeInputVisible;
+              const dmThreadScrollable=inputId==="chatInput"||!!(dmLogScroll.supported&&dmLogScroll.moved&&nodeState(dmLog,win).rect.height>=36&&nodeState(dmLog,win).overflowY==="auto");
+              const panelScrollValid=activeInputVisible&&(!panelScroll.required||panelScroll.moved||inputRect.top>=visibleTop&&inputRect.bottom<=visibleBottom);
+              const dmSend=doc.getElementById("dmSend");
+              const dmSendRect=dmSend&&dmSend.getBoundingClientRect();
+              const dmSendHit=dmSendRect&&doc.elementFromPoint(Math.floor(dmSendRect.left+dmSendRect.width/2),Math.floor(dmSendRect.top+dmSendRect.height/2));
+              const dmSendReachable=inputId!=="dmInput"||!!(dmSendRect&&dmSendRect.width>0&&dmSendRect.height>0&&dmSendRect.top>=visibleTop&&dmSendRect.bottom<=visibleBottom&&isInside(dmSend,panelBody)&&(dmSendHit===dmSend||dmSend.contains(dmSendHit)));
+              let reportDropdownEvidence=null;
+              let reportDropdownReachable=true;
+              if (inputId==="reportInput") {
+                const reportList=doc.getElementById("reportList");
+                const reportOptions=reportList?Array.from(reportList.querySelectorAll('[role="option"]')):[];
+                const listRect=reportList&&reportList.getBoundingClientRect();
+                const reportScroll=reportList?probeScroll(reportList,"y"):{supported:false,moved:false};
+                const firstVisible=reportOptions.find((option)=>{const r=option.getBoundingClientRect();return r.bottom>listRect.top&&r.top<listRect.bottom;});
+                const optionRect=firstVisible&&firstVisible.getBoundingClientRect();
+                const optionHit=optionRect&&doc.elementFromPoint(Math.floor(optionRect.left+Math.min(optionRect.width/2,20)),Math.floor(optionRect.top+Math.min(optionRect.height/2,16)));
+                const insideViewport=!!(listRect&&listRect.width>0&&listRect.height>0&&listRect.left>=visibleLeft&&listRect.right<=visibleRight&&listRect.top>=visibleTop&&listRect.bottom<=visibleBottom);
+                const listOnUsableSide=!!(listRect&&(listRect.bottom<=inputRect.top-1||listRect.top>=inputRect.bottom+1));
+                const optionHitReachable=!!(firstVisible&&optionHit&&reportList.contains(optionHit));
+                reportDropdownReachable=insideViewport&&listOnUsableSide&&optionHitReachable&&reportOptions.length>=syntheticReportPlayers.length&&reportList.getAttribute("aria-hidden")==="false";
+                reportDropdownEvidence={rect:rect(reportList),input:rect(input),visible:{top:visibleTop,bottom:visibleBottom,left:visibleLeft,right:visibleRight},insideViewport,listOnUsableSide,options:reportOptions.length,scroll:reportScroll,optionHit:optionHit&&{id:optionHit.id,role:optionHit.getAttribute("role"),className:String(optionHit.className)},optionHitReachable,ariaHidden:reportList.getAttribute("aria-hidden")};
+                if (panelBody) {
+                  panelBody.scrollTop=Math.min(panelBody.scrollHeight-panelBody.clientHeight,panelBody.scrollTop+12);
+                  panelBody.dispatchEvent(new Event("scroll"));
+                  await wait(40);
+                  const repositioned=reportList.getBoundingClientRect();
+                  const repositionedInput=input.getBoundingClientRect();
+                  const remainsAnchored=(repositioned.bottom<=repositionedInput.top+1||repositioned.top>=repositionedInput.bottom-1)
+                    &&repositioned.top>=visibleTop&&repositioned.bottom<=visibleBottom;
+                  reportDropdownEvidence.manualScroll={list:rect(reportList),input:rect(input),remainsAnchored};
+                  reportDropdownReachable=reportDropdownReachable&&remainsAnchored;
+                }
+                const optionToTap=reportOptions.find((option)=>{const r=option.getBoundingClientRect();return r.bottom>visibleTop&&r.top<visibleBottom&&r.bottom>reportList.getBoundingClientRect().top&&r.top<reportList.getBoundingClientRect().bottom;});
+                if (optionToTap) {
+                  optionToTap.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,cancelable:true,pointerId:88,pointerType:"touch",button:0,isPrimary:true}));
+                  optionToTap.click();
+                }
+                const optionSelectionKeptFocus=!!optionToTap&&doc.activeElement===input&&input.value===optionToTap.textContent&&reportList.style.display==="none";
+                reportDropdownEvidence.optionSelectionKeptFocus=optionSelectionKeptFocus;
+                reportDropdownReachable=reportDropdownReachable&&optionSelectionKeptFocus;
+              }
               const geometryAccessible=menuStartedOpen&&menuClosedForSpace&&doc.activeElement===input&&!input.disabled
                 &&activeInputVisible&&topbarCompact&&balanceAccessible&&shellAndTabsVisible&&chatAreaUsable&&dmLogAccessible&&panelScrollValid
-                &&(inputId==="chatInput"||(!panelBody||panelBody.clientHeight>0));
+                &&dmThreadScrollable&&dmSendReachable&&reportDropdownReachable&&(inputId==="chatInput"||(!panelBody||panelBody.clientHeight>0));
               const label=inputId.replace(/[A-Z]/g,(letter)=>"_"+letter.toLowerCase());
               const inputs={chatInput,dmInput:doc.getElementById("dmInput"),reportInput:doc.getElementById("reportInput")};
               const topBarStyle=win.getComputedStyle(top);
-              const evidence={menuStartedOpen,menuClosedForSpace,activeInputVisible,focusScrollBefore,panelScroll,panelBodyScroll,logReachableByScrolling,topbarCompact,topBarLayout:{display:topBarStyle.display,overflowX:topBarStyle.overflowX,scrollWidth:top.scrollWidth,clientWidth:top.clientWidth},balanceAccessible,balanceScroll,profileReachability,statChips:statChips.map((node)=>rect(node)),shellAndTabsVisible,chatAreaUsable,chatLogScrollable,chatLogScroll,dmLogAccessible,panelScrollValid,keyboardMin,diagnostic:diagnostic(win,doc,inputId,inputs)};
+              const evidence={menuStartedOpen,menuClosedForSpace,activeInputVisible,focusScrollBefore,panelScroll,panelBodyScroll,logReachableByScrolling,logPanelScroll,dmLogScroll,dmThreadScrollable,dmSendReachable,reportDropdownReachable,reportDropdownEvidence,topbarCompact,topBarLayout:{display:topBarStyle.display,overflowX:topBarStyle.overflowX,scrollWidth:top.scrollWidth,clientWidth:top.clientWidth},balanceAccessible,balanceScroll,profileReachability,statChips:statChips.map((node)=>rect(node)),shellAndTabsVisible,chatAreaUsable,chatLogScrollable,chatLogScroll,dmLogAccessible,panelScrollValid,keyboardMin,diagnostic:diagnostic(win,doc,inputId,inputs)};
               keyboardFocusResults.push(assert(geometryAccessible,"short_keyboard_menu_focus_geometry_"+label,JSON.stringify(evidence)));
+              keyboardFocusResults.push(assert(dmThreadScrollable,"dm_conversation_scrolls_independently_"+label,JSON.stringify({dmLogScroll,dmLog:nodeState(dmLog,win),panelBody:nodeState(panelBody,win)})));
+              if (inputId==="dmInput") keyboardFocusResults.push(assert(dmSendReachable,"dm_send_button_visible_and_hit_testable",JSON.stringify({send:rect(dmSend),hit:dmSendHit&&{id:dmSendHit.id,className:String(dmSendHit.className),tag:dmSendHit.tagName},viewport:{top:visibleTop,bottom:visibleBottom},panelBody:rect(panelBody)})));
+              if (inputId==="reportInput") keyboardFocusResults.push(assert(reportDropdownReachable,"report_suggestions_fit_viewport_scroll_and_preserve_focus",JSON.stringify(reportDropdownEvidence)));
               const menuAtStart=rect(menuButton);
               top.scrollLeft=topbarScrollMax;
               const menuAtProfileEnd=rect(menuButton);
@@ -412,7 +502,7 @@
               mobileInterface.selectTab(previousTab,false);
               ui.ensureMobilePinnedChatLayout();
               const restored={chat:Math.round(chat.getBoundingClientRect().height),panels:Math.round(shell.getBoundingClientRect().height)};
-              keyboardFocusResults.push(assert(Math.abs(restored.chat-baseline.chat)<=2&&Math.abs(restored.panels-baseline.panels)<=2,"keyboard_menu_size_restore_"+label,JSON.stringify({baseline,restored})));
+              keyboardFocusResults.push(assert(Math.abs(restored.chat-previousTabGeometry.chat)<=2&&Math.abs(restored.panels-previousTabGeometry.panels)<=2,"keyboard_menu_size_restore_"+label,JSON.stringify({expected:previousTabGeometry,baseline,restored})));
               ui.showMenu();
               const menuAfter={open:menu.classList.contains("menu-open")&&win.getComputedStyle(menu).display!=="none"&&menu.getBoundingClientRect().height>0,rect:rect(menu)};
               keyboardFocusResults.push(assert(menuAfter.open,"menu_reopens_after_keyboard_"+label,JSON.stringify(menuAfter)));
@@ -428,6 +518,7 @@
           if (orphanReportDropdown) orphanReportDropdown.remove();
           state.dm=dmSnapshot;
           if (syntheticCop) delete state.players[syntheticCop.id];
+          syntheticReportPlayers.forEach((id)=>delete state.players[id]);
           ui._copReport=copReportSnapshot||{open:false,q:"",sel:0,list:[],dropdownOpen:false};
           ui.renderDM();
           mobileInterface.selectTab(previousTab,false);
@@ -556,6 +647,24 @@
       const finalPass=complete&&passed===total;
       report.className = finalPass?"pass":"fail";
       report.textContent += "\n\nTOTAL " + passed + "/" + total + " " + (finalPass?"PASS":"FAIL");
+      const failureCodes=results.flatMap((item)=>item.failures.map((failure)=>item.size+" "+failure.code));
+      if (failureCodes.length) report.textContent += "\nFAILURE CODES " + failureCodes.join(" | ");
+      const failureEvidence=results.flatMap((item)=>item.failures.map((failure)=>{
+        let details=String(failure.details||"");
+        let evidence;
+        try { evidence=JSON.parse(details); }
+        catch (parseError) { details += " [evidence JSON parse failed: "+parseError.message+"]"; }
+        if (evidence) {
+          if (failure.code.startsWith("short_keyboard")) {
+            const flags=Object.fromEntries(["menuStartedOpen","menuClosedForSpace","activeInputVisible","topbarCompact","balanceAccessible","shellAndTabsVisible","chatAreaUsable","dmLogAccessible","panelScrollValid","dmThreadScrollable","dmSendReachable","reportDropdownReachable"].filter((key)=>key in evidence).map((key)=>[key,evidence[key]]));
+            const diagnostic=evidence.diagnostic;
+            if (!evidence.dmLogAccessible&&diagnostic) flags.dmLogGeometry={dmPanelBody:diagnostic.elements.dmPanelBody,dmLog:diagnostic.elements.dmLog,dmActions:diagnostic.elements.dmActions,dmInputRow:diagnostic.elements.dmInputRow,dmExtraRow:diagnostic.elements.dmExtraRow,reportInput:diagnostic.elements.reportInput,reportList:diagnostic.elements.reportList};
+            details=JSON.stringify(flags);
+          } else details=JSON.stringify(evidence);
+        }
+        return item.size+" "+failure.code+" "+details.slice(0,2400);
+      }));
+      if (failureEvidence.length) report.textContent += "\nFAILURE EVIDENCE " + failureEvidence.join(" | ");
       if (skippedCount) report.textContent += "\nSKIPPED " + skippedCount + " (excluded from PASS total)";
       if (!complete) report.textContent += "\nRUNS INCOMPLETE " + results.length + "/" + selectedRuns.length;
       identity.textContent = "Finished " + results.length + " exact-size Headless Chromium iframe runs. " + results.map((item) => item.size + " " + item.passed + "/" + item.total).join("; ");
