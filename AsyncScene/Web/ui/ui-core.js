@@ -1578,7 +1578,7 @@ window.Game = window.Game || {};
     const sync = (requestedHeight) => {
       if (!isMobile()) {
         chat.classList.remove("is-resizing");
-        document.body.classList.remove("mobile-keyboard-open");
+        document.body.classList.remove("mobile-keyboard-open", "mobile-profile-compact");
         ["--mobile-topbar-height", "--mobile-menu-stack-height", "--mobile-chat-height", "--mobile-chat-min", "--mobile-panels-top", "--mobile-panels-height", "--mobile-vv-top", "--mobile-vv-height"].forEach((key) => root.style.removeProperty(key));
         return;
       }
@@ -1586,6 +1586,10 @@ window.Game = window.Game || {};
       const vv = visual();
       const keyboardOpen = !!(window.visualViewport && window.innerHeight - vv.height > 120);
       document.body.classList.toggle("mobile-keyboard-open", keyboardOpen);
+      const activeEditor = document.activeElement;
+      const editingChat = !!(activeEditor && activeEditor.matches
+        && activeEditor.matches("#chatInput, #dmInput, #reportInput"));
+      document.body.classList.toggle("mobile-profile-compact", keyboardOpen || editingChat);
       const activeTab = blocks && blocks.getAttribute("data-active-tab");
       const dmTabActive = activeTab === "dm";
       chat.classList.toggle("dm-priority", dmTabActive);
@@ -1611,9 +1615,6 @@ window.Game = window.Game || {};
       const edgeHeight = edge * 2 + safeTop + safeBottom;
       const layoutGaps = gap * 3;
       let fixedHeight = edgeHeight + topHeight + menuHeight + layoutGaps;
-      const activeEditor = document.activeElement;
-      const editingChat = !!(activeEditor && activeEditor.matches
-        && activeEditor.matches("#chatInput, #dmInput, #reportInput"));
       const minimumPanelsHeight = keyboardOpen ? 112 : 88;
       if (keyboardOpen && editingChat && menuHeight > 0
           && vv.height - fixedHeight < keyboardChatMin + minimumPanelsHeight) {
@@ -1723,6 +1724,10 @@ window.Game = window.Game || {};
       else if (mq && mq.addListener) mq.addListener(resize);
       document.addEventListener("focusin", (event) => {
         if (!isMobile() || !event.target || !event.target.matches || !event.target.matches("#chatInput, #dmInput, #reportInput")) return;
+        window.requestAnimationFrame(resize);
+      });
+      document.addEventListener("focusout", () => {
+        if (!isMobile()) return;
         window.requestAnimationFrame(resize);
       });
     }

@@ -833,7 +833,7 @@ console.warn("UI_RESPECT_HOOKS_READY", {
 
     // DM must be hidden until explicitly opened by user action (bubble click / UI.openDM),
     // OR until an incoming DM opens the panel.
-    if (!S.dm.open) {
+    if (!S.dm.open && !showMobileCollapsedDm) {
       if (dmBlock) dmBlock.classList.add("hidden");
       return;
     }
@@ -848,15 +848,33 @@ console.warn("UI_RESPECT_HOOKS_READY", {
     if (!box.classList.contains("dmLog")) box.classList.add("dmLog");
 
     if (!S.dm.activeId) {
-      box.innerHTML = "";
+      box.replaceChildren();
+      box.classList.add("dmEmptyState");
       const empty = document.createElement("div");
-      empty.className = "pill";
-      empty.textContent = t("dm_empty");
+      empty.className = "dmEmptyStateContent";
+      empty.setAttribute("role", "status");
+      empty.setAttribute("aria-live", "polite");
+      const title = document.createElement("strong");
+      title.textContent = "Личных переписок пока нет";
+      const hint = document.createElement("span");
+      hint.textContent = "Чтобы начать, нажмите на имя игрока в общем чате.";
+      empty.append(title, hint);
       box.appendChild(empty);
+      const tabs = document.getElementById("dmTabs");
+      if (tabs) tabs.replaceChildren();
       const actionsEmpty = $("dmActions");
-      if (actionsEmpty) actionsEmpty.innerHTML = "";
+      if (actionsEmpty) actionsEmpty.replaceChildren();
+      const teachEmpty = $("teachPanel");
+      if (teachEmpty) { teachEmpty.classList.add("hidden"); teachEmpty.replaceChildren(); }
+      const inputRow = $("dmInputRow");
+      if (inputRow) inputRow.classList.add("hidden");
+      const extra = $("dmExtraRow");
+      if (extra) extra.classList.add("hidden");
       return;
     }
+    box.classList.remove("dmEmptyState");
+    const inputRow = $("dmInputRow");
+    if (inputRow) inputRow.classList.remove("hidden");
 
     let target = getS().players[withId];
     if (!target) {
@@ -1622,6 +1640,11 @@ console.warn("UI_RESPECT_HOOKS_READY", {
             listWrap.className = "mention-list";
             listWrap.style.position = "fixed";
             listWrap.style.zIndex = "9999";
+            // .mention-list defaults to bottom:74px for public chat. This is a
+            // viewport-anchored report popup with an explicit top, so retaining
+            // that bottom anchor stretches it across unrelated DM content.
+            listWrap.style.bottom = "auto";
+            listWrap.style.height = "auto";
             listWrap.style.boxSizing = "border-box";
             listWrap.style.overflowY = "auto";
             listWrap.style.overscrollBehavior = "contain";

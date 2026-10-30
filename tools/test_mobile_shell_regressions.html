@@ -260,6 +260,39 @@
           const copReportSnapshot = ui._copReport ? JSON.parse(JSON.stringify(ui._copReport)) : null;
           const dmTargets = Object.values(state.players||{}).filter((player)=>player&&player.id!==state.me?.id);
           const dmRecipient = dmTargets.find((player)=>player.role!=="cop");
+          const syntheticDmPlayers=[];
+          mobileInterface.selectTab("dm",false);
+          state.dm={open:false,activeId:null,withId:null,openIds:[],logs:{},unread:{}};
+          ui.renderDM();
+          const emptyDm=doc.getElementById("dmBlock");
+          const emptyLog=doc.getElementById("dmLog");
+          const emptyStatus=emptyLog?.querySelector('[role="status"]');
+          checks.push(assert(emptyDm&&win.getComputedStyle(emptyDm).display!=="none"&&emptyStatus
+            &&/переписок пока нет/i.test(emptyStatus.textContent)&&emptyLog.querySelectorAll(".dmLine").length===0
+            &&doc.getElementById("dmInputRow")?.classList.contains("hidden"),
+            "mobile_dm_zero_threads_has_clear_empty_state_without_fake_messages",
+            JSON.stringify({panel:rect(emptyDm),status:emptyStatus?.textContent,lines:emptyLog?.querySelectorAll(".dmLine").length,inputHidden:doc.getElementById("dmInputRow")?.classList.contains("hidden")})));
+          const multiIds=[];
+          for(let i=0;i<3;i++){
+            const player={id:"mobile-regression-dm-"+i,name:"Проверочный собеседник с длинным именем "+(i+1),role:"citizen",npc:true};
+            state.players[player.id]=player;syntheticDmPlayers.push(player.id);multiIds.push(player.id);
+          }
+          mobileInterface.selectTab("battles",false);
+          state.dm={open:true,activeId:multiIds[0],withId:multiIds[0],openIds:multiIds.slice(),logs:{},unread:{}};
+          for(const [threadIndex,id] of multiIds.entries())state.dm.logs[id]=Array.from({length:18},(_,i)=>({t:"12:00",from:i%2?String(state.me?.name||"Тестовый игрок"):state.players[id].name,text:"Сообщение " +(i+1)+" в проверочной переписке " +(threadIndex+1)}));
+          ui.renderDM();
+          mobileInterface.selectTab("dm",false);
+          await wait(40);
+          ui.ensureMobilePinnedChatLayout();
+          const multiLog=doc.getElementById("dmLog"),multiTabs=doc.getElementById("dmTabs");
+          const multiBody=doc.querySelector("#dmBlock > .panelBody"),multiInput=doc.getElementById("dmInput"),multiSend=doc.getElementById("dmSend");
+          const multiLogRect=multiLog?.getBoundingClientRect(),multiBodyRect=multiBody?.getBoundingClientRect();
+          checks.push(assert(multiIds.every((id)=>multiTabs?.textContent.includes(state.players[id].name))
+            &&multiLog?.querySelectorAll(".dmLine").length===18&&multiLog.clientHeight>=100
+            &&multiLogRect?.bottom<=doc.getElementById("dmInputRow")?.getBoundingClientRect().top+1
+            &&multiInput?.getBoundingClientRect().height>0&&multiSend?.getBoundingClientRect().height>0,
+            "mobile_dm_multiple_threads_prioritize_scrollable_message_log_and_composer",
+            JSON.stringify({tabs:multiTabs?.textContent,activeTab:mobileInterface.getActiveTab(),log:nodeState(multiLog,win),logLines:multiLog?.querySelectorAll(".dmLine").length,logRect:rect(multiLog),inputRow:rect(doc.getElementById("dmInputRow")),logBelowComposer:multiLogRect?.bottom<=doc.getElementById("dmInputRow")?.getBoundingClientRect().top+1,body:rect(multiBody),bodyRect:multiBodyRect?.toJSON(),chat:rect(chat),top:rect(top),layoutVars:Object.fromEntries(["--mobile-topbar-height","--mobile-chat-height","--mobile-panels-height"].map((key)=>[key,doc.documentElement.style.getPropertyValue(key)])),input:rect(multiInput),send:rect(multiSend)})));
           const existingCop = dmTargets.find((player)=>player.role==="cop");
           const syntheticCop = !existingCop ? {id:"mobile-regression-cop",name:"Проверочный коп",role:"cop",npc:true} : null;
           if (syntheticCop) state.players[syntheticCop.id]=syntheticCop;
@@ -336,11 +369,19 @@
               const baseline={chat:Math.round(chat.getBoundingClientRect().height),panels:Math.round(shell.getBoundingClientRect().height)};
               ui.showMenu();
               input.focus();
+              ui.ensureMobilePinnedChatLayout();
+              const compactBeforeKeyboard=doc.body.classList.contains("mobile-profile-compact")
+                &&Math.ceil(top.getBoundingClientRect().height)<=50
+                &&menuButton.getBoundingClientRect().height>0;
+              keyboardFocusResults.push(assert(compactBeforeKeyboard,"profile_header_compact_on_field_focus_before_keyboard_"+inputId,JSON.stringify({compact:doc.body.classList.contains("mobile-profile-compact"),height:rect(top),menu:rect(menuButton)})));
               const focusScrollBefore=panelBody?Math.round(panelBody.scrollTop):0;
               const menuStartedOpen=menu.classList.contains("menu-open")&&doc.activeElement===input;
               Object.defineProperty(win,"visualViewport",{configurable:true,value:reducedVV()});
               const controllerScrollBefore=panelBody?panelBody.scrollTop:0;
               ui.ensureMobilePinnedChatLayout();
+              const compactDuringKeyboard=doc.body.classList.contains("mobile-profile-compact")
+                &&Math.ceil(top.getBoundingClientRect().height)<=50;
+              keyboardFocusResults.push(assert(compactDuringKeyboard,"profile_header_compact_with_keyboard_"+inputId,JSON.stringify({compact:doc.body.classList.contains("mobile-profile-compact"),height:rect(top)})));
               if (inputId==="reportInput") {
                 win.dispatchEvent(new Event("resize"));
                 await wait(40);
@@ -485,6 +526,9 @@
               input.blur();
               ui.hideMenu();
               ui.ensureMobilePinnedChatLayout();
+              const headerRestored=!doc.body.classList.contains("mobile-profile-compact")
+                &&Math.ceil(top.getBoundingClientRect().height)>50;
+              keyboardFocusResults.push(assert(headerRestored,"profile_header_restores_after_keyboard_"+inputId,JSON.stringify({compact:doc.body.classList.contains("mobile-profile-compact"),height:rect(top)})));
               mobileInterface.selectTab(previousTab,false);
               ui.ensureMobilePinnedChatLayout();
               const restored={chat:Math.round(chat.getBoundingClientRect().height),panels:Math.round(shell.getBoundingClientRect().height)};
@@ -505,6 +549,7 @@
           state.dm=dmSnapshot;
           if (syntheticCop) delete state.players[syntheticCop.id];
           syntheticReportPlayers.forEach((id)=>delete state.players[id]);
+          syntheticDmPlayers.forEach((id)=>delete state.players[id]);
           ui._copReport=copReportSnapshot||{open:false,q:"",sel:0,list:[],dropdownOpen:false};
           ui.renderDM();
           mobileInterface.selectTab(previousTab,false);
