@@ -485,7 +485,7 @@ try {
   const fixturePath = path.join(dir, "expired-fixture.sql");
   writeFileSync(fixturePath, fixtureSql);
   migrate(fixturePath);
-  console.log("PASS: D1 migrations 0001 through 0009 and local fixtures");
+  console.log("PASS: D1 migrations 0001 through 0010 and local fixtures");
   const testWrapperConfig = writeTestWorkerWrapper();
   executeSqlExpectFailure(`INSERT INTO gameplay_apply_participant_transition (
       battle_id,expected_version,command_id,fingerprint,receipt_code,
@@ -1638,6 +1638,7 @@ try {
   await runTextTriggerCase("chat05a-authored-a-win", "A_WIN", "A", "AUTHORED_TEXT");
   await runTextTriggerCase("chat05a-authored-b-win", "B_WIN", "B", "AUTHORED_TEXT");
   await runTextTriggerCase("chat05a-no-trigger-a-win", "A_WIN", null, "NONE");
+  console.log("PASS: reveal trigger matrix DRAW, BOTH, AUTHORED_TEXT on A_WIN/B_WIN, and NONE; concurrent retries remain single-vote");
 
   // Both participant text commits race from the same initial snapshot. D1 CAS
   // plus the text-transition view must retain both complete rows exactly once.
