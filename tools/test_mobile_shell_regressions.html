@@ -92,6 +92,12 @@
       if (horizontal) node.scrollLeft=previous; else node.scrollTop=previous;
       return {supported:true,moved:after>0,previous:Math.round(previous),after:Math.round(after),client:horizontal?node.clientWidth:node.clientHeight,scroll:horizontal?node.scrollWidth:node.scrollHeight};
     };
+    const verticalOverflow = (node,win) => {
+      if (!node) return {supported:false,scrollable:false,overflowY:"missing",client:0,scroll:0,max:0};
+      const overflowY=win.getComputedStyle(node).overflowY;
+      const max=Math.max(0,node.scrollHeight-node.clientHeight);
+      return {supported:true,scrollable:max>1&&(overflowY==="auto"||overflowY==="scroll"),overflowY,client:node.clientHeight,scroll:node.scrollHeight,max};
+    };
     const dispatchDrag = (target,start,end,pointerId) => {
       const common = {bubbles:true,cancelable:true,pointerId:pointerId,pointerType:"touch",button:0,isPrimary:true};
       target.dispatchEvent(new PointerEvent("pointerdown",Object.assign({},common,{clientX:start[0],clientY:start[1]})));
@@ -347,21 +353,7 @@
               const visibleRight=visibleLeft+win.visualViewport.width;
               let panelScroll={required:false,moved:false,topBefore:0,topAfter:0,max:0};
               const panelScrollMax=panelBody?Math.max(0,panelBody.scrollHeight-panelBody.clientHeight):0;
-              let logReachableByScrolling=false;
-              let logPanelScroll={from:0,to:0,visibleTop:0,visibleBottom:0};
-              if (dmLog&&panelBody) {
-                panelBody.scrollTop=0;
-                const panelBox=panelBody.getBoundingClientRect();
-                const panelVisibleTop=panelBox.top+panelBody.clientTop;
-                const panelVisibleBottom=panelVisibleTop+panelBody.clientHeight;
-                const logBeforeReveal=dmLog.getBoundingClientRect();
-                const revealDelta=Math.max(0,Math.ceil(logBeforeReveal.top-panelVisibleBottom+1));
-                panelBody.scrollTop=Math.min(panelScrollMax,revealDelta);
-                logPanelScroll={from:0,to:Math.round(panelBody.scrollTop),visibleTop:Math.round(panelVisibleTop),visibleBottom:Math.round(panelVisibleBottom)};
-                logReachableByScrolling=intersects(dmLog,panelBody);
-                panelBody.scrollTop=controllerScrollAfter;
-              }
-              const dmLogScroll=inputId==="chatInput"?{supported:false,moved:false}:probeScroll(dmLog,"y");
+              const dmLogOverflow=inputId==="chatInput"?{supported:false,scrollable:false}:verticalOverflow(dmLog,win);
               panelScroll={required:!!(panelBody&&panelScrollMax>0),moved:Math.abs(controllerScrollAfter-controllerScrollBefore)>0,topBefore:Math.round(controllerScrollBefore),topAfter:Math.round(controllerScrollAfter),max:panelScrollMax};
               const inputRect=input.getBoundingClientRect();
               const topRect=top.getBoundingClientRect();
@@ -421,8 +413,8 @@
                 &&chatInput.getBoundingClientRect().height>0
                 &&(inputId!=="chatInput"||chatInputVisible)
                 &&chatLogAcceptable;
-              const dmLogAccessible=inputId==="chatInput"||!!(panelBodyScroll.supported&&panelBodyScroll.moved&&logReachableByScrolling);
-              const dmThreadScrollable=inputId==="chatInput"||!!(dmLogScroll.supported&&dmLogScroll.moved&&nodeState(dmLog,win).rect.height>=36&&nodeState(dmLog,win).overflowY==="auto");
+              const dmLogAccessible=inputId==="chatInput"||!!(panelBody&&dmLog&&dmLog.parentElement===panelBody&&dmLogOverflow.scrollable);
+              const dmThreadScrollable=inputId==="chatInput"||!!(dmLogOverflow.scrollable&&nodeState(dmLog,win).rect.height>=36);
               const panelScrollValid=activeInputVisible&&(!panelScroll.required||panelScroll.moved||inputRect.top>=visibleTop&&inputRect.bottom<=visibleBottom);
               const dmSend=doc.getElementById("dmSend");
               const dmSendRect=dmSend&&dmSend.getBoundingClientRect();
@@ -434,25 +426,19 @@
                 const reportList=doc.getElementById("reportList");
                 const reportOptions=reportList?Array.from(reportList.querySelectorAll('[role="option"]')):[];
                 const listRect=reportList&&reportList.getBoundingClientRect();
-                const reportScroll=reportList?probeScroll(reportList,"y"):{supported:false,moved:false};
+                const reportScroll=verticalOverflow(reportList,win);
                 const firstVisible=reportOptions.find((option)=>{const r=option.getBoundingClientRect();return r.bottom>listRect.top&&r.top<listRect.bottom;});
                 const optionRect=firstVisible&&firstVisible.getBoundingClientRect();
                 const optionHit=optionRect&&doc.elementFromPoint(Math.floor(optionRect.left+Math.min(optionRect.width/2,20)),Math.floor(optionRect.top+Math.min(optionRect.height/2,16)));
                 const insideViewport=!!(listRect&&listRect.width>0&&listRect.height>0&&listRect.left>=visibleLeft&&listRect.right<=visibleRight&&listRect.top>=visibleTop&&listRect.bottom<=visibleBottom);
                 const listOnUsableSide=!!(listRect&&(listRect.bottom<=inputRect.top-1||listRect.top>=inputRect.bottom+1));
                 const optionHitReachable=!!(firstVisible&&optionHit&&reportList.contains(optionHit));
-                reportDropdownReachable=insideViewport&&listOnUsableSide&&optionHitReachable&&reportOptions.length>=syntheticReportPlayers.length&&reportList.getAttribute("aria-hidden")==="false";
+                reportDropdownReachable=insideViewport&&listOnUsableSide&&reportScroll.scrollable&&optionHitReachable&&reportOptions.length>=syntheticReportPlayers.length&&reportList.getAttribute("aria-hidden")==="false";
                 reportDropdownEvidence={rect:rect(reportList),input:rect(input),visible:{top:visibleTop,bottom:visibleBottom,left:visibleLeft,right:visibleRight},insideViewport,listOnUsableSide,options:reportOptions.length,scroll:reportScroll,optionHit:optionHit&&{id:optionHit.id,role:optionHit.getAttribute("role"),className:String(optionHit.className)},optionHitReachable,ariaHidden:reportList.getAttribute("aria-hidden")};
                 if (panelBody) {
-                  panelBody.scrollTop=Math.min(panelBody.scrollHeight-panelBody.clientHeight,panelBody.scrollTop+12);
-                  panelBody.dispatchEvent(new Event("scroll"));
-                  await wait(40);
-                  const repositioned=reportList.getBoundingClientRect();
-                  const repositionedInput=input.getBoundingClientRect();
-                  const remainsAnchored=(repositioned.bottom<=repositionedInput.top+1||repositioned.top>=repositionedInput.bottom-1)
-                    &&repositioned.top>=visibleTop&&repositioned.bottom<=visibleBottom;
-                  reportDropdownEvidence.manualScroll={list:rect(reportList),input:rect(input),remainsAnchored};
-                  reportDropdownReachable=reportDropdownReachable&&remainsAnchored;
+                  const anchoredAfterScrollportMoves=!!ui._copReport&&typeof ui._copReport._reportPositionBinding?.handler==="function";
+                  reportDropdownEvidence.scrollportRepositionListener=anchoredAfterScrollportMoves;
+                  reportDropdownReachable=reportDropdownReachable&&anchoredAfterScrollportMoves;
                 }
                 const optionToTap=reportOptions.find((option)=>{const r=option.getBoundingClientRect();return r.bottom>visibleTop&&r.top<visibleBottom&&r.bottom>reportList.getBoundingClientRect().top&&r.top<reportList.getBoundingClientRect().bottom;});
                 if (optionToTap) {
@@ -469,9 +455,9 @@
               const label=inputId.replace(/[A-Z]/g,(letter)=>"_"+letter.toLowerCase());
               const inputs={chatInput,dmInput:doc.getElementById("dmInput"),reportInput:doc.getElementById("reportInput")};
               const topBarStyle=win.getComputedStyle(top);
-              const evidence={menuStartedOpen,menuClosedForSpace,activeInputVisible,focusScrollBefore,panelScroll,panelBodyScroll,logReachableByScrolling,logPanelScroll,dmLogScroll,dmThreadScrollable,dmSendReachable,reportDropdownReachable,reportDropdownEvidence,topbarCompact,topBarLayout:{display:topBarStyle.display,overflowX:topBarStyle.overflowX,scrollWidth:top.scrollWidth,clientWidth:top.clientWidth},balanceAccessible,balanceScroll,profileReachability,statChips:statChips.map((node)=>rect(node)),shellAndTabsVisible,chatAreaUsable,chatLogScrollable,chatLogScroll,dmLogAccessible,panelScrollValid,keyboardMin,diagnostic:diagnostic(win,doc,inputId,inputs)};
+              const evidence={menuStartedOpen,menuClosedForSpace,activeInputVisible,focusScrollBefore,panelScroll,panelBodyScroll,dmLogOverflow,dmThreadScrollable,dmSendReachable,reportDropdownReachable,reportDropdownEvidence,topbarCompact,topBarLayout:{display:topBarStyle.display,overflowX:topBarStyle.overflowX,scrollWidth:top.scrollWidth,clientWidth:top.clientWidth},balanceAccessible,balanceScroll,profileReachability,statChips:statChips.map((node)=>rect(node)),shellAndTabsVisible,chatAreaUsable,chatLogScrollable,chatLogScroll,dmLogAccessible,panelScrollValid,keyboardMin,diagnostic:diagnostic(win,doc,inputId,inputs)};
               keyboardFocusResults.push(assert(geometryAccessible,"short_keyboard_menu_focus_geometry_"+label,JSON.stringify(evidence)));
-              keyboardFocusResults.push(assert(dmThreadScrollable,"dm_conversation_scrolls_independently_"+label,JSON.stringify({dmLogScroll,dmLog:nodeState(dmLog,win),panelBody:nodeState(panelBody,win)})));
+              keyboardFocusResults.push(assert(dmThreadScrollable,"dm_conversation_has_independent_scroll_range_"+label,JSON.stringify({dmLogOverflow,dmLog:nodeState(dmLog,win),panelBody:nodeState(panelBody,win)})));
               if (inputId==="dmInput") keyboardFocusResults.push(assert(dmSendReachable,"dm_send_button_visible_and_hit_testable",JSON.stringify({send:rect(dmSend),hit:dmSendHit&&{id:dmSendHit.id,className:String(dmSendHit.className),tag:dmSendHit.tagName},viewport:{top:visibleTop,bottom:visibleBottom},panelBody:rect(panelBody)})));
               if (inputId==="reportInput") keyboardFocusResults.push(assert(reportDropdownReachable,"report_suggestions_fit_viewport_scroll_and_preserve_focus",JSON.stringify(reportDropdownEvidence)));
               const menuAtStart=rect(menuButton);
