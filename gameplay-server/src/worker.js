@@ -6,7 +6,7 @@
 
 import "../../AsyncScene/Web/conflict/tactical-resolver.js";
 import "../../AsyncScene/Web/conflict/tactical-lifecycle.js";
-import { deriveSocialVoteId, shouldOpenSocialVote, canonicalWordSignature, TEXT_NORMALIZATION_VERSION } from "./social-vote-contract.mjs";
+import { deriveSocialVoteId, canonicalWordSignature, TEXT_NORMALIZATION_VERSION } from "./social-vote-contract.mjs";
 
 const lifecycle = globalThis.TacticalCombatLifecycleV1.createLifecycle(globalThis.Game.TacticalCombatV1);
 const MAX_BODY = 8192;
@@ -259,6 +259,9 @@ async function pinTextOffers(db, battleId, body) {
   if (!["created", "waiting"].includes(state.phase) || Object.keys(state.commits || {}).length !== 0) {
     return { error: "TEXT_CATALOG_TOO_LATE", status: 409 };
   }
+  const bindings = await db.prepare("SELECT COUNT(*) AS count FROM gameplay_battle_persons WHERE battle_id=?")
+    .bind(battleId).first();
+  if (bindings?.count !== 2) return { error: "TEXT_PARTICIPANTS_UNBOUND", status: 409 };
   const manifestOffers = catalog.offers.slice().sort((a, b) =>
     (a.side + ":" + a.channel + ":" + a.offerId).localeCompare(b.side + ":" + b.channel + ":" + b.offerId));
   const manifestHash = await sha256hex(canonical({
@@ -777,34 +780,51 @@ async function applySystem(db, id, type) {
     if (type === "reveal" && state.phase !== "committed") return false;
     if (type === "expire" && (!["created", "waiting"].includes(state.phase) || Date.now() < state.deadlineAt)) return false;
     const now = Date.now();
-    const result = lifecycle.execute(state, {
+    const baseCommand = {
       commandId, expectedVersion: state.version, type, actorId: "system",
-    }, now);
+    };
+    let result = lifecycle.execute(state, baseCommand, now);
     if (!result.ok) return false;
+    let socialVoteTrigger = "NONE";
+    if (type === "reveal") {
+      const catalog = await db.prepare(
+        "SELECT 1 AS present FROM gameplay_battle_text_catalogs WHERE battle_id=? AND sealed=1"
+      ).bind(id).first();
+      let authoredEdit = false;
+      if (catalog) {
+        const textRows = await db.prepare(
+          "SELECT COUNT(*) AS count, MAX(attack_words_edited + defense_words_edited) AS has_edit FROM gameplay_battle_text_commits WHERE battle_id=?"
+        ).bind(id).first();
+        if (textRows?.count !== 2) throw Error("TEXT_REVEAL_INCOMPLETE");
+        authoredEdit = Number(textRows.has_edit) > 0;
+      }
+      if (result.state.mechanicalOutcome === "DRAW") {
+        socialVoteTrigger = authoredEdit ? "BOTH" : "DRAW";
+      } else {
+        socialVoteTrigger = authoredEdit ? "AUTHORED_TEXT" : "NONE";
+      }
+      result = lifecycle.execute(state, { ...baseCommand, socialVoteTrigger }, now);
+      if (!result.ok) return false;
+    }
     try {
-      const opensDrawVote = type === "reveal" && shouldOpenSocialVote({
-        mechanicalResult: result.state.mechanicalOutcome,
-        nextTextOrigin: "unknown",
-      });
-      // Battles created before the Chat05A identity migration have no trusted
-      // person bindings. Preserve their reveal transition and fail closed on
-      // social voting; never infer personId from a participant/client ID.
-      const bindingCount = opensDrawVote
+      // Old battles without trusted people still follow their existing reveal
+      // path. Text catalogs are only accepted for bound participant pairs.
+      const bindingCount = type === "reveal" && socialVoteTrigger !== "NONE"
         ? await db.prepare("SELECT COUNT(*) AS count FROM gameplay_battle_persons WHERE battle_id=?").bind(id).first()
         : null;
-      if (opensDrawVote && bindingCount?.count === 2) {
+      if (type === "reveal" && socialVoteTrigger !== "NONE" && bindingCount?.count === 2) {
         const voteId = await deriveSocialVoteId(id);
         await db.batch([
           transitionStatement(db, state, result, commandId, fingerprint, now),
           db.prepare(
             `INSERT INTO gameplay_social_votes
              (vote_id,battle_id,trigger_reason,status,created_at_ms)
-             VALUES (?,?, 'DRAW','open',?)`
-          ).bind(voteId, id, now),
+             VALUES (?,?,?,'open',?)`
+          ).bind(voteId, id, socialVoteTrigger, now),
         ]);
       } else {
-        // Reveal remains independent from Chat05A. This includes non-DRAW
-        // results and pre-registry battles that cannot be safely associated.
+        // Reveal remains valid for legacy unbound battles; no person identity
+        // is inferred from a participant capability or browser payload.
         await insertTransition(db, state, result, commandId, fingerprint, now);
       }
       return true;
@@ -814,7 +834,6 @@ async function applySystem(db, id, type) {
   }
   return false;
 }
-
 async function commit(db, id, authorized, body) {
   if (!exactKeys(body, ["commandId", "selection", "textIntent"]) ||
       typeof body.commandId !== "string" || !/^[A-Za-z0-9:_-]{4,100}$/.test(body.commandId) ||

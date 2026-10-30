@@ -13,7 +13,7 @@ MIGRATIONS = [
         (3, "idempotent_battle_creation"), (4, "capability_generation"),
         (5, "participant_transition_fence"), (6, "creation_recovery_lifecycle"),
         (7, "capability_operator_lifecycle"), (8, "chat05a_people_and_votes"),
-        (9, "chat05a_authored_text_commits"),
+        (9, "chat05a_authored_text_commits"), (10, "chat05a_authored_vote_triggers"),
     )
 ]
 NOW = 1_800_000_000_000
@@ -24,11 +24,11 @@ def digest(label):
     return hashlib.sha256(label.encode()).hexdigest()
 
 
-def open_db(path=":memory:"):
+def open_db(path=":memory:", through=10):
     db = sqlite3.connect(path, timeout=15, isolation_level=None)
     db.execute("PRAGMA foreign_keys=ON")
     db.execute("PRAGMA busy_timeout=15000")
-    for migration in MIGRATIONS:
+    for migration in MIGRATIONS[:through]:
         db.executescript(migration.read_text(encoding="utf-8"))
     return db
 
@@ -50,7 +50,10 @@ class Chat05ARegistryAndVotesTests(unittest.TestCase):
 
     @staticmethod
     def seed_battle(db, battle_id, outcome):
-        state = {"battleId": battle_id, "phase": "revealed", "mechanicalOutcome": outcome}
+        state = {"battleId": battle_id, "phase": "revealed", "mechanicalOutcome": outcome,
+                 "socialVoteTrigger": "DRAW" if outcome == "DRAW" else "NONE",
+                 "socialOutcome": "PENDING" if outcome == "DRAW" else "NONE",
+                 "recognizedOutcome": "PENDING"}
         db.execute(
             "INSERT INTO gameplay_battles VALUES (?,0,'tactical_v1','revealed',?,?,?)",
             (battle_id, json.dumps(state), NOW, NOW),
@@ -375,6 +378,53 @@ class Chat05ARegistryAndVotesTests(unittest.TestCase):
                  "a-attack", "Fixture phrase.", '["fixture","phrase"]',
                  "a-defense", "Fixture phrase.", '["fixture","phrase"]', NOW),
             )
+
+
+    def test_migration_0010_preserves_existing_vote_and_ballot_rows(self):
+        db = open_db(through=9)
+        try:
+            self.seed_battle(db, "migration-preserve", "DRAW")
+            for person_id in ("migration-a", "migration-b", "migration-spectator"):
+                self.person(db, person_id)
+            self.bind_participant(db, "migration-preserve", "A", "migration-a")
+            self.bind_participant(db, "migration-preserve", "B", "migration-b")
+            self.cap(db, "migration-preserve", "migration-spectator", "migration-secret")
+            self.vote(db, "migration-preserve", "vote-migration-preserve")
+            self.cast(db, "migration-preserve", "vote-migration-preserve", "migration-secret", choice="B")
+            db.executescript(MIGRATIONS[9].read_text(encoding="utf-8"))
+            self.assertEqual(db.execute(
+                "SELECT vote_id,battle_id,trigger_reason,status FROM gameplay_social_votes"
+            ).fetchall(), [("vote-migration-preserve", "migration-preserve", "DRAW", "open")])
+            self.assertEqual(db.execute(
+                "SELECT vote_id,person_id,choice FROM gameplay_social_ballots"
+            ).fetchall(), [("vote-migration-preserve", "migration-spectator", "B")])
+            self.assertEqual(db.execute("PRAGMA foreign_key_check").fetchall(), [])
+        finally:
+            db.close()
+
+
+    def test_authored_vote_reason_rejects_missing_or_false_text_evidence(self):
+        for battle_id, reason, outcome in (
+            ("authored-missing", "AUTHORED_TEXT", "A_WIN"),
+            ("both-missing", "BOTH", "DRAW"),
+        ):
+            state = {
+                "battleId": battle_id, "phase": "revealed", "mechanicalOutcome": outcome,
+                "socialVoteTrigger": reason, "socialOutcome": "PENDING", "recognizedOutcome": "PENDING",
+            }
+            self.db.execute(
+                "INSERT INTO gameplay_battles VALUES (?,0,'tactical_v1','revealed',?,?,?)",
+                (battle_id, json.dumps(state), NOW, NOW),
+            )
+            for side, person_id in (("A", battle_id + "-a"), ("B", battle_id + "-b")):
+                self.person(self.db, person_id)
+                self.bind_participant(self.db, battle_id, side, person_id)
+            with self.assertRaisesRegex(sqlite3.IntegrityError, "SOCIAL_VOTE_TRIGGER_NOT_MET"):
+                self.db.execute(
+                    """INSERT INTO gameplay_social_votes
+                       (vote_id,battle_id,trigger_reason,status,created_at_ms) VALUES (?,?,?,'open',?)""",
+                    ("vote-" + battle_id, battle_id, reason, NOW),
+                )
 
 
 

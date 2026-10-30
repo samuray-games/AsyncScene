@@ -299,6 +299,24 @@ async function commit(base, battle, side, commandId, extra = {}) {
     battle.capabilities[side].token, { commandId, selection, ...extra });
 }
 
+function findSelectionPair(targetOutcome) {
+  const choices = [];
+  for (const attackColor of ["y", "o", "r"]) {
+    for (const defenseColor of ["y", "o", "r"]) {
+      for (const attackType of ["N", "P", "T"]) {
+        for (const defenseType of ["S", "C", "G"]) {
+          choices.push({ attackColor, defenseColor, attackType, defenseType, role: "citizen" });
+        }
+      }
+    }
+  }
+  for (const a of choices) for (const b of choices) {
+    const result = globalThis.Game.TacticalCombatV1.resolve(a, b, "tactical_v1");
+    if (result?.ok && result.mechanicalOutcome === targetOutcome) return { A: a, B: b };
+  }
+  throw Error("NO_SELECTION_PAIR_FOR_OUTCOME " + targetOutcome);
+}
+
 try {
   migrate("migrations/0001_tactical_state.sql");
   migrate("migrations/0002_battle_capabilities.sql");
@@ -309,6 +327,32 @@ try {
   migrate("migrations/0007_capability_operator_lifecycle.sql");
   migrate("migrations/0008_chat05a_people_and_votes.sql");
   migrate("migrations/0009_chat05a_authored_text_commits.sql");
+  migrate("migrations/0010_chat05a_authored_vote_triggers.sql");
+  {
+    const pureLifecycle = globalThis.TacticalCombatLifecycleV1.createLifecycle(globalThis.Game.TacticalCombatV1);
+    const pair = findSelectionPair("A_WIN");
+    const aId = "lifecycle-a", bId = "lifecycle-b";
+    const created = pureLifecycle.createBattle({ battleId: "chat05a-lifecycle-authored",
+      createdAt: 0, deadlineAt: Number.MAX_SAFE_INTEGER,
+      participants: { A: { id: aId, role: "citizen" }, B: { id: bId, role: "citizen" } } });
+    let state = created.state;
+    for (const [side, participantId, move, version] of [
+      ["A", aId, pair.A, 0], ["B", bId, pair.B, 1],
+    ]) {
+      const committed = pureLifecycle.execute(state, { commandId: "commit-" + side, expectedVersion: version,
+        type: "commit", actorId: participantId, participantId, selection: move }, version + 1);
+      assert.equal(committed.ok, true);
+      state = committed.state;
+    }
+    const revealed = pureLifecycle.execute(state, { commandId: "reveal", expectedVersion: 2, type: "reveal",
+      actorId: "system", socialVoteTrigger: "AUTHORED_TEXT" }, 3);
+    assert.equal(revealed.ok, true);
+    assert.equal(revealed.state.socialOutcome, "PENDING");
+    const bypass = pureLifecycle.execute(revealed.state, { commandId: "legacy-finalize", expectedVersion: 3,
+      type: "finalize", actorId: "system", recognizedOutcome: "A_WIN" }, 4);
+    assert.equal(bypass.ok, false);
+    assert.equal(bypass.error, "FINALIZATION_GATE_REQUIRED");
+  }
   const expiredId = "11111111-1111-4111-8111-111111111111";
   const expiryToken = "expired-access-" + "z".repeat(36);
   const lc = globalThis.TacticalCombatLifecycleV1.createLifecycle(globalThis.Game.TacticalCombatV1);
@@ -1488,7 +1532,8 @@ try {
   assert.equal(forgedOffer.status, 409, JSON.stringify(forgedOffer));
   assert.equal(query(`SELECT COUNT(*) count FROM gameplay_battle_text_commits WHERE battle_id='${textBattle.battleId}'`)[0].count, 0,
     "invalid/forged text cannot partially commit");
-  const textA = await commit(base, textBattle, "A", "chat05a-text-A", { textIntent: textIntentA });
+  const drawPair = findSelectionPair("DRAW");
+  const textA = await commit(base, textBattle, "A", "chat05a-text-A", { selection: drawPair.A, textIntent: textIntentA });
   assert.equal(textA.status, 200, JSON.stringify(textA));
   const privateViewForB = await get(base, textBattle, textBattle.capabilities.B.token);
   assert.equal(Object.hasOwn(privateViewForB, "committedTexts"), false);
@@ -1509,9 +1554,16 @@ try {
     attack: { offerId: "b-attack-2" }, // ↻ to another ready phrase is not authored.
     defense: { offerId: "b-defense-1", finalText: "Ответная защита с новыми словами ✨" },
   };
-  const textB = await commit(base, textBattle, "B", "chat05a-text-B", { textIntent: textIntentB });
+  const textB = await commit(base, textBattle, "B", "chat05a-text-B", { selection: drawPair.B, textIntent: textIntentB });
   assert.equal(textB.status, 200, JSON.stringify(textB));
   assert.equal(textB.view.phase, "revealed");
+  assert.equal(textB.view.mechanicalOutcome, "DRAW");
+  assert.equal(textB.view.socialVoteTrigger, "BOTH");
+  assert.equal(textB.view.socialOutcome, "PENDING");
+  assert.equal(textB.view.recognizedOutcome, "PENDING");
+  const bothVoteId = await deriveSocialVoteId(textBattle.battleId);
+  assert.deepEqual(query(`SELECT vote_id,trigger_reason FROM gameplay_social_votes WHERE battle_id='${textBattle.battleId}'`),
+    [{ vote_id: bothVoteId, trigger_reason: "BOTH" }]);
   assert.deepEqual(query(`SELECT side,attack_words_edited,defense_words_edited FROM gameplay_battle_text_commits WHERE battle_id='${textBattle.battleId}' ORDER BY side`),
     [{ side: "A", attack_words_edited: 1, defense_words_edited: 0 },
      { side: "B", attack_words_edited: 0, defense_words_edited: 1 }]);
@@ -1528,6 +1580,57 @@ try {
   const textAfterRestart = await get(base, textBattle, textBattle.capabilities.A.token);
   assert.equal(textAfterRestart.committedTexts.B.defense.wordsEdited, true);
   assert.equal(query(`SELECT COUNT(*) count FROM gameplay_battle_text_commits WHERE battle_id='${textBattle.battleId}'`)[0].count, 2);
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_social_votes WHERE battle_id='${textBattle.battleId}'`)[0].count, 1);
+  const duplicateRevealRequests = await Promise.all([fetch(cronUrl), fetch(cronUrl)]);
+  assert.deepEqual(duplicateRevealRequests.map(x => x.status), [200, 200]);
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_social_votes WHERE battle_id='${textBattle.battleId}'`)[0].count, 1);
+
+  async function runTextTriggerCase(name, outcome, editedSide, expectedReason) {
+    const battle = await create(base, name);
+    const offersPath = `/v1/admin/battles/${battle.battleId}/text-offers`;
+    assert.equal((await request(base, "POST", offersPath, admin, textOffers)).status, 201);
+    const pair = findSelectionPair(outcome);
+    function intent(side) {
+      const attackOffer = side === "A" ? "a-attack-1" : "b-attack-1";
+      const refreshedAttack = side === "A" ? "a-attack-2" : "b-attack-2";
+      const defenseOffer = side === "A" ? "a-defense-1" : "b-defense-1";
+      const intent = {
+        attack: { offerId: editedSide === side ? attackOffer : refreshedAttack,
+          ...(editedSide === side ? { finalText: "Автор добавил новые осмысленные слова." } : {}) },
+        defense: { offerId: defenseOffer,
+          ...(editedSide === side ? { finalText: "Изменённый текст защиты с новыми словами." }
+            : { finalText: side === "A" ? "Готовая защита!!!" : "ОТВЕТНАЯ защита..." }) },
+      };
+      if (intent.attack.finalText === undefined) delete intent.attack.finalText;
+      return intent;
+    }
+    for (const side of ["A", "B"]) {
+      const response = await commit(base, battle, side, name + "-" + side, {
+        selection: pair[side], textIntent: intent(side),
+      });
+      assert.equal(response.status, 200, JSON.stringify(response));
+    }
+    const revealed = await get(base, battle, battle.capabilities.A.token);
+    assert.equal(revealed.phase, "revealed");
+    assert.equal(revealed.mechanicalOutcome, outcome);
+    assert.equal(revealed.socialVoteTrigger, expectedReason);
+    assert.equal(revealed.socialOutcome, expectedReason === "NONE" ? "NONE" : "PENDING");
+    assert.equal(revealed.recognizedOutcome, "PENDING");
+    const votes = query(`SELECT vote_id,trigger_reason FROM gameplay_social_votes WHERE battle_id='${battle.battleId}'`);
+    if (expectedReason === "NONE") assert.deepEqual(votes, []);
+    else assert.deepEqual(votes, [{ vote_id: await deriveSocialVoteId(battle.battleId), trigger_reason: expectedReason }]);
+    const again = await Promise.all([fetch(cronUrl), fetch(cronUrl)]);
+    assert.deepEqual(again.map(x => x.status), [200, 200]);
+    assert.equal(query(`SELECT COUNT(*) count FROM gameplay_social_votes WHERE battle_id='${battle.battleId}'`)[0].count,
+      expectedReason === "NONE" ? 0 : 1);
+    return { battle, revealed };
+  }
+
+  await runTextTriggerCase("chat05a-draw-no-edit", "DRAW", null, "DRAW");
+  await runTextTriggerCase("chat05a-authored-a-win", "A_WIN", "A", "AUTHORED_TEXT");
+  await runTextTriggerCase("chat05a-authored-b-win", "B_WIN", "B", "AUTHORED_TEXT");
+  await runTextTriggerCase("chat05a-no-trigger-a-win", "A_WIN", null, "NONE");
+
   // Both participant text commits race from the same initial snapshot. D1 CAS
   // plus the text-transition view must retain both complete rows exactly once.
   const concurrentTextBattle = await create(base, "chat05a-text-concurrent");
