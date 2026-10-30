@@ -102,8 +102,11 @@ test("invalid battle IDs fail closed", async () => {
 
 
 test("versioned Unicode signatures ignore case, punctuation, and whitespace but preserve word and symbol changes", () => {
-  assert.equal(TEXT_NORMALIZATION_VERSION, "chat01-unicode-words-v1");
+  assert.equal(TEXT_NORMALIZATION_VERSION, "chat01-unicode-words-ucd-15.0.0-v2");
   assert.equal(canonicalWordSignature("ЁЖ,\t привет!"), canonicalWordSignature("ёж привет"));
+  assert.equal(canonicalWordSignature("Σ"), canonicalWordSignature("ς"));
+  assert.equal(canonicalWordSignature("ΟΣ"), canonicalWordSignature("οσ"));
+  assert.equal(canonicalWordSignature("Straße"), canonicalWordSignature("STRASSE"));
   assert.equal(canonicalWordSignature("a-b"), canonicalWordSignature("ab"));
   assert.equal(canonicalWordSignature("ab"), canonicalWordSignature("a--b!!!"));
   assert.notEqual(canonicalWordSignature("ab"), canonicalWordSignature("a b"));

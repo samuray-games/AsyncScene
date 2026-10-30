@@ -1457,9 +1457,10 @@ try {
   });
   assert.equal(incompleteCatalog.status, 400, "all A/B attack/defense offer groups are required");
   const pinned = await request(base, "POST", textOfferPath, admin, textOffers);
-  assert.deepEqual(pinned, { status: 201, catalogVersion: "fixture-chat05a-v1", normalizationVersion: "chat01-unicode-words-v1" });
+  assert.deepEqual(pinned, { status: 201, catalogVersion: "fixture-chat05a-v1", normalizationVersion: "chat01-unicode-words-ucd-15.0.0-v2" });
   assert.equal((await request(base, "POST", textOfferPath, admin, textOffers)).status, 409,
     "a pinned battle catalog cannot be replaced");
+  executeSqlExpectFailure(`INSERT INTO gameplay_battle_text_offers (battle_id,side,channel,offer_id,phrase_text,word_signature) VALUES ('${textBattle.battleId}','A','attack','late-extra','Late offer.','["late","offer"]')`, "TEXT_CATALOG_IMMUTABLE");
   const offeredToA = await get(base, textBattle, textBattle.capabilities.A.token);
   const offeredToB = await get(base, textBattle, textBattle.capabilities.B.token);
   assert.equal(offeredToA.readyTextOffers.offers.some(x => x.offer_id === "a-attack-1"), true);
@@ -1542,6 +1543,20 @@ try {
   assert.deepEqual(concurrentResults.map(x => x.status).sort(), [200, 200]);
   assert.equal(query(`SELECT COUNT(*) count FROM gameplay_battle_text_commits WHERE battle_id='${concurrentTextBattle.battleId}'`)[0].count, 2);
   assert.equal((await get(base, concurrentTextBattle, concurrentTextBattle.capabilities.A.token)).phase, "revealed");
+  const sameSideTextRaceBattle = await create(base, "chat05a-text-same-side-race");
+  assert.equal((await request(base, "POST", `/v1/admin/battles/${sameSideTextRaceBattle.battleId}/text-offers`, admin, textOffers)).status, 201);
+  const sameSideTextRace = await Promise.all([
+    commit(base, sameSideTextRaceBattle, "A", "chat05a-text-same-side-race-1", {
+      textIntent: { attack: { offerId: "a-attack-1" }, defense: { offerId: "a-defense-1" } },
+    }),
+    commit(base, sameSideTextRaceBattle, "A", "chat05a-text-same-side-race-2", {
+      textIntent: { attack: { offerId: "a-attack-1" }, defense: { offerId: "a-defense-1" } },
+    }),
+  ]);
+  assert.deepEqual(sameSideTextRace.map(x => x.status).sort(), [200, 409]);
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_battle_text_commits WHERE battle_id='${sameSideTextRaceBattle.battleId}' AND side='A'`)[0].count, 1,
+    "parallel same-side commands cannot replace the first immutable text commitment");
+
   console.log("PASS: trusted offers, authenticated atomic text commits, privacy, replay, immutability, and restart persistence");
 
   const spectatorOne = await registerTestPerson(base, "chat05a-spectator-one");

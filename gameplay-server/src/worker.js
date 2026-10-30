@@ -259,12 +259,20 @@ async function pinTextOffers(db, battleId, body) {
   if (!["created", "waiting"].includes(state.phase) || Object.keys(state.commits || {}).length !== 0) {
     return { error: "TEXT_CATALOG_TOO_LATE", status: 409 };
   }
+  const manifestOffers = catalog.offers.slice().sort((a, b) =>
+    (a.side + ":" + a.channel + ":" + a.offerId).localeCompare(b.side + ":" + b.channel + ":" + b.offerId));
+  const manifestHash = await sha256hex(canonical({
+    catalogVersion: catalog.catalogVersion,
+    normalizationVersion: catalog.normalizationVersion,
+    offers: manifestOffers,
+  }));
   const writes = [
-    db.prepare("INSERT INTO gameplay_battle_text_catalogs (battle_id,catalog_version,normalization_version,created_at_ms) VALUES (?,?,?,?)")
-      .bind(battleId, catalog.catalogVersion, catalog.normalizationVersion, Date.now()),
+    db.prepare("INSERT INTO gameplay_battle_text_catalogs (battle_id,catalog_version,normalization_version,expected_offer_count,manifest_sha256,sealed,created_at_ms) VALUES (?,?,?,?,?,0,?)")
+      .bind(battleId, catalog.catalogVersion, catalog.normalizationVersion, catalog.offers.length, manifestHash, Date.now()),
     ...catalog.offers.map(offer => db.prepare(
       "INSERT INTO gameplay_battle_text_offers (battle_id,side,channel,offer_id,phrase_text,word_signature) VALUES (?,?,?,?,?,?)"
     ).bind(battleId, offer.side, offer.channel, offer.offerId, offer.phraseText, offer.wordSignature)),
+    db.prepare("UPDATE gameplay_battle_text_catalogs SET sealed=1 WHERE battle_id=? AND sealed=0").bind(battleId),
   ];
   try {
     await db.batch(writes);
@@ -277,7 +285,7 @@ async function pinTextOffers(db, battleId, body) {
 }
 
 async function prepareTextIntent(db, battleId, side, body) {
-  const catalog = await db.prepare("SELECT catalog_version,normalization_version FROM gameplay_battle_text_catalogs WHERE battle_id=?")
+  const catalog = await db.prepare("SELECT catalog_version,normalization_version FROM gameplay_battle_text_catalogs WHERE battle_id=? AND sealed=1")
     .bind(battleId).first();
   const supplied = Object.prototype.hasOwnProperty.call(body, "textIntent");
   if (!catalog) return supplied ? { error: "TEXT_NOT_ENABLED", status: 409 } : { value: null };
@@ -305,7 +313,7 @@ async function participantView(db, state, participantId) {
   const view = lifecycle.getPublicView(state, participantId);
   const side = state.participants.A?.id === participantId ? "A" : state.participants.B?.id === participantId ? "B" : null;
   if (!side) return view;
-  const catalog = await db.prepare("SELECT catalog_version,normalization_version FROM gameplay_battle_text_catalogs WHERE battle_id=?")
+  const catalog = await db.prepare("SELECT catalog_version,normalization_version FROM gameplay_battle_text_catalogs WHERE battle_id=? AND sealed=1")
     .bind(state.battleId).first();
   if (!catalog) return view;
   if (state.phase !== "revealed") {

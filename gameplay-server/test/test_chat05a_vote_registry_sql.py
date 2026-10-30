@@ -329,5 +329,54 @@ class Chat05ARegistryAndVotesTests(unittest.TestCase):
             ).fetchone()[0], 1)
 
 
+    def test_text_catalog_seal_rejects_appends_and_stale_commit_precedes_payload_checks(self):
+        battle_id = "text-seal-cas"
+        state = {
+            "battleId": battle_id, "phase": "waiting", "version": 1,
+            "participants": {"A": {"id": "text-a"}, "B": {"id": "text-b"}},
+            "commits": {},
+        }
+        self.db.execute(
+            "INSERT INTO gameplay_battles VALUES (?,1,'tactical_v1','waiting',?,?,?)",
+            (battle_id, json.dumps(state), NOW, NOW),
+        )
+        self.db.execute(
+            """INSERT INTO gameplay_battle_text_catalogs
+               (battle_id,catalog_version,normalization_version,expected_offer_count,manifest_sha256,sealed,created_at_ms)
+               VALUES (?, 'fixture-v1', ?, 4, ?, 0, ?)""",
+            (battle_id, "chat01-unicode-words-ucd-15.0.0-v2", "a" * 64, NOW),
+        )
+        for side in ("A", "B"):
+            for channel in ("attack", "defense"):
+                self.db.execute(
+                    """INSERT INTO gameplay_battle_text_offers
+                       VALUES (?, ?, ?, ?, 'Fixture phrase.', '["fixture","phrase"]')""",
+                    (battle_id, side, channel, side.lower() + "-" + channel),
+                )
+        self.db.execute(
+            "UPDATE gameplay_battle_text_catalogs SET sealed=1 WHERE battle_id=?",
+            (battle_id,),
+        )
+        with self.assertRaisesRegex(sqlite3.IntegrityError, "TEXT_CATALOG_IMMUTABLE"):
+            self.db.execute(
+                """INSERT INTO gameplay_battle_text_offers
+                   VALUES (?, 'A', 'attack', 'late-offer', 'Late phrase.', '["late","phrase"]')""",
+                (battle_id,),
+            )
+        with self.assertRaisesRegex(sqlite3.IntegrityError, "VERSION_CONFLICT"):
+            self.db.execute(
+                """INSERT INTO gameplay_battle_text_commits (
+                     battle_id,side,catalog_version,normalization_version,expected_version,recorded_version,
+                     command_id,fingerprint,capability_token_sha256,capability_generation,
+                     attack_offer_id,attack_text,attack_signature,attack_words_edited,
+                     defense_offer_id,defense_text,defense_signature,defense_words_edited,committed_at_ms
+                   ) VALUES (?,?,?, ?,0,1,'stale','fingerprint',?,1,?,?,?,0,?,?,?,0,?)""",
+                (battle_id, "A", "fixture-v1", "chat01-unicode-words-ucd-15.0.0-v2", "0" * 64,
+                 "a-attack", "Fixture phrase.", '["fixture","phrase"]',
+                 "a-defense", "Fixture phrase.", '["fixture","phrase"]', NOW),
+            )
+
+
+
 if __name__ == "__main__":
     unittest.main()
