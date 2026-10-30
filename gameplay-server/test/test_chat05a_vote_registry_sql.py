@@ -456,10 +456,16 @@ class Chat05BMigrationPreservationTests(unittest.TestCase):
                 "UPDATE gameplay_social_vote_deadlines SET duration_ms=?,deadline_at_ms=?,quorum=7,status='open' WHERE vote_id='legacy-vote-id'",
                 (60000, NOW + 60000),
             )
+            db.executemany(
+                """INSERT INTO gameplay_social_npc_ballots
+                   (vote_id,fixture_slot,fixture_version,choice,cast_at_ms)
+                   VALUES ('legacy-vote-id',?,'chat05b-deterministic-fixture-v1','B',?)""",
+                [(slot, NOW + 60000) for slot in range(1, 7)],
+            )
             with self.assertRaisesRegex(sqlite3.IntegrityError, "SOCIAL_VOTE_CLOSURE_INVALID"):
                 db.execute(
                     """UPDATE gameplay_social_vote_deadlines SET status='closed',deadline_at_ms=NULL,
-                       closed_at_ms=?,human_count=1,npc_count=6,count_a=1,count_b=6,final_choice='B'
+                       closed_at_ms=?,human_count=1,npc_count=6,count_a=0,count_b=7,final_choice='B'
                        WHERE vote_id='legacy-vote-id'""",
                     (NOW + 60000,),
                 )
