@@ -138,6 +138,38 @@ try {
   await frame.locator("#reportOpenBtn").click();
   await frame.locator("#reportInput").waitFor({ state: "visible" });
   await frame.locator("#reportList").waitFor({ state: "visible" });
+  const reportPanel = frame.locator("#dmBlock > .panelBody");
+  const panelRange = await reportPanel.evaluate((node) => {
+    node.__trustedWheel = false;
+    node.addEventListener("wheel", (event) => { if (event.isTrusted) node.__trustedWheel = true; }, { passive: true });
+    return { top: node.scrollTop, max: node.scrollHeight - node.clientHeight };
+  });
+  assert(panelRange.max > 1, `complaint form panel has a scroll range: ${JSON.stringify(panelRange)}`);
+  await frame.locator("#reportInput").hover();
+  await page.mouse.wheel(0, panelRange.top < panelRange.max ? 300 : -300);
+  await page.waitForTimeout(100);
+  const reportAfterPanelScroll = await frame.evaluate(() => {
+    const panel = document.querySelector("#dmBlock > .panelBody");
+    const input = document.getElementById("reportInput");
+    const list = document.getElementById("reportList");
+    const inputRect = input.getBoundingClientRect();
+    const listRect = list.getBoundingClientRect();
+    const viewportTop = window.visualViewport.offsetTop;
+    const viewportBottom = viewportTop + window.visualViewport.height;
+    return {
+      top: panel.scrollTop,
+      trustedWheel: panel.__trustedWheel,
+      input: { top: inputRect.top, bottom: inputRect.bottom },
+      list: { top: listRect.top, bottom: listRect.bottom },
+      anchored: listRect.bottom <= inputRect.top + 1 || listRect.top >= inputRect.bottom - 1,
+      insideViewport: listRect.top >= viewportTop && listRect.bottom <= viewportBottom,
+      inputInsideViewport: inputRect.top >= viewportTop && inputRect.bottom <= viewportBottom,
+    };
+  });
+  assert(reportAfterPanelScroll.trustedWheel && reportAfterPanelScroll.top !== panelRange.top
+    && reportAfterPanelScroll.anchored && reportAfterPanelScroll.insideViewport && reportAfterPanelScroll.inputInsideViewport,
+  `trusted panel wheel keeps the complaint list positioned beside its visible input: ${JSON.stringify({ before: panelRange, after: reportAfterPanelScroll })}`);
+
   const reportBefore = await frame.locator("#reportList").evaluate((node) => {
     node.__trustedWheel = false;
     node.addEventListener("wheel", (event) => { if (event.isTrusted) node.__trustedWheel = true; }, { passive: true });
@@ -173,7 +205,7 @@ try {
     result: "PASS",
     viewport: "320x568",
     fullRunner: "176/176 PASS across all seven viewports",
-    checks: ["trusted wheel reveals the DM log through the panel scrollport", "trusted wheel moves the DM log to older messages", "trusted wheel reaches the last complaint option", "last complaint option remains selectable with input focus"],
+    checks: ["trusted wheel reveals the DM log through the panel scrollport", "trusted wheel moves the DM log to older messages", "trusted wheel keeps the report list anchored while its panel scrolls", "trusted wheel reaches the last complaint option", "last complaint option remains selectable with input focus"],
     blockedRequests: [...blocked],
   }, null, 2));
 } finally {
