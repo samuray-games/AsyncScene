@@ -13,6 +13,7 @@ MIGRATIONS = [
         (3, "idempotent_battle_creation"), (4, "capability_generation"),
         (5, "participant_transition_fence"), (6, "creation_recovery_lifecycle"),
         (7, "capability_operator_lifecycle"), (8, "chat05a_people_and_votes"),
+        (9, "chat05a_authored_text_commits"),
     )
 ]
 NOW = 1_800_000_000_000

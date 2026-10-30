@@ -1,11 +1,15 @@
+export const TEXT_NORMALIZATION_VERSION = "chat01-unicode-words-v1";
+
+/** Deterministic Chat01 comparison: punctuation is ignored, whitespace separates words, and symbols/emoji remain meaningful. */
+export function canonicalWordSignature(value) {
+  if (typeof value !== "string") throw new TypeError("authored text must be a string");
+  const normalized = value.normalize("NFKC").toLowerCase().replace(/\p{P}/gu, "");
+  const tokens = normalized.match(/[\p{L}\p{M}\p{N}]+|\p{Extended_Pictographic}(?:\uFE0F|\p{M}|\p{Emoji_Modifier}|\u200D\p{Extended_Pictographic})*|\p{S}/gu) || [];
+  return JSON.stringify(tokens);
+}
+
 function normalizeAuthoredText(value) {
-  return String(value ?? "")
-    .normalize("NFKC")
-    .toLocaleLowerCase("ru")
-    .replace(/\s+/gu, " ")
-    .replace(/\p{P}/gu, "")
-    .replace(/\s+/gu, " ")
-    .trim();
+  return canonicalWordSignature(String(value ?? ""));
 }
 
 /** Pure Chat05A trigger contract. Not wired to an HTTP route. */

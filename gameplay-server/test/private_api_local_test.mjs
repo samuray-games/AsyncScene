@@ -308,6 +308,7 @@ try {
   migrate("migrations/0006_creation_recovery_lifecycle.sql");
   migrate("migrations/0007_capability_operator_lifecycle.sql");
   migrate("migrations/0008_chat05a_people_and_votes.sql");
+  migrate("migrations/0009_chat05a_authored_text_commits.sql");
   const expiredId = "11111111-1111-4111-8111-111111111111";
   const expiryToken = "expired-access-" + "z".repeat(36);
   const lc = globalThis.TacticalCombatLifecycleV1.createLifecycle(globalThis.Game.TacticalCombatV1);
@@ -432,7 +433,7 @@ try {
   const fixturePath = path.join(dir, "expired-fixture.sql");
   writeFileSync(fixturePath, fixtureSql);
   migrate(fixturePath);
-  console.log("PASS: D1 migrations 0001 through 0008 and local fixtures");
+  console.log("PASS: D1 migrations 0001 through 0009 and local fixtures");
   const testWrapperConfig = writeTestWorkerWrapper();
   executeSqlExpectFailure(`INSERT INTO gameplay_apply_participant_transition (
       battle_id,expected_version,command_id,fingerprint,receipt_code,
@@ -1431,6 +1432,117 @@ try {
   assert.equal(query(`SELECT COUNT(*) count FROM gameplay_social_votes WHERE battle_id='${drawBattle.battleId}'`)[0].count, 1,
     "reload/retry must retain exactly one vote ID");
   console.log("PASS: DRAW reveal atomically creates one stable vote ID across reload/retry");
+
+  // Synthetic text fixtures are test-only and are provisioned by the trusted
+  // operator route; they are not game-canon phrases.
+  const textBattle = await create(base, "chat05a-text-commit");
+  const textOffers = {
+    catalogVersion: "fixture-chat05a-v1",
+    offers: [
+      { side: "A", channel: "attack", offerId: "a-attack-1", text: "Готовая атака." },
+      { side: "A", channel: "attack", offerId: "a-attack-2", text: "Другая готовая атака." },
+      { side: "A", channel: "defense", offerId: "a-defense-1", text: "Готовая защита." },
+      { side: "B", channel: "attack", offerId: "b-attack-1", text: "Ответная атака." },
+      { side: "B", channel: "attack", offerId: "b-attack-2", text: "Обновлённая атака." },
+      { side: "B", channel: "defense", offerId: "b-defense-1", text: "Ответная защита." },
+    ],
+  };
+  const textOfferPath = `/v1/admin/battles/${textBattle.battleId}/text-offers`;
+  assert.equal((await request(base, "POST", textOfferPath, textBattle.capabilities.A.token, textOffers)).status, 401,
+    "participant capability cannot provision trusted text offers");
+  assert.equal((await request(base, "POST", textOfferPath, admin, textOffers, "https://allowed.example")).status, 403,
+    "operator text provisioning is server-to-server only");
+  const incompleteCatalog = await request(base, "POST", textOfferPath, admin, {
+    ...textOffers, offers: textOffers.offers.filter(x => !(x.side === "A" && x.channel === "defense")),
+  });
+  assert.equal(incompleteCatalog.status, 400, "all A/B attack/defense offer groups are required");
+  const pinned = await request(base, "POST", textOfferPath, admin, textOffers);
+  assert.deepEqual(pinned, { status: 201, catalogVersion: "fixture-chat05a-v1", normalizationVersion: "chat01-unicode-words-v1" });
+  assert.equal((await request(base, "POST", textOfferPath, admin, textOffers)).status, 409,
+    "a pinned battle catalog cannot be replaced");
+  const offeredToA = await get(base, textBattle, textBattle.capabilities.A.token);
+  const offeredToB = await get(base, textBattle, textBattle.capabilities.B.token);
+  assert.equal(offeredToA.readyTextOffers.offers.some(x => x.offer_id === "a-attack-1"), true);
+  assert.equal(offeredToA.readyTextOffers.offers.some(x => x.offer_id.startsWith("b-")), false);
+  assert.equal(offeredToB.readyTextOffers.offers.some(x => x.offer_id === "b-attack-1"), true);
+  assert.equal(Object.hasOwn(offeredToA, "committedTexts"), false);
+
+  const textIntentA = {
+    attack: { offerId: "a-attack-1", finalText: "Готовая атака, но теперь добавлены слова 👍" },
+    defense: { offerId: "a-defense-1", finalText: "ГОТОВАЯ защита!!!" },
+  };
+  const forgedText = await commit(base, textBattle, "A", "chat05a-forged-text", {
+    textIntent: textIntentA, nextTextOrigin: "authored",
+  });
+  assert.equal(forgedText.status, 400, "browser-supplied provenance is rejected");
+  const invalidUnicode = await commit(base, textBattle, "A", "chat05a-invalid-unicode", {
+    textIntent: { ...textIntentA, attack: { offerId: "a-attack-1", finalText: "\ud800" } },
+  });
+  assert.equal(invalidUnicode.status, 400, "unpaired UTF-16 surrogate is rejected");
+  const missingIntent = await commit(base, textBattle, "A", "chat05a-missing-text", {});
+  assert.equal(missingIntent.status, 409, "text-enabled battles require both channels atomically");
+  const forgedOffer = await commit(base, textBattle, "A", "chat05a-forged-offer", {
+    textIntent: { ...textIntentA, attack: { offerId: "b-attack-1", finalText: "Чужой offer" } },
+  });
+  assert.equal(forgedOffer.status, 409, JSON.stringify(forgedOffer));
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_battle_text_commits WHERE battle_id='${textBattle.battleId}'`)[0].count, 0,
+    "invalid/forged text cannot partially commit");
+  const textA = await commit(base, textBattle, "A", "chat05a-text-A", { textIntent: textIntentA });
+  assert.equal(textA.status, 200, JSON.stringify(textA));
+  const privateViewForB = await get(base, textBattle, textBattle.capabilities.B.token);
+  assert.equal(Object.hasOwn(privateViewForB, "committedTexts"), false);
+  assert.equal(JSON.stringify(privateViewForB).includes("добавлены слова"), false,
+    "opponent cannot read A's final text before reveal");
+  const replayTextA = await commit(base, textBattle, "A", "chat05a-text-A", { textIntent: textIntentA });
+  assert.equal(replayTextA.replayed, true);
+  const alteredReplay = await commit(base, textBattle, "A", "chat05a-text-A", {
+    textIntent: { ...textIntentA, attack: { ...textIntentA.attack, finalText: "Подмена после подтверждения" } },
+  });
+  assert.equal(alteredReplay.status, 409, "same command ID with altered text is rejected");
+  const alteredFresh = await commit(base, textBattle, "A", "chat05a-text-A-fresh", {
+    textIntent: { ...textIntentA, attack: { ...textIntentA.attack, finalText: "Подмена после подтверждения" } },
+  });
+  assert.equal(alteredFresh.status, 409, "fresh command ID cannot replace confirmed text");
+
+  const textIntentB = {
+    attack: { offerId: "b-attack-2" }, // ↻ to another ready phrase is not authored.
+    defense: { offerId: "b-defense-1", finalText: "Ответная защита с новыми словами ✨" },
+  };
+  const textB = await commit(base, textBattle, "B", "chat05a-text-B", { textIntent: textIntentB });
+  assert.equal(textB.status, 200, JSON.stringify(textB));
+  assert.equal(textB.view.phase, "revealed");
+  assert.deepEqual(query(`SELECT side,attack_words_edited,defense_words_edited FROM gameplay_battle_text_commits WHERE battle_id='${textBattle.battleId}' ORDER BY side`),
+    [{ side: "A", attack_words_edited: 1, defense_words_edited: 0 },
+     { side: "B", attack_words_edited: 0, defense_words_edited: 1 }]);
+  assert.equal(textB.view.committedTexts.A.attack.text, textIntentA.attack.finalText);
+  assert.equal(textB.view.committedTexts.A.defense.wordsEdited, false);
+  assert.equal(textB.view.committedTexts.B.attack.offerId, "b-attack-2");
+  assert.equal(textB.view.committedTexts.B.attack.wordsEdited, false);
+  assert.equal((await request(base, "POST",
+    `/v1/admin/battles/${drawBattle.battleId}/text-offers`, admin, textOffers)).status, 409,
+    "legacy/revealed battle cannot receive a retroactive text catalog");
+  const catalogAfterCommit = await request(base, "POST", textOfferPath, admin, textOffers);
+  assert.equal(catalogAfterCommit.status, 409, "catalog remains immutable after commit");
+  await restartApi();
+  const textAfterRestart = await get(base, textBattle, textBattle.capabilities.A.token);
+  assert.equal(textAfterRestart.committedTexts.B.defense.wordsEdited, true);
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_battle_text_commits WHERE battle_id='${textBattle.battleId}'`)[0].count, 2);
+  // Both participant text commits race from the same initial snapshot. D1 CAS
+  // plus the text-transition view must retain both complete rows exactly once.
+  const concurrentTextBattle = await create(base, "chat05a-text-concurrent");
+  assert.equal((await request(base, "POST", `/v1/admin/battles/${concurrentTextBattle.battleId}/text-offers`, admin, textOffers)).status, 201);
+  const concurrentResults = await Promise.all([
+    commit(base, concurrentTextBattle, "A", "chat05a-text-race-A", {
+      textIntent: { attack: { offerId: "a-attack-2" }, defense: { offerId: "a-defense-1" } },
+    }),
+    commit(base, concurrentTextBattle, "B", "chat05a-text-race-B", {
+      textIntent: { attack: { offerId: "b-attack-1" }, defense: { offerId: "b-defense-1" } },
+    }),
+  ]);
+  assert.deepEqual(concurrentResults.map(x => x.status).sort(), [200, 200]);
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_battle_text_commits WHERE battle_id='${concurrentTextBattle.battleId}'`)[0].count, 2);
+  assert.equal((await get(base, concurrentTextBattle, concurrentTextBattle.capabilities.A.token)).phase, "revealed");
+  console.log("PASS: trusted offers, authenticated atomic text commits, privacy, replay, immutability, and restart persistence");
 
   const spectatorOne = await registerTestPerson(base, "chat05a-spectator-one");
   const spectatorTwo = await registerTestPerson(base, "chat05a-spectator-two");

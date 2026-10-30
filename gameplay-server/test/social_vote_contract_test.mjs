@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
+  canonicalWordSignature,
+  TEXT_NORMALIZATION_VERSION,
+} from "../src/social-vote-contract.mjs";
+import {
   deriveSocialVoteId,
   shouldOpenSocialVote,
 } from "../src/social-vote-contract.mjs";
@@ -94,4 +98,17 @@ test("different battles receive different stable vote IDs", async () => {
 test("invalid battle IDs fail closed", async () => {
   await assert.rejects(() => deriveSocialVoteId("  "), TypeError);
   await assert.rejects(() => deriveSocialVoteId(null), TypeError);
+});
+
+
+test("versioned Unicode signatures ignore case, punctuation, and whitespace but preserve word and symbol changes", () => {
+  assert.equal(TEXT_NORMALIZATION_VERSION, "chat01-unicode-words-v1");
+  assert.equal(canonicalWordSignature("ЁЖ,\t привет!"), canonicalWordSignature("ёж привет"));
+  assert.equal(canonicalWordSignature("a-b"), canonicalWordSignature("ab"));
+  assert.equal(canonicalWordSignature("ab"), canonicalWordSignature("a--b!!!"));
+  assert.notEqual(canonicalWordSignature("ab"), canonicalWordSignature("a b"));
+  assert.equal(canonicalWordSignature("👍 👍"), canonicalWordSignature("👍👍"));
+  assert.notEqual(canonicalWordSignature("мама"), canonicalWordSignature("мыла"));
+  assert.notEqual(canonicalWordSignature("слово 👍"), canonicalWordSignature("слово 👎"));
+  assert.notEqual(canonicalWordSignature("👩‍⚕️"), canonicalWordSignature("👩⚕️"));
 });
