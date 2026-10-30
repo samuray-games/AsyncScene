@@ -14,6 +14,7 @@ MIGRATIONS = [
         (5, "participant_transition_fence"), (6, "creation_recovery_lifecycle"),
         (7, "capability_operator_lifecycle"), (8, "chat05a_people_and_votes"),
         (9, "chat05a_authored_text_commits"), (10, "chat05a_authored_vote_triggers"),
+        (11, "chat05b_vote_deadlines_and_fill"),
     )
 ]
 NOW = 1_800_000_000_000
@@ -426,6 +427,47 @@ class Chat05ARegistryAndVotesTests(unittest.TestCase):
                     ("vote-" + battle_id, battle_id, reason, NOW),
                 )
 
+
+
+class Chat05BMigrationPreservationTests(unittest.TestCase):
+    def test_deadline_migration_preserves_existing_human_vote_and_ballot_rows(self):
+        db = open_db(through=10)
+        try:
+            Chat05ARegistryAndVotesTests.seed_battle(db, "legacy-vote-battle", "DRAW")
+            for person_id in ("legacy-participant-a", "legacy-participant-b", "legacy-spectator"):
+                Chat05ARegistryAndVotesTests.person(db, person_id)
+            Chat05ARegistryAndVotesTests.bind_participant(db, "legacy-vote-battle", "A", "legacy-participant-a")
+            Chat05ARegistryAndVotesTests.bind_participant(db, "legacy-vote-battle", "B", "legacy-participant-b")
+            Chat05ARegistryAndVotesTests.cap(db, "legacy-vote-battle", "legacy-spectator", "legacy-secret")
+            Chat05ARegistryAndVotesTests.vote(db, "legacy-vote-battle", "legacy-vote-id")
+            Chat05ARegistryAndVotesTests.cast(db, "legacy-vote-battle", "legacy-vote-id", "legacy-secret", choice="B")
+            votes_before = db.execute("SELECT * FROM gameplay_social_votes").fetchall()
+            ballots_before = db.execute("SELECT * FROM gameplay_social_ballots").fetchall()
+
+            db.executescript(MIGRATIONS[10].read_text(encoding="utf-8"))
+
+            self.assertEqual(db.execute("SELECT * FROM gameplay_social_votes").fetchall(), votes_before)
+            self.assertEqual(db.execute("SELECT * FROM gameplay_social_ballots").fetchall(), ballots_before)
+            self.assertEqual(db.execute(
+                "SELECT vote_id,opened_at_ms,status FROM gameplay_social_vote_deadlines"
+            ).fetchall(), [("legacy-vote-id", NOW, "unconfigured")])
+            self.assertEqual(db.execute("PRAGMA foreign_key_check").fetchall(), [])
+            db.execute(
+                "UPDATE gameplay_social_vote_deadlines SET duration_ms=?,deadline_at_ms=?,quorum=7,status='open' WHERE vote_id='legacy-vote-id'",
+                (60000, NOW + 60000),
+            )
+            with self.assertRaisesRegex(sqlite3.IntegrityError, "SOCIAL_VOTE_CLOSURE_INVALID"):
+                db.execute(
+                    """UPDATE gameplay_social_vote_deadlines SET status='closed',deadline_at_ms=NULL,
+                       closed_at_ms=?,human_count=1,npc_count=6,count_a=1,count_b=6,final_choice='B'
+                       WHERE vote_id='legacy-vote-id'""",
+                    (NOW + 60000,),
+                )
+            self.assertEqual(db.execute(
+                "SELECT status,deadline_at_ms FROM gameplay_social_vote_deadlines WHERE vote_id='legacy-vote-id'"
+            ).fetchone(), ("open", NOW + 60000))
+        finally:
+            db.close()
 
 
 if __name__ == "__main__":

@@ -47,10 +47,19 @@ function writeTestWorkerWrapper() {
 import worker from ${JSON.stringify(workerModule)};
 let targetBattleId = null;
 let dropNextOperatorResponse = false, droppedOperatorResponse = null;
+let forcedServerNowMs = null;
+let delayNextSocialBallotReadMs = 0;
+const nativeDateNow = Date.now.bind(Date);
+Date.now = () => forcedServerNowMs === null ? nativeDateNow() : forcedServerNowMs;
 function wrapStatement(statement, sql, params, db) {
   return new Proxy(statement, { get(target, property) {
     if (property === "bind") return (...values) => wrapStatement(target.bind(...values), sql, values, db);
     if (property === "first") return async (...values) => {
+      if (delayNextSocialBallotReadMs > 0 && sql.includes("SELECT choice FROM gameplay_social_ballots")) {
+        const delayMs = delayNextSocialBallotReadMs;
+        delayNextSocialBallotReadMs = 0;
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
       const row = await target.first(...values);
       if (row && targetBattleId && params[0] === targetBattleId &&
           sql.includes("SELECT side,participant_id,token_sha256,generation") &&
@@ -97,6 +106,21 @@ export default {
       targetBattleId = body.battleId;
       return new Response(null, { status: 204 });
     }
+    if (url.pathname === "/__test/ballot-read-delay" && request.method === "POST") {
+      const body = await request.json();
+      if (!Number.isSafeInteger(body.delayMs) || body.delayMs < 1 || body.delayMs > 1000) {
+        return Response.json({ error: "INVALID_TEST_DELAY" }, { status: 400 });
+      }
+      delayNextSocialBallotReadMs = body.delayMs;
+      return new Response(null, { status: 204 });
+    }
+    if (url.pathname === "/__test/clock/set" && request.method === "POST") {
+      const body = await request.json();
+      if (body.nowMs === null) forcedServerNowMs = null;
+      else if (Number.isSafeInteger(body.nowMs) && body.nowMs >= 0) forcedServerNowMs = body.nowMs;
+      else return Response.json({ error: "INVALID_TEST_CLOCK" }, { status: 400 });
+      return new Response(null, { status: 204 });
+    }
     if (url.pathname === "/__test/admin-response/drop-next" && request.method === "POST") {
       dropNextOperatorResponse = true;
       return new Response(null, { status: 204 });
@@ -122,6 +146,7 @@ export default {
     main: wrapperPath,
     compatibility_date: "2026-10-01",
     workers_dev: false,
+    vars: { SOCIAL_VOTE_QUORUM: "7", SOCIAL_VOTE_DURATION_MS: "60000" },
     d1_databases: [{
       binding: "DB",
       database_name: "asynchronia-chat03b2-local-test",
@@ -237,6 +262,35 @@ async function request(base, method, route, token, body, origin, extraHeaders = 
   lastSuccessfulHttpAt = Date.now();
   return { status: r.status, ...json };
 }
+async function setTestClock(base, nowMs) {
+  await testControl(base, "/__test/clock/set", { nowMs });
+}
+async function openSocialVote(base, name) {
+  const battle = await create(base, name);
+  const pair = findSelectionPair("DRAW");
+  const a = await commit(base, battle, "A", name + "-A", { selection: pair.A });
+  const b = await commit(base, battle, "B", name + "-B", { selection: pair.B });
+  assert.equal(a.status, 200, JSON.stringify(a));
+  assert.equal(b.status, 200, JSON.stringify(b));
+  const voteId = await deriveSocialVoteId(battle.battleId);
+  const session = query(`SELECT opened_at_ms,deadline_at_ms,duration_ms,quorum,status
+    FROM gameplay_social_vote_deadlines WHERE vote_id='${voteId}'`)[0];
+  assert.ok(session, "social vote opening must persist its deadline policy");
+  assert.equal(session.status, "open");
+  return { battle, voteId, session };
+}
+async function issueSocialVoteCapabilities(base, battle, people) {
+  const capabilities = [];
+  for (const person of people) {
+    const result = await request(base, "POST",
+      `/v1/admin/battles/${battle.battleId}/spectators/${person}/capability`, admin,
+      { expectedGeneration: 0 });
+    assert.equal(result.status, 201, JSON.stringify(result));
+    capabilities.push(result);
+  }
+  return capabilities;
+}
+
 async function testControl(base, route, body = null) {
   const response = await fetch(base + route, {
     method: body ? "POST" : "GET",
@@ -485,7 +539,31 @@ try {
   const fixturePath = path.join(dir, "expired-fixture.sql");
   writeFileSync(fixturePath, fixtureSql);
   migrate(fixturePath);
-  console.log("PASS: D1 migrations 0001 through 0010 and local fixtures");
+  // Populate a legacy 0010 human ballot in real local D1 before applying 0011.
+  // The fixture temporarily removes only the two insertion predicates so the
+  // legacy row can be seeded against an existing battle; original triggers are
+  // read back from sqlite_master and restored verbatim before the migration.
+  const legacyVote = "chat05b-d1-migration-preservation";
+  const legacyPerson = "chat05b-d1-legacy-spectator";
+  const legacyVoteGate = query("SELECT sql FROM sqlite_master WHERE type='trigger' AND name='trg_gameplay_social_vote_gate'")[0].sql;
+  const legacyBallotGate = query("SELECT sql FROM sqlite_master WHERE type='trigger' AND name='trg_gameplay_social_ballot_authorization_guard'")[0].sql;
+  executeSql(`DROP TRIGGER trg_gameplay_social_vote_gate; DROP TRIGGER trg_gameplay_social_ballot_authorization_guard;
+    INSERT INTO gameplay_persons(person_id,created_at_ms) VALUES ('${legacyPerson}',500);
+    INSERT INTO gameplay_social_votes(vote_id,battle_id,trigger_reason,status,created_at_ms)
+      VALUES ('${legacyVote}','${oneSideId}','DRAW','open',500);
+    INSERT INTO gameplay_social_ballots(vote_id,person_id,choice,capability_token_sha256,capability_generation,cast_at_ms)
+      VALUES ('${legacyVote}','${legacyPerson}','B','${"a".repeat(64)}',1,501);`);
+  executeSql(legacyVoteGate);
+  executeSql(legacyBallotGate);
+  const legacyBallotBeforeMigration = query(`SELECT vote_id,person_id,choice,capability_token_sha256,capability_generation,cast_at_ms
+    FROM gameplay_social_ballots WHERE vote_id='${legacyVote}'`);
+  migrate("migrations/0011_chat05b_vote_deadlines_and_fill.sql");
+  assert.deepEqual(query(`SELECT vote_id,person_id,choice,capability_token_sha256,capability_generation,cast_at_ms
+    FROM gameplay_social_ballots WHERE vote_id='${legacyVote}'`), legacyBallotBeforeMigration,
+    "real D1 migration must preserve the exact legacy human ballot row");
+  assert.deepEqual(query(`SELECT vote_id,opened_at_ms,status FROM gameplay_social_vote_deadlines WHERE vote_id='${legacyVote}'`),
+    [{ vote_id: legacyVote, opened_at_ms: 500, status: "unconfigured" }]);
+  console.log("PASS: D1 migrations 0001 through 0011 and local fixtures");
   const testWrapperConfig = writeTestWorkerWrapper();
   executeSqlExpectFailure(`INSERT INTO gameplay_apply_participant_transition (
       battle_id,expected_version,command_id,fingerprint,receipt_code,
@@ -1755,6 +1833,205 @@ try {
   assert.equal(query(`SELECT COUNT(*) count FROM gameplay_social_ballots
     WHERE vote_id='${expectedVoteId}' AND person_id='${spectatorOne}'`)[0].count, 1);
   console.log("PASS: server identity, participant exclusion, forged identity, ballot races, revocation, and reissue");
+
+  // Chat05B uses explicit test policy values supplied only by this disposable
+  // local Worker wrapper. Seven is a test matrix value, not a game balance.
+  const socialPeople = [];
+  for (let i = 0; i < 8; i++) socialPeople.push(await registerTestPerson(base, `chat05b-spectator-${i}`));
+  const boundaryVote = await openSocialVote(base, "chat05b-deadline-boundary");
+  assert.equal(boundaryVote.session.quorum, 7);
+  assert.equal(boundaryVote.session.duration_ms, 60000);
+  assert.equal(boundaryVote.session.deadline_at_ms,
+    boundaryVote.session.opened_at_ms + boundaryVote.session.duration_ms);
+  const boundaryCaps = await issueSocialVoteCapabilities(base, boundaryVote.battle, socialPeople.slice(0, 3));
+  await setTestClock(base, boundaryVote.session.deadline_at_ms - 1);
+  const beforeDeadline = await request(base, "POST", `/v1/battles/${boundaryVote.battle.battleId}/votes`,
+    boundaryCaps[0].token, { choice: "A" });
+  assert.equal(beforeDeadline.status, 200, JSON.stringify(beforeDeadline));
+  assert.equal(query(`SELECT cast_at_ms FROM gameplay_social_ballots
+    WHERE vote_id='${boundaryVote.voteId}'`)[0].cast_at_ms, boundaryVote.session.deadline_at_ms - 1);
+  await setTestClock(base, boundaryVote.session.deadline_at_ms);
+  const exactlyAtDeadline = await request(base, "POST", `/v1/battles/${boundaryVote.battle.battleId}/votes`,
+    boundaryCaps[1].token, { choice: "B" });
+  assert.equal(exactlyAtDeadline.status, 409, JSON.stringify(exactlyAtDeadline));
+  assert.equal(exactlyAtDeadline.error, "VOTE_CLOSED");
+  await setTestClock(base, boundaryVote.session.deadline_at_ms + 1);
+  const afterDeadline = await request(base, "POST", `/v1/battles/${boundaryVote.battle.battleId}/votes`,
+    boundaryCaps[2].token, { choice: "B" });
+  assert.equal(afterDeadline.status, 409, JSON.stringify(afterDeadline));
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_social_ballots WHERE vote_id='${boundaryVote.voteId}'`)[0].count, 1);
+  assert.deepEqual(query(`SELECT status,closed_at_ms,human_count,npc_count,count_a,count_b,final_choice
+    FROM gameplay_social_vote_deadlines WHERE vote_id='${boundaryVote.voteId}'`),
+  [{ status: "closed", closed_at_ms: boundaryVote.session.deadline_at_ms,
+    human_count: 1, npc_count: 6,
+    count_a: query(`SELECT COUNT(*) count FROM gameplay_social_npc_ballots
+      WHERE vote_id='${boundaryVote.voteId}' AND choice='A'`)[0].count + 1,
+    count_b: query(`SELECT COUNT(*) count FROM gameplay_social_npc_ballots
+      WHERE vote_id='${boundaryVote.voteId}' AND choice='B'`)[0].count,
+    final_choice: query(`SELECT final_choice FROM gameplay_social_vote_deadlines
+      WHERE vote_id='${boundaryVote.voteId}'`)[0].final_choice }]);
+  await setTestClock(base, null);
+  console.log("PASS: server-created immutable deadline; human votes accepted strictly before and rejected at/after it");
+
+  // Delay the authoritative ballot lookup across the deadline. The server clock
+  // advances while the request is suspended; the SQL write boundary must reject.
+  const delayedBoundary = await openSocialVote(base, "chat05b-delayed-boundary-write");
+  const delayedCaps = await issueSocialVoteCapabilities(base, delayedBoundary.battle, socialPeople.slice(0, 2));
+  await setTestClock(base, delayedBoundary.session.deadline_at_ms - 1);
+  await testControl(base, "/__test/ballot-read-delay", { delayMs: 150 });
+  const delayedCast = request(base, "POST", `/v1/battles/${delayedBoundary.battle.battleId}/votes`,
+    delayedCaps[0].token, { choice: "A" });
+  await new Promise(resolve => setTimeout(resolve, 25));
+  await setTestClock(base, delayedBoundary.session.deadline_at_ms);
+  const delayedResult = await delayedCast;
+  assert.equal(delayedResult.status, 409, JSON.stringify(delayedResult));
+  assert.equal(delayedResult.error, "VOTE_CLOSED");
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_social_ballots WHERE vote_id='${delayedBoundary.voteId}'`)[0].count, 0,
+    "time spent in a prior read cannot authorize a write after the deadline");
+  await setTestClock(base, null);
+  console.log("PASS: delayed capability/ballot read crossing deadline is rejected at SQL INSERT");
+
+  // Required 0/1/4/6/7 human matrix with exact NPC top-up to the odd test quorum.
+  const matrix = [];
+  for (const humanCount of [0, 1, 4, 6, 7]) {
+    const opened = await openSocialVote(base, `chat05b-matrix-${humanCount}`);
+    const caps = await issueSocialVoteCapabilities(base, opened.battle, socialPeople);
+    for (let i = 0; i < humanCount; i++) {
+      const cast = await request(base, "POST", `/v1/battles/${opened.battle.battleId}/votes`,
+        caps[i].token, { choice: i % 2 === 0 ? "A" : "B" });
+      assert.equal(cast.status, 200, JSON.stringify(cast));
+    }
+    if (humanCount === 7) {
+      await setTestClock(base, opened.session.deadline_at_ms - 1);
+      const eighth = await request(base, "POST", `/v1/battles/${opened.battle.battleId}/votes`,
+        caps[7].token, { choice: "B" });
+      assert.equal(eighth.status, 409, JSON.stringify(eighth));
+      assert.equal(eighth.error, "SOCIAL_VOTE_QUORUM_REACHED");
+      assert.equal(query(`SELECT COUNT(*) count FROM gameplay_social_ballots WHERE vote_id='${opened.voteId}'`)[0].count, 7);
+      await setTestClock(base, null);
+    }
+    await setTestClock(base, opened.session.deadline_at_ms + 1);
+    let result;
+    if (humanCount === 0) {
+      const closes = await Promise.all([
+        request(base, "GET", `/v1/battles/${opened.battle.battleId}/votes`, caps[0].token),
+        request(base, "GET", `/v1/battles/${opened.battle.battleId}/votes`, caps[1].token),
+      ]);
+      assert.deepEqual(closes.map(row => row.status), [200, 200]);
+      assert.deepEqual(closes[0], closes[1], "concurrent timeout closures must replay the same stored result");
+      result = closes[0];
+    } else {
+      result = await request(base, "GET", `/v1/battles/${opened.battle.battleId}/votes`, caps[0].token);
+    }
+    assert.equal(result.status, 200, JSON.stringify(result));
+    assert.equal(result.voteStatus, "closed");
+    assert.equal(result.humanVotes, humanCount);
+    assert.equal(result.npcVotes, 7 - humanCount);
+    assert.equal(result.humanVotes + result.npcVotes, 7);
+    assert.notEqual(result.countA, result.countB);
+    assert.equal(result.finalChoice, result.countA > result.countB ? "A" : "B");
+    const savedBallots = query(`SELECT person_id,choice FROM gameplay_social_ballots
+      WHERE vote_id='${opened.voteId}' ORDER BY person_id`);
+    assert.equal(savedBallots.length, humanCount, "every human ballot remains present after close");
+    assert.equal(query(`SELECT COUNT(*) count FROM gameplay_social_npc_ballots WHERE vote_id='${opened.voteId}'`)[0].count,
+      7 - humanCount);
+    const npcRowsBeforeReplay = query(`SELECT fixture_slot,fixture_version,choice,cast_at_ms
+      FROM gameplay_social_npc_ballots WHERE vote_id='${opened.voteId}' ORDER BY fixture_slot`);
+    const closedRowBeforeReplay = query(`SELECT * FROM gameplay_social_vote_deadlines WHERE vote_id='${opened.voteId}'`)[0];
+    const replay = await request(base, "GET", `/v1/battles/${opened.battle.battleId}/votes`, caps[0].token);
+    assert.deepEqual(replay, result, "reload/replay must return the same closed result");
+    await fetch(cronUrl, { signal: AbortSignal.timeout(9000) });
+    await fetch(cronUrl, { signal: AbortSignal.timeout(9000) });
+    assert.deepEqual(query(`SELECT fixture_slot,fixture_version,choice,cast_at_ms
+      FROM gameplay_social_npc_ballots WHERE vote_id='${opened.voteId}' ORDER BY fixture_slot`), npcRowsBeforeReplay,
+      "repeated timeout must not insert NPC ballots");
+    assert.deepEqual(query(`SELECT * FROM gameplay_social_vote_deadlines WHERE vote_id='${opened.voteId}'`)[0], closedRowBeforeReplay,
+      "closed result is immutable under repeated timeout");
+    matrix.push({ humanCount, npcCount: result.npcVotes, countA: result.countA, countB: result.countB });
+    await setTestClock(base, null);
+    if (humanCount === 4) {
+      await restartApi();
+      const afterWorkerRestart = await request(base, "GET", `/v1/battles/${opened.battle.battleId}/votes`, caps[0].token);
+      assert.deepEqual(afterWorkerRestart, result, "Worker restart must preserve the final result");
+    }
+  }
+  assert.deepEqual(matrix.map(row => [row.humanCount, row.npcCount]), [[0,7],[1,6],[4,3],[6,1],[7,0]]);
+  console.log("PASS: 0/1/4/6/7 human matrix; quorum cap; deterministic NPC-only top-up; no ties; concurrent close/replay/restart");
+
+  // Race the last human ballot with timeout at the exact boundary. The SQL
+  // write guard and close transaction serialize; the ballot is rejected and
+  // six committed people plus one NPC close the vote atomically.
+  const lastVoteRace = await openSocialVote(base, "chat05b-last-human-close-race");
+  const raceCaps = await issueSocialVoteCapabilities(base, lastVoteRace.battle, socialPeople);
+  for (let i = 0; i < 6; i++) {
+    const cast = await request(base, "POST", `/v1/battles/${lastVoteRace.battle.battleId}/votes`,
+      raceCaps[i].token, { choice: i % 2 ? "B" : "A" });
+    assert.equal(cast.status, 200, JSON.stringify(cast));
+  }
+  await setTestClock(base, lastVoteRace.session.deadline_at_ms);
+  const simultaneous = await Promise.all([
+    request(base, "POST", `/v1/battles/${lastVoteRace.battle.battleId}/votes`,
+      raceCaps[6].token, { choice: "A" }),
+    request(base, "GET", `/v1/battles/${lastVoteRace.battle.battleId}/votes`, raceCaps[0].token),
+  ]);
+  assert.equal(simultaneous[0].status, 409, JSON.stringify(simultaneous));
+  assert.equal(simultaneous[1].status, 200, JSON.stringify(simultaneous));
+  assert.equal(simultaneous[1].humanVotes, 6);
+  assert.equal(simultaneous[1].npcVotes, 1);
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_social_ballots WHERE vote_id='${lastVoteRace.voteId}'`)[0].count, 6);
+  await setTestClock(base, null);
+  console.log("PASS: last-human request racing timeout is serialized at D1 and cannot alter the closed result");
+
+  // Inject a real D1 statement failure after the first NPC INSERT in a batch.
+  // The batch must roll back every inserted fixture and leave the vote open.
+  const rollbackVote = await openSocialVote(base, "chat05b-close-rollback");
+  const rollbackCaps = await issueSocialVoteCapabilities(base, rollbackVote.battle, socialPeople.slice(0, 2));
+  const retainedHuman = await request(base, "POST", `/v1/battles/${rollbackVote.battle.battleId}/votes`,
+    rollbackCaps[0].token, { choice: "B" });
+  assert.equal(retainedHuman.status, 200);
+  executeSql(`CREATE TRIGGER chat05b_test_fail_npc_insert BEFORE INSERT ON gameplay_social_npc_ballots
+    WHEN NEW.fixture_slot=2 BEGIN SELECT RAISE(ABORT,'CHAT05B_INJECTED_BATCH_FAILURE'); END`);
+  await setTestClock(base, rollbackVote.session.deadline_at_ms + 1);
+  const failedClose = await request(base, "GET", `/v1/battles/${rollbackVote.battle.battleId}/votes`, rollbackCaps[1].token);
+  assert.equal(failedClose.status, 503, JSON.stringify(failedClose));
+  assert.equal(failedClose.error, "SOCIAL_VOTE_CLOSE_RETRY_REQUIRED");
+  assert.equal(query(`SELECT status FROM gameplay_social_vote_deadlines WHERE vote_id='${rollbackVote.voteId}'`)[0].status, "open");
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_social_npc_ballots WHERE vote_id='${rollbackVote.voteId}'`)[0].count, 0,
+    "failed D1 batch must roll back the earlier NPC insert");
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_social_ballots WHERE vote_id='${rollbackVote.voteId}'`)[0].count, 1,
+    "failed close must retain the human ballot");
+  executeSql("DROP TRIGGER chat05b_test_fail_npc_insert");
+  const recoveredClose = await request(base, "GET", `/v1/battles/${rollbackVote.battle.battleId}/votes`, rollbackCaps[1].token);
+  assert.equal(recoveredClose.status, 200, JSON.stringify(recoveredClose));
+  assert.equal(recoveredClose.voteStatus, "closed");
+  assert.equal(recoveredClose.humanVotes, 1);
+  assert.equal(recoveredClose.npcVotes, 6);
+  assert.equal(query(`SELECT COUNT(*) count FROM gameplay_social_npc_ballots WHERE vote_id='${rollbackVote.voteId}'`)[0].count, 6);
+  await setTestClock(base, null);
+  console.log("PASS: injected local D1 batch failure rolls back partial NPC fill and retry completes once");
+
+  // Keep an open human ballot durable across a Worker restart, deliberately skip
+  // the scheduler, then prove the normal request path catches up from D1.
+  const missedSchedulerVote = await openSocialVote(base, "chat05b-missed-scheduler");
+  const missedCaps = await issueSocialVoteCapabilities(base, missedSchedulerVote.battle, socialPeople.slice(0, 1));
+  const durableHuman = await request(base, "POST", `/v1/battles/${missedSchedulerVote.battle.battleId}/votes`,
+    missedCaps[0].token, { choice: "B" });
+  assert.equal(durableHuman.status, 200, JSON.stringify(durableHuman));
+  const humanRowsBeforeRestart = query(`SELECT vote_id,person_id,choice,capability_token_sha256,capability_generation,cast_at_ms
+    FROM gameplay_social_ballots WHERE vote_id='${missedSchedulerVote.voteId}' ORDER BY person_id`);
+  assert.equal(humanRowsBeforeRestart.length, 1);
+  await restartApi();
+  await setTestClock(base, missedSchedulerVote.session.deadline_at_ms + 1);
+  const recoveredMissedCron = await request(base, "GET", `/v1/battles/${missedSchedulerVote.battle.battleId}/votes`, missedCaps[0].token);
+  assert.equal(recoveredMissedCron.status, 200);
+  assert.equal(recoveredMissedCron.voteStatus, "closed");
+  assert.equal(recoveredMissedCron.humanVotes, 1);
+  assert.equal(recoveredMissedCron.npcVotes, 6);
+  assert.deepEqual(query(`SELECT vote_id,person_id,choice,capability_token_sha256,capability_generation,cast_at_ms
+    FROM gameplay_social_ballots WHERE vote_id='${missedSchedulerVote.voteId}' ORDER BY person_id`), humanRowsBeforeRestart,
+    "restart recovery must preserve every existing human ballot byte-for-byte");
+  await setTestClock(base, null);
+  console.log("PASS: open human ballot survives Worker restart; request-path catch-up closes after missed scheduler without changing human rows");
 
   console.log("LOCAL_D1_SYNC_DIAGNOSTICS", JSON.stringify({ ...d1SyncStats,
     worker: { pid: worker?.pid ?? null, exitCode: worker?.exitCode ?? null,
