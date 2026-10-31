@@ -1565,10 +1565,8 @@ window.Game = window.Game || {};
       if (activeTab === "dm") {
         const log = document.getElementById("dmLog");
         const dm = (Game.__S && Game.__S.dm) || S.dm || {};
-        const logs = dm.logs && typeof dm.logs === "object" ? dm.logs : {};
-        const hasStoredMessages = Object.keys(logs).some((id) => Array.isArray(logs[id]) && logs[id].length > 0);
-        const hasThreads = !!dm.activeId || !!(Array.isArray(dm.openIds) && dm.openIds.length) || hasStoredMessages;
-        return !!(log && log.classList.contains("dmEmptyState") && !hasThreads
+        const hasOpenThreads = !!dm.activeId || !!(Array.isArray(dm.openIds) && dm.openIds.length);
+        return !!(log && log.classList.contains("dmEmptyState") && !hasOpenThreads
           && !document.querySelector("#dmTabs .dmTab"));
       }
       if (activeTab === "battles") {
@@ -1644,6 +1642,7 @@ window.Game = window.Game || {};
         activeTab: null,
         dmHeightOverride: false,
         emptyPanelHeightOverride: false,
+        emptyPanelHeightOverrides: {},
         dragging: false,
         pointerId: null,
         dragY: 0,
@@ -1674,13 +1673,14 @@ window.Game = window.Game || {};
       document.body.classList.toggle("mobile-profile-compact", keyboardOpen || editingChat);
       const activeTab = blocks && blocks.getAttribute("data-active-tab");
       const dmTabActive = activeTab === "dm";
-      chat.classList.toggle("dm-priority", dmTabActive);
       if (controller.activeTab !== activeTab) {
         controller.activeTab = activeTab;
         controller.dmHeightOverride = false;
-        controller.emptyPanelHeightOverride = false;
+        controller.emptyPanelHeightOverride = !!(controller.emptyPanelHeightOverrides
+          && controller.emptyPanelHeightOverrides[activeTab]);
       }
       const compactEmptyPanel = activeTabIsEmpty(activeTab);
+      chat.classList.toggle("dm-priority", dmTabActive && !compactEmptyPanel);
       if (blocks) {
         blocks.classList.toggle("mobile-panel-empty", compactEmptyPanel);
         blocks.classList.toggle("mobile-panel-empty-dm", compactEmptyPanel && activeTab === "dm");
@@ -1698,8 +1698,8 @@ window.Game = window.Game || {};
       const handleHeight = handle.getBoundingClientRect().height || 18;
       const headerHeight = chatHeader ? chatHeader.getBoundingClientRect().height : 44;
       const inputHeight = chatInputRow ? chatInputRow.getBoundingClientRect().height : 62;
-      const keyboardChatMin = Math.ceil(headerHeight + inputHeight + handleHeight + 2);
-      const functionalChatMin = Math.ceil(headerHeight + inputHeight + handleHeight + 2);
+      const keyboardChatMin = Math.ceil(headerHeight + inputHeight + handleHeight + 14);
+      const functionalChatMin = Math.ceil(headerHeight + inputHeight + handleHeight + 14);
       const edgeHeight = edge * 2 + safeTop + safeBottom;
       const layoutGaps = gap * 3;
       let fixedHeight = edgeHeight + topHeight + menuHeight + layoutGaps;
@@ -1713,13 +1713,19 @@ window.Game = window.Game || {};
           return;
         }
       }
-      const panelFloor = compactEmptyPanel ? compactEmptyPanelsHeight(activeTab)
+      const desiredPanelFloor = compactEmptyPanel ? compactEmptyPanelsHeight(activeTab)
         : (keyboardOpen ? Math.max(112, Math.round(vv.height * 0.28)) : desiredPanelHeight);
+      const inputChatFloor = keyboardOpen && editingChat ? functionalChatMin : 0;
+      const panelFloor = Math.min(desiredPanelFloor, Math.max(0, vv.height - fixedHeight - inputChatFloor));
       const chatCapacity = Math.max(0, vv.height - fixedHeight - panelFloor);
       if (Number.isFinite(requestedHeight)) {
         controller.preferredHeight = Math.max(0, requestedHeight);
         if (dmTabActive) controller.dmHeightOverride = true;
-        if (compactEmptyPanel) controller.emptyPanelHeightOverride = true;
+        if (compactEmptyPanel) {
+          controller.emptyPanelHeightOverride = true;
+          controller.emptyPanelHeightOverrides = controller.emptyPanelHeightOverrides || {};
+          controller.emptyPanelHeightOverrides[activeTab] = true;
+        }
       }
       const minChatHeight = Math.min(chatCapacity, dmTabActive
         ? (keyboardOpen ? keyboardChatMin : functionalChatMin)

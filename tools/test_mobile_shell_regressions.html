@@ -280,7 +280,7 @@
             state.battles=[];
             ui._battleInvite={open:false,q:"",sel:0};
             if (ui.renderBattles) ui.renderBattles();
-            state.dm={open:true,activeId:null,withId:null,openIds:[],logs:{},unread:{}};
+            state.dm={open:true,activeId:null,withId:null,openIds:[],logs:{"mobile-closed-history":[{from:"Игрок",text:"Сохранённая история закрытого диалога"}]},unread:{}};
             if (ui.renderDM) ui.renderDM();
             if (eventsBody) {
               eventsBody.replaceChildren();
@@ -313,6 +313,8 @@
               const visibleBottom=visibleTop+win.visualViewport.height;
               const compactLimit=Math.min(320,Math.max(230,win.visualViewport.height*.34));
               const statusRect=status&&status.getBoundingClientRect();
+              const chatLog=doc.getElementById("chatLog");
+              const chatLogStyle=win.getComputedStyle(chatLog);
               const button=scenario.key==="battles"?doc.querySelector("#battlesBody .actions button"):null;
               const buttonRect=button&&button.getBoundingClientRect();
               const buttonHit=buttonRect&&doc.elementFromPoint(Math.floor(buttonRect.left+buttonRect.width/2),Math.floor(buttonRect.top+buttonRect.height/2));
@@ -321,6 +323,7 @@
               emptyPanelGeometry[scenario.key]={height:Math.round(shellRect.height),chat:Math.round(chatRect.height)};
               checks.push(assert(!!status&&panelRect.height>0&&shellRect.height<=compactLimit&&chatRect.height>shellRect.height
                 &&chatRect.top>=visibleTop&&chatRect.bottom<=visibleBottom
+                &&chatLog.clientHeight>0&&chatLogStyle.overflowY==="auto"&&chatLog.scrollHeight>chatLog.clientHeight
                 &&inputRect.height>0&&inputRect.top>=visibleTop&&inputRect.bottom<=visibleBottom
                 &&sendRect.height>0&&sendRect.top>=visibleTop&&sendRect.bottom<=visibleBottom
                 &&tabs.getBoundingClientRect().height>=40&&dmStatusAtTop
@@ -369,7 +372,7 @@
               if (tabKey!=="dm") {
                 const controller=doc.documentElement.__mobilePinnedChatController;
                 const preferred=controller&&controller.preferredHeight||0;
-                checks.push(assert(Math.abs(populatedChat-preferred)<=3,"populated_mobile_tab_restores_user_chat_height_"+tabKey,
+              checks.push(assert(Math.abs(populatedChat-preferred)<=3,"populated_mobile_tab_restores_user_chat_height_"+tabKey,
                   JSON.stringify({preferred,populatedChat})));
               }
               if (tabKey==="battles") doc.querySelector("#battlesBody .battleCard")?.remove();
@@ -390,19 +393,61 @@
                 &&Math.abs(chatAgain-emptyPanelGeometry[tabKey].chat)<=4,"mobile_empty_populated_empty_height_restoration_"+tabKey,
                 JSON.stringify({tab:tabKey,emptyBefore:emptyPanelGeometry[tabKey],populatedHeight,populatedChat,emptyAgain,chatAgain,dmEmptyDetails})));
             }
+            state.dm.logs=state.dm.logs||{};
+            state.dm.logs["mobile-closed-history"]=[{from:"Игрок",text:"Сохранённая история закрытого диалога"}];
+            if (ui.renderDM) ui.renderDM();
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            const dmLogStore=state.dm.logs;
+            checks.push(assert(Object.keys(dmLogStore).length===1&&dmLogStore["mobile-closed-history"]?.length===1
+              &&doc.getElementById("dmLog").classList.contains("dmEmptyState")
+              &&blocks.classList.contains("mobile-panel-empty-dm")&&!chat.classList.contains("dm-priority")
+              &&chatLogForEmptyPanels.clientHeight>0&&chatLogForEmptyPanels.scrollHeight>chatLogForEmptyPanels.clientHeight,
+              "closed_dm_history_keeps_empty_state_and_public_chat_available",
+              JSON.stringify({storedHistory:dmLogStore,empty:doc.getElementById("dmLog").classList.contains("dmEmptyState"),chatLog:nodeState(chatLogForEmptyPanels,win)})));
+            const controllerForEmptyDrag=doc.documentElement.__mobilePinnedChatController;
+            const savedPreferred=controllerForEmptyDrag.preferredHeight;
+            const savedOverrides=Object.assign({},controllerForEmptyDrag.emptyPanelHeightOverrides||{});
+            mobileInterface.selectTab("events",false);
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            const beforeEmptyDrag=chat.getBoundingClientRect().height;
+            const handleRect=handle.getBoundingClientRect();
+            dispatchDrag(handle,[Math.round(handleRect.left+handleRect.width/2),Math.round(handleRect.top+handleRect.height/2)],
+              [Math.round(handleRect.left+handleRect.width/2),Math.round(handleRect.top+handleRect.height/2-36)],207);
+            const manuallySizedEmpty=chat.getBoundingClientRect().height;
+            const manualOverride=controllerForEmptyDrag.emptyPanelHeightOverrides.events===true;
+            mobileInterface.selectTab("battles",false);
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            mobileInterface.selectTab("events",false);
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            const restoredEmptyDrag=chat.getBoundingClientRect().height;
+            checks.push(assert(manualOverride&&Math.abs(manuallySizedEmpty-beforeEmptyDrag)>4
+              &&Math.abs(restoredEmptyDrag-manuallySizedEmpty)<=3,
+              "empty_tab_user_splitter_preference_restores_after_tab_switch",
+              JSON.stringify({beforeEmptyDrag,manuallySizedEmpty,restoredEmptyDrag,overrides:controllerForEmptyDrag.emptyPanelHeightOverrides})));
+            controllerForEmptyDrag.preferredHeight=savedPreferred;
+            controllerForEmptyDrag.emptyPanelHeightOverrides=savedOverrides;
+            controllerForEmptyDrag.emptyPanelHeightOverride=!!savedOverrides.events;
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
             mobileInterface.selectTab("events",false);
             if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
             doc.getElementById("chatInput").focus();
-            Object.defineProperty(win,"visualViewport",{configurable:true,value:{height:Math.max(240,height-180),offsetTop:24,offsetLeft:0,width:width,scale:1,addEventListener:function(){}}});
-            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
-            const keyboardInput=doc.getElementById("chatInput").getBoundingClientRect();
-            const keyboardShell=shell.getBoundingClientRect();
-            const keyboardVisibleBottom=win.visualViewport.offsetTop+win.visualViewport.height;
-            checks.push(assert(doc.body.classList.contains("mobile-keyboard-open")&&blocks.classList.contains("mobile-panel-empty")
-              &&keyboardShell.height<=Math.min(320,Math.max(230,win.visualViewport.height*.34))
-              &&keyboardInput.top>=win.visualViewport.offsetTop&&keyboardInput.bottom<=keyboardVisibleBottom
-              &&isInside(doc.getElementById("chatInputRow"),chat),"empty_panel_keyboard_keeps_chat_input_and_tabs_visible",
-              JSON.stringify({input:rect(doc.getElementById("chatInput")),row:rect(doc.getElementById("chatInputRow")),chat:rect(chat),shell:rect(shell),visual:{top:win.visualViewport.offsetTop,bottom:keyboardVisibleBottom,height:win.visualViewport.height}})));
+            for(const keyboardTab of ["battles","events","dm"]){
+              mobileInterface.selectTab(keyboardTab,false);
+              Object.defineProperty(win,"visualViewport",{configurable:true,value:{height:277,offsetTop:0,offsetLeft:0,width:width,scale:1,addEventListener:function(){}}});
+              if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+              const keyboardInput=doc.getElementById("chatInput").getBoundingClientRect();
+              const keyboardSend=doc.getElementById("btnSend").getBoundingClientRect();
+              const keyboardShell=shell.getBoundingClientRect();
+              const keyboardVisibleBottom=win.visualViewport.offsetTop+win.visualViewport.height;
+              const chatLog=doc.getElementById("chatLog");
+              checks.push(assert(doc.body.classList.contains("mobile-keyboard-open")&&blocks.classList.contains("mobile-panel-empty")
+                &&keyboardShell.height<=Math.min(320,Math.max(230,win.visualViewport.height*.34))
+                &&keyboardInput.top>=win.visualViewport.offsetTop&&keyboardInput.bottom<=keyboardVisibleBottom
+                &&keyboardSend.top>=win.visualViewport.offsetTop&&keyboardSend.bottom<=keyboardVisibleBottom
+                &&isInside(doc.getElementById("chatInputRow"),chat)&&chatLog.clientHeight>0,
+                "short_keyboard_empty_tab_keeps_chat_input_send_and_log_"+keyboardTab,
+                JSON.stringify({tab:keyboardTab,input:rect(doc.getElementById("chatInput")),send:rect(doc.getElementById("btnSend")),row:rect(doc.getElementById("chatInputRow")),chat:rect(chat),chatLog:nodeState(chatLog,win),shell:rect(shell),visual:{top:win.visualViewport.offsetTop,bottom:keyboardVisibleBottom,height:win.visualViewport.height}})));
+            }
             if (originalEmptyPanelVV) Object.defineProperty(win,"visualViewport",originalEmptyPanelVV); else delete win.visualViewport;
             doc.getElementById("chatInput").blur();
             if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
