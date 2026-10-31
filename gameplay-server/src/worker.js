@@ -554,12 +554,168 @@ async function readBallot(db, voteId, personId) {
   ).bind(voteId, personId).first();
 }
 
+function socialVotePolicy(env) {
+  const quorum = Number(env.SOCIAL_VOTE_QUORUM);
+  const durationMs = Number(env.SOCIAL_VOTE_DURATION_MS);
+  if (!Number.isSafeInteger(quorum) || quorum < 3 || quorum > 101 || quorum % 2 !== 1 ||
+      !Number.isSafeInteger(durationMs) || durationMs < 1 || durationMs > 604800000) {
+    throw Error("SOCIAL_VOTE_POLICY_MISSING_OR_INVALID");
+  }
+  return { quorum, durationMs };
+}
+
+async function ensureSocialVoteDeadline(db, voteId, policy) {
+  let row = await db.prepare(
+    `SELECT vote_id,opened_at_ms,duration_ms,deadline_at_ms,quorum,status,closed_at_ms,
+            human_count,npc_count,count_a,count_b,final_choice
+     FROM gameplay_social_vote_deadlines WHERE vote_id=?`
+  ).bind(voteId).first();
+  if (!row) return { error: "SOCIAL_VOTE_NOT_FOUND", status: 404 };
+  if (row.status === "unconfigured") {
+    const ballots = await db.prepare(
+      "SELECT COUNT(*) AS count FROM gameplay_social_ballots WHERE vote_id=?"
+    ).bind(voteId).first();
+    if (Number(ballots?.count) > policy.quorum) {
+      return { error: "LEGACY_BALLOTS_EXCEED_CONFIGURED_QUORUM", status: 503 };
+    }
+    const deadlineAtMs = row.opened_at_ms + policy.durationMs;
+    if (!Number.isSafeInteger(deadlineAtMs)) return { error: "SOCIAL_VOTE_DEADLINE_OVERFLOW", status: 503 };
+    await db.prepare(
+      `UPDATE gameplay_social_vote_deadlines
+       SET duration_ms=?,deadline_at_ms=?,quorum=?,status='open'
+       WHERE vote_id=? AND status='unconfigured'`
+    ).bind(policy.durationMs, deadlineAtMs, policy.quorum, voteId).run();
+    row = await db.prepare(
+      `SELECT vote_id,opened_at_ms,duration_ms,deadline_at_ms,quorum,status,closed_at_ms,
+              human_count,npc_count,count_a,count_b,final_choice
+       FROM gameplay_social_vote_deadlines WHERE vote_id=?`
+    ).bind(voteId).first();
+  }
+  if (row.status === "legacy_closed") return { error: "LEGACY_CLOSED_VOTE_HAS_NO_CHAT05B_RESULT", status: 503 };
+  return row;
+}
+
+async function socialVoteCounts(db, voteId) {
+  return db.prepare(
+    `SELECT
+       (SELECT COUNT(*) FROM gameplay_social_ballots WHERE vote_id=?) AS human_count,
+       (SELECT COUNT(*) FROM gameplay_social_npc_ballots WHERE vote_id=?) AS npc_count,
+       (SELECT COUNT(*) FROM gameplay_social_ballots WHERE vote_id=? AND choice='A')+
+       (SELECT COUNT(*) FROM gameplay_social_npc_ballots WHERE vote_id=? AND choice='A') AS count_a,
+       (SELECT COUNT(*) FROM gameplay_social_ballots WHERE vote_id=? AND choice='B')+
+       (SELECT COUNT(*) FROM gameplay_social_npc_ballots WHERE vote_id=? AND choice='B') AS count_b`
+  ).bind(voteId, voteId, voteId, voteId, voteId, voteId).first();
+}
+
+async function deterministicFixtureChoice(voteId, slot) {
+  const digest = await sha256hex("chat05b-deterministic-fixture-v1:" + voteId + ":" + slot);
+  return (parseInt(digest.slice(0, 2), 16) & 1) === 0 ? "A" : "B";
+}
+
+async function closedVoteResult(db, voteId) {
+  const row = await db.prepare(
+    `SELECT vote_id,opened_at_ms,deadline_at_ms,quorum,status,closed_at_ms,
+            human_count,npc_count,count_a,count_b,final_choice
+     FROM gameplay_social_vote_deadlines WHERE vote_id=?`
+  ).bind(voteId).first();
+  if (!row) return { error: "SOCIAL_VOTE_NOT_FOUND", status: 404 };
+  const counts = await socialVoteCounts(db, voteId);
+  return {
+    voteId: row.vote_id, voteStatus: row.status, openedAtMs: row.opened_at_ms,
+    deadlineAtMs: row.deadline_at_ms, quorum: row.quorum,
+    humanVotes: Number(counts.human_count), npcVotes: Number(counts.npc_count),
+    countA: Number(counts.count_a), countB: Number(counts.count_b),
+    finalChoice: row.final_choice, closedAtMs: row.closed_at_ms,
+  };
+}
+
+async function closeSocialVoteIfDue(db, voteId, now, policy) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const session = await ensureSocialVoteDeadline(db, voteId, policy);
+    if (session.error) return session;
+    if (session.status === "closed") return closedVoteResult(db, voteId);
+    if (now < session.deadline_at_ms) return { error: "VOTE_NOT_DUE", status: 409 };
+
+    const counts = await socialVoteCounts(db, voteId);
+    const humanCount = Number(counts.human_count), priorNpcCount = Number(counts.npc_count);
+    const quorum = Number(session.quorum);
+    if (humanCount + priorNpcCount > quorum) {
+      const latest = await ensureSocialVoteDeadline(db, voteId, policy);
+      if (!latest.error && latest.status === "closed") return closedVoteResult(db, voteId);
+      return { error: "SOCIAL_VOTE_QUORUM_INVARIANT_BROKEN", status: 503 };
+    }
+    const existingSlots = await db.prepare(
+      "SELECT fixture_slot FROM gameplay_social_npc_ballots WHERE vote_id=?"
+    ).bind(voteId).all();
+    const used = new Set((existingSlots.results || []).map(row => Number(row.fixture_slot)));
+    const missing = quorum - humanCount - priorNpcCount;
+    const fixtureRows = [];
+    for (let slot = 1; fixtureRows.length < missing && slot <= quorum; slot++) {
+      if (used.has(slot)) continue;
+      fixtureRows.push({ slot, choice: await deterministicFixtureChoice(voteId, slot) });
+    }
+    const allChoices = fixtureRows.map(row => row.choice);
+    const a = Number(counts.count_a) + allChoices.filter(choice => choice === "A").length;
+    const b = Number(counts.count_b) + allChoices.filter(choice => choice === "B").length;
+    const winner = a > b ? "A" : b > a ? "B" : null;
+    if (!winner || humanCount + priorNpcCount + fixtureRows.length !== quorum) {
+      // A concurrent closer may have committed between our tally read and NPC
+      // roster read. Return its durable result instead of a stale-snapshot FAIL.
+      const latest = await ensureSocialVoteDeadline(db, voteId, policy);
+      if (!latest.error && latest.status === "closed") return closedVoteResult(db, voteId);
+      continue;
+    }
+    const inserts = fixtureRows.map(row => db.prepare(
+      `INSERT INTO gameplay_social_npc_ballots (vote_id,fixture_slot,fixture_version,choice,cast_at_ms)
+       SELECT ?,?,?,?,? WHERE EXISTS (
+         SELECT 1 FROM gameplay_social_vote_deadlines d
+         WHERE d.vote_id=? AND d.status='open' AND d.deadline_at_ms<=?
+       )`
+    ).bind(voteId, row.slot, "chat05b-deterministic-fixture-v1", row.choice, now, voteId, now));
+    const close = db.prepare(
+      `UPDATE gameplay_social_vote_deadlines
+       SET status='closed',closed_at_ms=?,human_count=?,npc_count=?,count_a=?,count_b=?,final_choice=?
+       WHERE vote_id=? AND status='open' AND deadline_at_ms<=?`
+    ).bind(now, humanCount, priorNpcCount + fixtureRows.length, a, b, winner, voteId, now);
+    try {
+      await db.batch([...inserts, close]);
+    } catch (_) {
+      // Another closer may have committed first; return its immutable result.
+      // Otherwise a racing human write or injected failure is retried from a
+      // fresh snapshot after D1 has rolled the entire batch back.
+      const latest = await ensureSocialVoteDeadline(db, voteId, policy);
+      if (!latest.error && latest.status === "closed") return closedVoteResult(db, voteId);
+      continue;
+    }
+    const result = await closedVoteResult(db, voteId);
+    if (result.voteStatus === "closed") return result;
+  }
+  return { error: "SOCIAL_VOTE_CLOSE_RETRY_REQUIRED", status: 503 };
+}
+
+async function recoverExpiredSocialVotes(db, now, policy, limit = 100) {
+  const rows = await db.prepare(
+    `SELECT vote_id FROM gameplay_social_vote_deadlines
+     WHERE status IN ('open','unconfigured') AND opened_at_ms+COALESCE(duration_ms,?)<=?
+       AND (status='open' OR (SELECT COUNT(*) FROM gameplay_social_ballots b
+                              WHERE b.vote_id=gameplay_social_vote_deadlines.vote_id)<=?)
+     ORDER BY opened_at_ms,vote_id LIMIT ?`
+  ).bind(policy.durationMs, now, policy.quorum, limit).all();
+  for (const row of rows.results || []) {
+    await closeSocialVoteIfDue(db, row.vote_id, now, policy);
+  }
+}
+
 async function castSocialBallot(db, battleId, auth, token, choice) {
   const existing = await readBallot(db, auth.vote_id, auth.person_id);
   if (existing) return existing.choice === choice
     ? { voteId: auth.vote_id, choice, replayed: true }
     : { error: "BALLOT_IMMUTABLE", status: 409 };
   try {
+    // Eligibility is linearized by the trusted Worker timestamp captured at
+    // D1 dispatch. D1 checks this immutable stamp against the stored deadline
+    // and requires the lifecycle sidecar to remain open. This is deliberately
+    // not described as a transaction-commit-time wall-clock guarantee.
     await db.prepare(
       `INSERT INTO gameplay_cast_social_vote
        (battle_id,vote_id,token_sha256,expected_generation,choice,trusted_now_ms)
@@ -580,6 +736,12 @@ async function castSocialBallot(db, battleId, auth, token, choice) {
       : { error: "BALLOT_IMMUTABLE", status: 409 };
     if (String(error).includes("INVALID_SPECTATOR_CAPABILITY")) {
       return { error: "UNAUTHORIZED", status: 401 };
+    }
+    if (String(error).includes("SOCIAL_VOTE_CLOSED_OR_DEADLINE")) {
+      return { error: "VOTE_CLOSED", status: 409 };
+    }
+    if (String(error).includes("SOCIAL_VOTE_QUORUM_REACHED")) {
+      return { error: "SOCIAL_VOTE_QUORUM_REACHED", status: 409 };
     }
     throw error;
   }
@@ -769,7 +931,7 @@ async function mutateCapability(db, battleId, side, operation, expectedGeneratio
     : { generation: expectedGeneration + 1, status: 200 };
 }
 
-async function applySystem(db, id, type) {
+async function applySystem(db, id, type, env) {
   const commandId = "system:" + type + ":" + id;
   const fingerprint = canonical({ actor: "system", type });
   for (let attempt = 0; attempt < MAX_COMMAND_RETRIES; attempt++) {
@@ -814,6 +976,9 @@ async function applySystem(db, id, type) {
         : null;
       if (type === "reveal" && socialVoteTrigger !== "NONE" && bindingCount?.count === 2) {
         const voteId = await deriveSocialVoteId(id);
+        const policy = socialVotePolicy(env);
+        const deadlineAtMs = now + policy.durationMs;
+        if (!Number.isSafeInteger(deadlineAtMs)) throw Error("SOCIAL_VOTE_DEADLINE_OVERFLOW");
         await db.batch([
           transitionStatement(db, state, result, commandId, fingerprint, now),
           db.prepare(
@@ -821,6 +986,11 @@ async function applySystem(db, id, type) {
              (vote_id,battle_id,trigger_reason,status,created_at_ms)
              VALUES (?,?,?,'open',?)`
           ).bind(voteId, id, socialVoteTrigger, now),
+          db.prepare(
+            `INSERT INTO gameplay_social_vote_deadlines
+             (vote_id,opened_at_ms,duration_ms,deadline_at_ms,quorum,status)
+             VALUES (?,?,?,?,?,'open')`
+          ).bind(voteId, now, policy.durationMs, deadlineAtMs, policy.quorum),
         ]);
       } else {
         // Reveal remains valid for legacy unbound battles; no person identity
@@ -834,7 +1004,7 @@ async function applySystem(db, id, type) {
   }
   return false;
 }
-async function commit(db, id, authorized, body) {
+async function commit(db, id, authorized, body, env) {
   if (!exactKeys(body, ["commandId", "selection", "textIntent"]) ||
       typeof body.commandId !== "string" || !/^[A-Za-z0-9:_-]{4,100}$/.test(body.commandId) ||
       !body.selection || typeof body.selection !== "object" || Array.isArray(body.selection)) {
@@ -900,7 +1070,7 @@ async function commit(db, id, authorized, body) {
       // Disclosure requires both commits; automatically reveal without trusting
       // client/system credentials. Cron also retries if interrupted here.
       if (result.state.phase === "committed") {
-        try { await applySystem(db, id, "reveal"); } catch (_) { /* recover via cron */ }
+        try { await applySystem(db, id, "reveal", env); } catch (_) { /* recover via cron */ }
       }
       // The participant write fence already linearized this transition. Keep
       // its durable success response if revocation lands before HTTP delivery;
@@ -1042,21 +1212,32 @@ async function api(request, env) {
   const match = /^\/v1\/battles\/([a-f0-9-]{36})(?:\/(commit|votes))?$/.exec(pathname);
   if (!match) return encodeJSON({ error: "NOT_FOUND" }, 404, origin);
   const id = match[1];
-  if (match[2] === "votes" && request.method === "POST") {
-    const spectator = await authorizeSpectator(env.DB, id, bearer(request));
+  if (match[2] === "votes" && ["GET", "POST"].includes(request.method)) {
+    const token = bearer(request);
+    const spectator = await authorizeSpectator(env.DB, id, token);
     if (!spectator) return encodeJSON({ error: "UNAUTHORIZED" }, 401, origin);
+    const policy = socialVotePolicy(env);
+    const session = await ensureSocialVoteDeadline(env.DB, spectator.vote_id, policy);
+    if (session.error) return encodeJSON({ error: session.error }, session.status, origin);
+    const closed = await closeSocialVoteIfDue(env.DB, spectator.vote_id, Date.now(), policy);
+    if (closed.error && closed.error !== "VOTE_NOT_DUE") {
+      return encodeJSON({ error: closed.error }, closed.status || 503, origin);
+    }
+    if (request.method === "GET") {
+      return encodeJSON(await closedVoteResult(env.DB, spectator.vote_id), 200, origin);
+    }
     const body = await parseBody(request);
     if (!exactKeys(body, ["choice"]) || !["A", "B"].includes(body.choice)) {
       return encodeJSON({ error: "INVALID_BALLOT" }, 400, origin);
     }
-    const result = await castSocialBallot(env.DB, id, spectator, bearer(request), body.choice);
+    const result = await castSocialBallot(env.DB, id, spectator, token, body.choice);
     const { status, ...payload } = result;
     return encodeJSON(payload, status || 200, origin);
   }
   const auth = await authorizePlayer(env.DB, id, bearer(request));
   if (!auth) return encodeJSON({ error: "UNAUTHORIZED" }, 401, origin);
   if (match[2] === "commit" && request.method === "POST") {
-    const result = await commit(env.DB, id, auth, await parseBody(request));
+    const result = await commit(env.DB, id, auth, await parseBody(request), env);
     const { status, ...payload } = result;
     return encodeJSON(payload, status || 200, origin);
   }
@@ -1083,6 +1264,8 @@ export default {
   async scheduled(_event, env) {
     try {
       config(env);
+      let policy = null;
+      try { policy = socialVotePolicy(env); } catch (_) { /* legacy Chat03 scheduling remains available */ }
       const rows = await env.DB.prepare(
         `SELECT battle_id,phase,state_json
          FROM gameplay_battles
@@ -1095,11 +1278,15 @@ export default {
       ).bind(Date.now()).all();
       for (const row of rows.results || []) {
         try {
-          if (row.phase === "committed") await applySystem(env.DB, row.battle_id, "reveal");
+          if (row.phase === "committed") await applySystem(env.DB, row.battle_id, "reveal", env);
           else if (JSON.parse(row.state_json).deadlineAt <= Date.now()) {
-            await applySystem(env.DB, row.battle_id, "expire");
+            await applySystem(env.DB, row.battle_id, "expire", env);
           }
         } catch (_) { /* next cron pass retries; no secret logging */ }
+      }
+      if (policy) {
+        try { await recoverExpiredSocialVotes(env.DB, Date.now(), policy); }
+        catch (_) { /* next request or cron pass retries; no secret logging */ }
       }
     } catch (_) { /* fail closed; do not expose game state */ }
   },
