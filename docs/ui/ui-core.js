@@ -1533,6 +1533,8 @@ window.Game = window.Game || {};
     const chat = document.getElementById("left");
     const handle = document.getElementById("chatResizeHandle");
     const tabs = document.getElementById("mobilePanelTabs");
+    const blocks = document.getElementById("blocks");
+    const panelShell = document.getElementById("mobilePanelShell");
     const menu = getMenuBlockEl();
     if (!root || !topBar || !chat || !handle || !tabs) return;
 
@@ -1559,10 +1561,88 @@ window.Game = window.Game || {};
       const battles = (Game.__S && Array.isArray(Game.__S.battles)) ? Game.__S.battles : S.battles;
       return Array.isArray(battles) && battles.some((battle) => battle && battle.resolved !== true);
     };
+    const activeTabIsEmpty = (activeTab) => {
+      if (activeTab === "dm") {
+        const log = document.getElementById("dmLog");
+        const dm = (Game.__S && Game.__S.dm) || S.dm || {};
+        const hasOpenThreads = !!dm.activeId || !!(Array.isArray(dm.openIds) && dm.openIds.length);
+        return !!(log && log.classList.contains("dmEmptyState") && !hasOpenThreads
+          && !document.querySelector("#dmTabs .dmTab"));
+      }
+      if (activeTab === "battles") {
+        const body = document.getElementById("battlesBody");
+        if (!body || body.classList.contains("hidden")) return false;
+        const hasRound = !!body.querySelector(".battleCard, [data-battle-id]");
+        const inviteOpen = !!body.querySelector("#battleInviteInput, .mention-list, [role='listbox']");
+        return !hasRound && !inviteOpen && !!body.querySelector(".hint");
+      }
+      if (activeTab === "events") {
+        const panel = document.getElementById("eventsBlock");
+        const body = document.getElementById("eventsBody");
+        return !!(panel && body && panel.classList.contains("mobile-empty-events")
+          && body.classList.contains("mobile-empty-events-body") && !body.querySelector(".eventCard"));
+      }
+      return false;
+    };
+    const compactEmptyPanelsHeight = (activeTab) => {
+      if (!panelShell || !blocks) return 112;
+      const panel = document.getElementById(activeTab === "dm" ? "dmBlock" : activeTab === "battles" ? "battlesBlock" : "eventsBlock");
+      if (!panel) return 112;
+      const body = activeTab === "dm" ? panel.querySelector(":scope > .panelBody")
+        : activeTab === "battles" ? document.getElementById("battlesBody") : document.getElementById("eventsBody");
+      const visible = (node) => {
+        if (!node || node.classList.contains("hidden")) return false;
+        const style = getComputedStyle(node);
+        return style.display !== "none" && style.visibility !== "hidden";
+      };
+      const px = (value) => readPx(value, 0);
+      const frameY = (node, style) => px(style.paddingTop) + px(style.paddingBottom)
+        + px(style.borderTopWidth) + px(style.borderBottomWidth);
+      const marginY = (node) => {
+        const style = getComputedStyle(node);
+        return px(style.marginTop) + px(style.marginBottom);
+      };
+      const intrinsicBodyHeight = () => {
+        if (!body || !visible(body)) return 0;
+        const style = getComputedStyle(body);
+        const rowGap = px(style.rowGap || style.gap);
+        let childHeight = 0;
+        let childCount = 0;
+        Array.from(body.children).forEach((child) => {
+          if (!visible(child)) return;
+          let height = child.getBoundingClientRect().height;
+          if (child.id === "dmLog" && child.classList.contains("dmEmptyState")) {
+            const status = child.querySelector(".dmEmptyStateContent");
+            height = (status ? status.getBoundingClientRect().height : 0) + frameY(child, getComputedStyle(child));
+          }
+          childHeight += height + marginY(child);
+          childCount += 1;
+        });
+        return frameY(body, style) + childHeight + Math.max(0, childCount - 1) * rowGap;
+      };
+      const shellStyle = getComputedStyle(panelShell);
+      const panelStyle = getComputedStyle(panel);
+      const panelGap = px(panelStyle.rowGap || panelStyle.gap);
+      const bodyHeight = intrinsicBodyHeight();
+      let contentHeight = 0;
+      let contentCount = 0;
+      Array.from(panel.children).forEach((child) => {
+        if (!visible(child)) return;
+        const childBody = child === body;
+        contentHeight += (childBody ? bodyHeight : child.getBoundingClientRect().height) + marginY(child);
+        contentCount += 1;
+      });
+      const panelHeight = frameY(panel, panelStyle) + contentHeight + Math.max(0, contentCount - 1) * panelGap;
+      return Math.max(96, Math.ceil(tabHeight() + px(shellStyle.rowGap || shellStyle.gap) + panelHeight + 8));
+    };
     let controller = root.__mobilePinnedChatController;
     if (!controller) {
       controller = {
         preferredHeight: readPx(root.style.getPropertyValue("--mobile-chat-height"), 0),
+        activeTab: null,
+        dmHeightOverride: false,
+        emptyPanelHeightOverride: false,
+        emptyPanelHeightOverrides: {},
         dragging: false,
         pointerId: null,
         dragY: 0,
@@ -1575,30 +1655,95 @@ window.Game = window.Game || {};
     const sync = (requestedHeight) => {
       if (!isMobile()) {
         chat.classList.remove("is-resizing");
+        if (blocks) blocks.classList.remove("mobile-panel-empty", "mobile-panel-empty-dm");
+        document.body.classList.remove("mobile-keyboard-open", "mobile-profile-compact");
         ["--mobile-topbar-height", "--mobile-menu-stack-height", "--mobile-chat-height", "--mobile-chat-min", "--mobile-panels-top", "--mobile-panels-height", "--mobile-vv-top", "--mobile-vv-height"].forEach((key) => root.style.removeProperty(key));
         return;
       }
 
       const vv = visual();
+      const chatLog = document.getElementById("chatLog");
+      const chatWasPinnedToBottom = !!(chatLog
+        && chatLog.scrollHeight - chatLog.clientHeight - chatLog.scrollTop <= 24);
+      const keyboardOpen = !!(window.visualViewport && window.innerHeight - vv.height > 120);
+      document.body.classList.toggle("mobile-keyboard-open", keyboardOpen);
+      const activeEditor = document.activeElement;
+      const editingChat = !!(activeEditor && activeEditor.matches
+        && activeEditor.matches("#chatInput, #dmInput, #reportInput"));
+      const editingPublicChat = !!(activeEditor && activeEditor.matches && activeEditor.matches("#chatInput"));
+      document.body.classList.toggle("mobile-profile-compact", keyboardOpen || editingChat);
+      const activeTab = blocks && blocks.getAttribute("data-active-tab");
+      const dmTabActive = activeTab === "dm";
+      if (controller.activeTab !== activeTab) {
+        controller.activeTab = activeTab;
+        controller.dmHeightOverride = activeTab === "dm" && !!(controller.emptyPanelHeightOverrides
+          && controller.emptyPanelHeightOverrides.dm);
+        controller.emptyPanelHeightOverride = !!(controller.emptyPanelHeightOverrides
+          && controller.emptyPanelHeightOverrides[activeTab]);
+      }
+      const compactEmptyPanel = activeTabIsEmpty(activeTab);
+      chat.classList.toggle("dm-priority", dmTabActive && !compactEmptyPanel);
+      if (blocks) {
+        blocks.classList.toggle("mobile-panel-empty", compactEmptyPanel);
+        blocks.classList.toggle("mobile-panel-empty-dm", compactEmptyPanel && activeTab === "dm");
+      }
       const safeTop = readSafe("--mobile-safe-top");
       const safeBottom = readSafe("--mobile-safe-bottom");
-      const edge = 8;
-      const gap = 8;
+      const edge = Math.max(0, readPx(getComputedStyle(root).getPropertyValue("--mobile-edge"), 8));
+      const gap = Math.max(0, readPx(getComputedStyle(root).getPropertyValue("--mobile-gap"), 8));
       const topHeight = topbarHeight();
       const tabSize = tabHeight();
-      const menuHeight = menuStackHeight();
-      const minPanelHeight = Math.min(148, Math.max(88, Math.round(vv.height * 0.22)));
-      const minChatHeight = Math.min(168, Math.max(72, Math.round(vv.height * 0.27)));
+      let menuHeight = menuStackHeight();
+      const desiredPanelHeight = Math.min(148, Math.max(88, Math.round(vv.height * 0.22)));
+      const chatHeader = document.getElementById("chatHeader");
+      const chatInputRow = document.getElementById("chatInputRow");
+      const handleHeight = handle.getBoundingClientRect().height || 18;
+      const headerHeight = chatHeader ? chatHeader.getBoundingClientRect().height : 44;
+      const inputHeight = chatInputRow ? chatInputRow.getBoundingClientRect().height : 62;
+      const keyboardChatMin = Math.ceil(headerHeight + inputHeight + handleHeight + 14);
+      const functionalChatMin = Math.ceil(headerHeight + inputHeight + handleHeight + 14);
+      const edgeHeight = edge * 2 + safeTop + safeBottom;
+      const layoutGaps = gap * 3;
+      let fixedHeight = edgeHeight + topHeight + menuHeight + layoutGaps;
+      const minimumPanelsHeight = keyboardOpen ? 112 : 88;
+      if (keyboardOpen && editingChat && menuHeight > 0
+          && vv.height - fixedHeight < keyboardChatMin + minimumPanelsHeight) {
+        // The menu and editor cannot both fit on a short keyboard viewport.
+        // Close the menu through its normal controller, which re-enters sync.
+        if (UI.hideMenu) {
+          UI.hideMenu();
+          return;
+        }
+      }
+      const desiredPanelFloor = compactEmptyPanel ? compactEmptyPanelsHeight(activeTab)
+        : (keyboardOpen ? Math.max(112, Math.round(vv.height * 0.28)) : desiredPanelHeight);
+      const inputChatFloor = keyboardOpen && editingPublicChat ? functionalChatMin : 0;
+      const panelFloor = Math.min(desiredPanelFloor, Math.max(0, vv.height - fixedHeight - inputChatFloor));
+      const chatCapacity = Math.max(0, vv.height - fixedHeight - panelFloor);
+      if (Number.isFinite(requestedHeight)) {
+        controller.preferredHeight = Math.max(0, requestedHeight);
+        if (dmTabActive) controller.dmHeightOverride = true;
+        if (compactEmptyPanel) {
+          controller.emptyPanelHeightOverride = true;
+          controller.emptyPanelHeightOverrides = controller.emptyPanelHeightOverrides || {};
+          controller.emptyPanelHeightOverrides[activeTab] = true;
+        }
+      }
+      const minChatHeight = Math.min(chatCapacity, dmTabActive
+        ? (keyboardOpen ? keyboardChatMin : functionalChatMin)
+        : Math.max(keyboardOpen ? Math.min(keyboardChatMin, chatCapacity) : 72, Math.round(vv.height * 0.27)));
+      const minPanelHeight = Math.max(0, Math.min(panelFloor, vv.height - fixedHeight - minChatHeight));
       const chatTop = vv.top + safeTop + edge + topHeight + gap + menuHeight;
-      const maxChat = Math.max(minChatHeight, vv.height - safeTop - safeBottom - edge * 2 - topHeight - menuHeight - gap * 3 - tabSize - minPanelHeight);
-      if (Number.isFinite(requestedHeight)) controller.preferredHeight = Math.max(minChatHeight, Math.min(maxChat, requestedHeight));
+      const maxChat = Math.max(0, vv.height - safeTop - safeBottom - edge * 2 - topHeight - menuHeight - gap * 3 - minPanelHeight);
       if (!controller.preferredHeight) {
-        const splitSpace = Math.max(minChatHeight, vv.height - safeTop - safeBottom - edge * 2 - topHeight - menuHeight - gap * 3 - tabSize);
+        const splitSpace = Math.max(minChatHeight, vv.height - safeTop - safeBottom - edge * 2 - topHeight - menuHeight - gap * 3);
         controller.preferredHeight = splitSpace * (activeBattleExists() ? 0.40 : 0.55);
       }
-      const chatHeight = Math.round(Math.max(minChatHeight, Math.min(maxChat, controller.preferredHeight)));
+      const preferredTarget = compactEmptyPanel && !controller.emptyPanelHeightOverride ? maxChat
+        : (dmTabActive && !controller.dmHeightOverride ? minChatHeight : controller.preferredHeight);
+      const chatHeight = Math.round(Math.max(0, Math.min(maxChat, Math.max(minChatHeight, preferredTarget))));
       const panelsTop = chatTop + chatHeight + gap;
-      const panelsHeight = Math.max(88, vv.height - safeBottom - edge - (panelsTop - vv.top));
+      const panelsHeight = Math.max(0, vv.height - safeBottom - edge - (panelsTop - vv.top));
       root.style.setProperty("--mobile-vv-top", `${vv.top}px`);
       root.style.setProperty("--mobile-vv-height", `${vv.height}px`);
       root.style.setProperty("--mobile-topbar-height", `${topHeight}px`);
@@ -1607,10 +1752,23 @@ window.Game = window.Game || {};
       root.style.setProperty("--mobile-chat-min", `${minChatHeight}px`);
       root.style.setProperty("--mobile-panels-top", `${panelsTop}px`);
       root.style.setProperty("--mobile-panels-height", `${panelsHeight}px`);
+      if (chatWasPinnedToBottom && chatLog) chatLog.scrollTop = chatLog.scrollHeight;
       handle.setAttribute("aria-valuemin", String(minChatHeight));
       handle.setAttribute("aria-valuemax", String(maxChat));
       handle.setAttribute("aria-valuenow", String(chatHeight));
       handle.setAttribute("aria-valuetext", `Высота чата ${chatHeight} пикселей`);
+
+      if (keyboardOpen && editingChat && activeEditor.matches("#dmInput, #reportInput")) {
+        const scrollport = activeEditor.closest("#dmBlock > .panelBody");
+        if (scrollport) {
+          const editorRect = activeEditor.getBoundingClientRect();
+          const portRect = scrollport.getBoundingClientRect();
+          const visibleTop = Math.max(portRect.top + scrollport.clientTop, vv.top);
+          const visibleBottom = Math.min(portRect.top + scrollport.clientTop + scrollport.clientHeight, vv.top + vv.height);
+          if (editorRect.top < visibleTop) scrollport.scrollTop -= visibleTop - editorRect.top;
+          else if (editorRect.bottom > visibleBottom) scrollport.scrollTop += editorRect.bottom - visibleBottom;
+        }
+      }
     };
 
     if (!controller.initialized) {
@@ -1666,6 +1824,10 @@ window.Game = window.Game || {};
       else if (mq && mq.addListener) mq.addListener(resize);
       document.addEventListener("focusin", (event) => {
         if (!isMobile() || !event.target || !event.target.matches || !event.target.matches("#chatInput, #dmInput, #reportInput")) return;
+        window.requestAnimationFrame(resize);
+      });
+      document.addEventListener("focusout", () => {
+        if (!isMobile()) return;
         window.requestAnimationFrame(resize);
       });
     }
