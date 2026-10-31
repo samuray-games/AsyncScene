@@ -407,6 +407,22 @@
             const controllerForEmptyDrag=doc.documentElement.__mobilePinnedChatController;
             const savedPreferred=controllerForEmptyDrag.preferredHeight;
             const savedOverrides=Object.assign({},controllerForEmptyDrag.emptyPanelHeightOverrides||{});
+            mobileInterface.selectTab("dm",false);
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            const beforeDmEmptyDrag=chat.getBoundingClientRect().height;
+            const dmHandleRect=handle.getBoundingClientRect();
+            dispatchDrag(handle,[Math.round(dmHandleRect.left+dmHandleRect.width/2),Math.round(dmHandleRect.top+dmHandleRect.height/2)],
+              [Math.round(dmHandleRect.left+dmHandleRect.width/2),Math.round(dmHandleRect.top+dmHandleRect.height/2-30)],208);
+            const manuallySizedDmEmpty=chat.getBoundingClientRect().height;
+            mobileInterface.selectTab("battles",false);
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            mobileInterface.selectTab("dm",false);
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            const restoredDmEmpty=chat.getBoundingClientRect().height;
+            checks.push(assert(controllerForEmptyDrag.emptyPanelHeightOverrides.dm===true
+              &&Math.abs(manuallySizedDmEmpty-beforeDmEmptyDrag)>4&&Math.abs(restoredDmEmpty-manuallySizedDmEmpty)<=3,
+              "empty_dm_user_splitter_preference_restores_after_tab_switch",
+              JSON.stringify({beforeDmEmptyDrag,manuallySizedDmEmpty,restoredDmEmpty,overrides:controllerForEmptyDrag.emptyPanelHeightOverrides})));
             mobileInterface.selectTab("events",false);
             if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
             const beforeEmptyDrag=chat.getBoundingClientRect().height;

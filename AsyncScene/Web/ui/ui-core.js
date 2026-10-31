@@ -1670,12 +1670,14 @@ window.Game = window.Game || {};
       const activeEditor = document.activeElement;
       const editingChat = !!(activeEditor && activeEditor.matches
         && activeEditor.matches("#chatInput, #dmInput, #reportInput"));
+      const editingPublicChat = !!(activeEditor && activeEditor.matches && activeEditor.matches("#chatInput"));
       document.body.classList.toggle("mobile-profile-compact", keyboardOpen || editingChat);
       const activeTab = blocks && blocks.getAttribute("data-active-tab");
       const dmTabActive = activeTab === "dm";
       if (controller.activeTab !== activeTab) {
         controller.activeTab = activeTab;
-        controller.dmHeightOverride = false;
+        controller.dmHeightOverride = activeTab === "dm" && !!(controller.emptyPanelHeightOverrides
+          && controller.emptyPanelHeightOverrides.dm);
         controller.emptyPanelHeightOverride = !!(controller.emptyPanelHeightOverrides
           && controller.emptyPanelHeightOverrides[activeTab]);
       }
@@ -1715,7 +1717,7 @@ window.Game = window.Game || {};
       }
       const desiredPanelFloor = compactEmptyPanel ? compactEmptyPanelsHeight(activeTab)
         : (keyboardOpen ? Math.max(112, Math.round(vv.height * 0.28)) : desiredPanelHeight);
-      const inputChatFloor = keyboardOpen && editingChat ? functionalChatMin : 0;
+      const inputChatFloor = keyboardOpen && editingPublicChat ? functionalChatMin : 0;
       const panelFloor = Math.min(desiredPanelFloor, Math.max(0, vv.height - fixedHeight - inputChatFloor));
       const chatCapacity = Math.max(0, vv.height - fixedHeight - panelFloor);
       if (Number.isFinite(requestedHeight)) {
