@@ -1,0 +1,106 @@
+{
+  "branch": "codex/mobile-shell-tabs-splitter-20261014",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-31T03:50:31Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-31T03:50:31Z",
+      "stderr": "",
+      "stdout": "codex/mobile-shell-tabs-splitter-20261014\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-31T03:50:31Z",
+      "stderr": "",
+      "stdout": "9493a7734c13830c7ed2d429f07735c8e69f734f\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-31T03:50:31Z",
+      "stderr": "",
+      "stdout": "# branch.oid 9493a7734c13830c7ed2d429f07735c8e69f734f\n# branch.head codex/mobile-shell-tabs-splitter-20261014\n# branch.upstream origin/codex/mobile-shell-tabs-splitter-20261014\n# branch.ab +0 -0\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-31T03:50:31Z",
+      "stderr": "",
+      "stdout": "9493a773 (HEAD -> codex/mobile-shell-tabs-splitter-20261014, origin/codex/mobile-shell-tabs-splitter-20261014) Fix compact empty mobile panel layout\nef2aeb90 Fix compact empty mobile panels\naf016d7e fix(mobile): prioritize DM content and compact profile header\n49847aa9 test(mobile): cover complaint panel wheel repositioning\nf4751fc5 test(mobile): verify user-driven chat scrolling\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-31T03:50:31Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 9493a7734c13830c7ed2d429f07735c8e69f734f\nbranch refs/heads/codex/mobile-shell-tabs-splitter-20261014\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-31T03:50:31Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-31T03:50:31Z",
+      "stderr": "",
+      "stdout": "00ce2baca8dca177dfadffcb8bccbae11bca118f\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "9493a7734c13830c7ed2d429f07735c8e69f734f",
+  "observedAtUtc": "2026-10-31T03:50:31Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
