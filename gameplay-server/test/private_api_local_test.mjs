@@ -49,8 +49,11 @@ let targetBattleId = null;
 let dropNextOperatorResponse = false, droppedOperatorResponse = null;
 let forcedServerNowMs = null;
 let delayNextSocialBallotReadMs = 0;
-let delayNextSocialBallotInsertMs = 0;
+let holdNextSocialBallotInsert = false;
 let capturedSocialBallotCastAtMs = null;
+let releasedSocialBallotInsertAtMs = null;
+let releaseHeldSocialBallotInsert = null;
+let heldSocialBallotInsertHeartbeat = null;
 const nativeDateNow = Date.now.bind(Date);
 Date.now = () => forcedServerNowMs === null ? nativeDateNow() : forcedServerNowMs;
 function wrapStatement(statement, sql, params, db) {
@@ -75,11 +78,21 @@ function wrapStatement(statement, sql, params, db) {
       return row;
     };
     if (property === "run") return async (...values) => {
-      if (delayNextSocialBallotInsertMs > 0 && sql.includes("INSERT INTO gameplay_cast_social_vote")) {
-        const delayMs = delayNextSocialBallotInsertMs;
-        delayNextSocialBallotInsertMs = 0;
+      if (holdNextSocialBallotInsert && sql.includes("INSERT INTO gameplay_cast_social_vote")) {
+        holdNextSocialBallotInsert = false;
         capturedSocialBallotCastAtMs = params[5];
-        await new Promise(resolve => setTimeout(resolve, delayMs));
+        await new Promise(resolve => {
+          releaseHeldSocialBallotInsert = () => {
+            clearInterval(heldSocialBallotInsertHeartbeat);
+            heldSocialBallotInsertHeartbeat = null;
+            resolve();
+          };
+          // Keep the disposable workerd request alive while the test explicitly
+          // holds .run(); only the release endpoint may let the D1 call proceed.
+          heldSocialBallotInsertHeartbeat = setInterval(() => {}, 10);
+        });
+        releasedSocialBallotInsertAtMs = Date.now();
+        releaseHeldSocialBallotInsert = null;
       }
       return target.run(...values);
     };
@@ -127,15 +140,25 @@ export default {
     }
     if (url.pathname === "/__test/ballot-insert-delay" && request.method === "POST") {
       const body = await request.json();
-      if (!Number.isSafeInteger(body.delayMs) || body.delayMs < 1 || body.delayMs > 1000) {
-        return Response.json({ error: "INVALID_TEST_DELAY" }, { status: 400 });
+      if (body.hold !== true) {
+        return Response.json({ error: "INVALID_TEST_HOLD" }, { status: 400 });
       }
-      delayNextSocialBallotInsertMs = body.delayMs;
+      holdNextSocialBallotInsert = true;
       capturedSocialBallotCastAtMs = null;
+      releasedSocialBallotInsertAtMs = null;
       return new Response(null, { status: 204 });
     }
     if (url.pathname === "/__test/ballot-insert-captured" && request.method === "GET") {
       return Response.json({ capturedAtMs: capturedSocialBallotCastAtMs });
+    }
+    if (url.pathname === "/__test/ballot-insert-release" && request.method === "POST") {
+      if (!releaseHeldSocialBallotInsert) return Response.json({ error: "NO_HELD_INSERT" }, { status: 409 });
+      releaseHeldSocialBallotInsert();
+      return new Response(null, { status: 204 });
+    }
+    if (url.pathname === "/__test/ballot-insert-observation" && request.method === "GET") {
+      return Response.json({ capturedAtMs: capturedSocialBallotCastAtMs,
+        releasedAtMs: releasedSocialBallotInsertAtMs });
     }
     if (url.pathname === "/__test/clock/set" && request.method === "POST") {
       const body = await request.json();
@@ -1920,7 +1943,7 @@ try {
   const delayedInsert = await openSocialVote(base, "chat05b-delayed-insert-after-stamp");
   const delayedInsertCaps = await issueSocialVoteCapabilities(base, delayedInsert.battle, socialPeople.slice(0, 2));
   await setTestClock(base, delayedInsert.session.deadline_at_ms - 1);
-  await testControl(base, "/__test/ballot-insert-delay", { delayMs: 200 });
+  await testControl(base, "/__test/ballot-insert-delay", { hold: true });
   const pendingInsert = request(base, "POST", `/v1/battles/${delayedInsert.battle.battleId}/votes`,
     delayedInsertCaps[0].token, { choice: "A" });
   let capturedInsertAtMs = null;
@@ -1929,9 +1952,14 @@ try {
     capturedInsertAtMs = (await request(base, "GET", "/__test/ballot-insert-captured")).capturedAtMs;
   }
   assert.equal(capturedInsertAtMs, delayedInsert.session.deadline_at_ms - 1,
-    "the test must observe the trusted timestamp captured before D1 .run() was delayed");
+    "the test must observe the trusted timestamp captured before D1 .run() is released");
   await setTestClock(base, delayedInsert.session.deadline_at_ms + 1);
+  await testControl(base, "/__test/ballot-insert-release", {});
   const delayedInsertResult = await pendingInsert;
+  const delayedInsertObservation = await request(base, "GET", "/__test/ballot-insert-observation");
+  assert.equal(delayedInsertObservation.capturedAtMs, delayedInsert.session.deadline_at_ms - 1);
+  assert.ok(delayedInsertObservation.releasedAtMs >= delayedInsert.session.deadline_at_ms,
+    "the real D1 .run() call must begin only after the server clock crossed the deadline");
   assert.deepEqual(delayedInsertResult,
     { status: 200, voteId: delayedInsert.voteId, choice: "A", replayed: false });
   const persistedDelayedBallot = query(`SELECT person_id,choice,cast_at_ms FROM gameplay_social_ballots
