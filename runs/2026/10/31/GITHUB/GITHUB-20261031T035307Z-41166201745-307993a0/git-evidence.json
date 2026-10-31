@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-31T03:53:07Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-31T03:53:07Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-31T03:53:07Z",
+      "stderr": "",
+      "stdout": "718ad89699ea8dfeece5c78e9ca4cdc3e238d163\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-31T03:53:07Z",
+      "stderr": "",
+      "stdout": "# branch.oid 718ad89699ea8dfeece5c78e9ca4cdc3e238d163\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-31T03:53:07Z",
+      "stderr": "",
+      "stdout": "718ad896 (HEAD, pull/431/merge) Merge 12f3bfab2a32b8440f60fe1b4d4d4da3427de91e into 00ce2baca8dca177dfadffcb8bccbae11bca118f\n12f3bfab (origin/codex/mobile-shell-tabs-splitter-20261014) Preserve empty-tab splitter preference\n9493a773 Fix compact empty mobile panel layout\nef2aeb90 Fix compact empty mobile panels\naf016d7e fix(mobile): prioritize DM content and compact profile header\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-31T03:53:07Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD 718ad89699ea8dfeece5c78e9ca4cdc3e238d163\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-31T03:53:07Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-10-31T03:53:07Z",
+      "stderr": "",
+      "stdout": "00ce2baca8dca177dfadffcb8bccbae11bca118f\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "718ad89699ea8dfeece5c78e9ca4cdc3e238d163",
+  "observedAtUtc": "2026-10-31T03:53:07Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
