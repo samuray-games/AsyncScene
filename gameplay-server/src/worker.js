@@ -712,6 +712,10 @@ async function castSocialBallot(db, battleId, auth, token, choice) {
     ? { voteId: auth.vote_id, choice, replayed: true }
     : { error: "BALLOT_IMMUTABLE", status: 409 };
   try {
+    // Eligibility is linearized by the trusted Worker timestamp captured at
+    // D1 dispatch. D1 checks this immutable stamp against the stored deadline
+    // and requires the lifecycle sidecar to remain open. This is deliberately
+    // not described as a transaction-commit-time wall-clock guarantee.
     await db.prepare(
       `INSERT INTO gameplay_cast_social_vote
        (battle_id,vote_id,token_sha256,expected_generation,choice,trusted_now_ms)

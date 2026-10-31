@@ -3,6 +3,8 @@
 -- Existing 0001-0010 rows are retained. Legacy open votes are configured once
 -- by the Worker using the then-explicit policy settings; their original
 -- created_at_ms remains the deadline origin.
+-- This sidecar is the only Chat05B open/closed lifecycle authority. The
+-- immutable Chat05A gameplay_social_votes.status remains the trigger record.
 
 CREATE TABLE gameplay_social_vote_deadlines (
   vote_id TEXT NOT NULL PRIMARY KEY

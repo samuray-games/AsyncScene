@@ -49,6 +49,8 @@ let targetBattleId = null;
 let dropNextOperatorResponse = false, droppedOperatorResponse = null;
 let forcedServerNowMs = null;
 let delayNextSocialBallotReadMs = 0;
+let delayNextSocialBallotInsertMs = 0;
+let capturedSocialBallotCastAtMs = null;
 const nativeDateNow = Date.now.bind(Date);
 Date.now = () => forcedServerNowMs === null ? nativeDateNow() : forcedServerNowMs;
 function wrapStatement(statement, sql, params, db) {
@@ -71,6 +73,15 @@ function wrapStatement(statement, sql, params, db) {
         targetBattleId = null;
       }
       return row;
+    };
+    if (property === "run") return async (...values) => {
+      if (delayNextSocialBallotInsertMs > 0 && sql.includes("INSERT INTO gameplay_cast_social_vote")) {
+        const delayMs = delayNextSocialBallotInsertMs;
+        delayNextSocialBallotInsertMs = 0;
+        capturedSocialBallotCastAtMs = params[5];
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+      return target.run(...values);
     };
     const value = Reflect.get(target, property, target);
     return typeof value === "function" ? value.bind(target) : value;
@@ -113,6 +124,18 @@ export default {
       }
       delayNextSocialBallotReadMs = body.delayMs;
       return new Response(null, { status: 204 });
+    }
+    if (url.pathname === "/__test/ballot-insert-delay" && request.method === "POST") {
+      const body = await request.json();
+      if (!Number.isSafeInteger(body.delayMs) || body.delayMs < 1 || body.delayMs > 1000) {
+        return Response.json({ error: "INVALID_TEST_DELAY" }, { status: 400 });
+      }
+      delayNextSocialBallotInsertMs = body.delayMs;
+      capturedSocialBallotCastAtMs = null;
+      return new Response(null, { status: 204 });
+    }
+    if (url.pathname === "/__test/ballot-insert-captured" && request.method === "GET") {
+      return Response.json({ capturedAtMs: capturedSocialBallotCastAtMs });
     }
     if (url.pathname === "/__test/clock/set" && request.method === "POST") {
       const body = await request.json();
@@ -1891,6 +1914,45 @@ try {
   await setTestClock(base, null);
   console.log("PASS: delayed capability/ballot read crossing deadline is rejected at SQL INSERT");
 
+  // Under the documented Worker-stamp cutoff, a write may reach D1 after the
+  // deadline while retaining its pre-deadline trusted timestamp. Delay .run()
+  // itself, observe the bound timestamp, advance past D, then release D1.
+  const delayedInsert = await openSocialVote(base, "chat05b-delayed-insert-after-stamp");
+  const delayedInsertCaps = await issueSocialVoteCapabilities(base, delayedInsert.battle, socialPeople.slice(0, 2));
+  await setTestClock(base, delayedInsert.session.deadline_at_ms - 1);
+  await testControl(base, "/__test/ballot-insert-delay", { delayMs: 200 });
+  const pendingInsert = request(base, "POST", `/v1/battles/${delayedInsert.battle.battleId}/votes`,
+    delayedInsertCaps[0].token, { choice: "A" });
+  let capturedInsertAtMs = null;
+  for (let attempt = 0; attempt < 50 && capturedInsertAtMs === null; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, 2));
+    capturedInsertAtMs = (await request(base, "GET", "/__test/ballot-insert-captured")).capturedAtMs;
+  }
+  assert.equal(capturedInsertAtMs, delayedInsert.session.deadline_at_ms - 1,
+    "the test must observe the trusted timestamp captured before D1 .run() was delayed");
+  await setTestClock(base, delayedInsert.session.deadline_at_ms + 1);
+  const delayedInsertResult = await pendingInsert;
+  assert.deepEqual(delayedInsertResult,
+    { status: 200, voteId: delayedInsert.voteId, choice: "A", replayed: false });
+  const persistedDelayedBallot = query(`SELECT person_id,choice,cast_at_ms FROM gameplay_social_ballots
+    WHERE vote_id='${delayedInsert.voteId}'`);
+  assert.equal(persistedDelayedBallot.length, 1, "the delayed operation may persist at most one human ballot");
+  assert.equal(persistedDelayedBallot[0].person_id, socialPeople[0]);
+  assert.equal(persistedDelayedBallot[0].choice, "A");
+  assert.equal(persistedDelayedBallot[0].cast_at_ms, delayedInsert.session.deadline_at_ms - 1);
+  const delayedInsertClose = await request(base, "GET",
+    `/v1/battles/${delayedInsert.battle.battleId}/votes`, delayedInsertCaps[1].token);
+  assert.equal(delayedInsertClose.status, 200);
+  assert.equal(delayedInsertClose.voteStatus, "closed");
+  assert.equal(delayedInsertClose.humanVotes, 1);
+  assert.equal(delayedInsertClose.npcVotes, 6);
+  assert.equal(delayedInsertClose.countA + delayedInsertClose.countB, 7);
+  assert.notEqual(delayedInsertClose.countA, delayedInsertClose.countB);
+  assert.equal(query(`SELECT status FROM gameplay_social_vote_deadlines WHERE vote_id='${delayedInsert.voteId}'`)[0].status,
+    "closed");
+  await setTestClock(base, null);
+  console.log("PASS: delayed D1 .run() after pre-deadline Worker stamp persists one eligible ballot; closure includes it");
+
   // Required 0/1/4/6/7 human matrix with exact NPC top-up to the odd test quorum.
   const matrix = [];
   for (const humanCount of [0, 1, 4, 6, 7]) {
@@ -1940,6 +2002,30 @@ try {
     const closedRowBeforeReplay = query(`SELECT * FROM gameplay_social_vote_deadlines WHERE vote_id='${opened.voteId}'`)[0];
     const replay = await request(base, "GET", `/v1/battles/${opened.battle.battleId}/votes`, caps[0].token);
     assert.deepEqual(replay, result, "reload/replay must return the same closed result");
+    assert.equal(query(`SELECT status FROM gameplay_social_votes WHERE vote_id='${opened.voteId}'`)[0].status,
+      "open", "Chat05A's immutable trigger record stays open and is not the lifecycle close authority");
+    assert.equal(query(`SELECT status FROM gameplay_social_vote_deadlines WHERE vote_id='${opened.voteId}'`)[0].status,
+      "closed", "the Chat05B sidecar is the single close-state authority");
+    if (humanCount > 0) {
+      const humanToken = caps[0].token;
+      const savedChoice = savedBallots.find(row => row.person_id === socialPeople[0]).choice;
+      assert.deepEqual(await request(base, "POST", `/v1/battles/${opened.battle.battleId}/votes`,
+        humanToken, { choice: savedChoice }),
+      { status: 200, voteId: opened.voteId, choice: savedChoice, replayed: true },
+      "same human ballot remains idempotently readable after close");
+    }
+    if (humanCount < 7) {
+      const afterCloseHuman = await request(base, "POST", `/v1/battles/${opened.battle.battleId}/votes`,
+        caps[humanCount].token, { choice: "A" });
+      assert.equal(afterCloseHuman.status, 409, JSON.stringify(afterCloseHuman));
+      assert.equal(afterCloseHuman.error, "VOTE_CLOSED");
+    }
+    executeSqlExpectFailure(`INSERT INTO gameplay_social_npc_ballots
+      (vote_id,fixture_slot,fixture_version,choice,cast_at_ms)
+      VALUES ('${opened.voteId}',101,'chat05b-deterministic-fixture-v1','A',${opened.session.deadline_at_ms + 1})`,
+      "SOCIAL_NPC_FILL_NOT_ALLOWED");
+    assert.deepEqual(await request(base, "GET", `/v1/battles/${opened.battle.battleId}/votes`, caps[0].token), result,
+      "repeated result read remains identical after rejected human/NPC post-close writes");
     await fetch(cronUrl, { signal: AbortSignal.timeout(9000) });
     await fetch(cronUrl, { signal: AbortSignal.timeout(9000) });
     assert.deepEqual(query(`SELECT fixture_slot,fixture_version,choice,cast_at_ms
