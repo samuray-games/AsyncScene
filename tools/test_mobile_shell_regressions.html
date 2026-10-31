@@ -241,6 +241,191 @@
         checks.push(assert(chatAfter !== chatBefore || chatBefore <= splitterMin + 1 || chatBefore >= splitterMax - 1,"splitter_drag_changes_chat_height_or_respects_bound",JSON.stringify({before:chatBefore,after:chatAfter,min:splitterMin,max:splitterMax})));
         checks.push(assert(chatAfter >= chatMin && panelHeight >= 88,"splitter_minimum_heights",Math.round(chatAfter) + "/" + chatMin + "; panels=" + panelHeight));
 
+        if (index === 0 || index === 3) {
+          const previousTab = mobileInterface.getActiveTab();
+          const originalBattles = state.battles;
+          const originalDm = state.dm;
+          const originalBattleInvite = ui._battleInvite;
+          const stage715Demo = game.Stage715Demo;
+          const originalStage715IsActive = stage715Demo && stage715Demo.isActive;
+          const originalChallengeAvailable = stage715Demo && stage715Demo.isChallengeButtonAvailable;
+          const originalEmptyPanelVV = Object.getOwnPropertyDescriptor(win,"visualViewport");
+          const eventsBlock = doc.getElementById("eventsBlock");
+          const eventsBody = doc.getElementById("eventsBody");
+          const chatLogForEmptyPanels = doc.getElementById("chatLog");
+          const emptyPanelGeometry = {};
+          const testThreadId = "mobile-empty-panel-thread-" + index;
+          const testThread = {id:testThreadId,name:"Заполненный диалог для теста",role:"citizen",npc:true};
+          const originalTestThread = state.players[testThreadId];
+          const scrollFixture = [];
+          try {
+            for (let line=0;line<24;line++) {
+              const row=doc.createElement("div");
+              row.textContent="Прокрутка общего чата, тестовая строка " + (line+1);
+              row.style.cssText="min-height:28px;flex:0 0 28px";
+              row.dataset.mobileEmptyPanelScrollFixture="1";
+              chatLogForEmptyPanels.appendChild(row);
+              scrollFixture.push(row);
+            }
+            chatLogForEmptyPanels.scrollTop=chatLogForEmptyPanels.scrollHeight;
+            const chatScrollBefore=chatLogForEmptyPanels.scrollTop;
+            // The empty-state layout fixture models ordinary gameplay. The tutorial
+            // intentionally withholds the battle CTA until its scripted checkpoint.
+            if (stage715Demo && typeof originalStage715IsActive === "function") {
+              stage715Demo.isActive = () => false;
+            }
+            if (stage715Demo && typeof originalChallengeAvailable === "function") {
+              stage715Demo.isChallengeButtonAvailable = () => true;
+            }
+            state.battles=[];
+            ui._battleInvite={open:false,q:"",sel:0};
+            if (ui.renderBattles) ui.renderBattles();
+            state.dm={open:true,activeId:null,withId:null,openIds:[],logs:{},unread:{}};
+            if (ui.renderDM) ui.renderDM();
+            if (eventsBody) {
+              eventsBody.replaceChildren();
+              const emptyEventStatus=doc.createElement("div");
+              emptyEventStatus.className="pill";
+              emptyEventStatus.textContent="Движ пока спит.";
+              eventsBody.appendChild(emptyEventStatus);
+              eventsBody.classList.remove("hidden");
+              eventsBody.classList.add("mobile-empty-events-body");
+              eventsBlock.classList.add("mobile-empty-events");
+            }
+            const emptyTabCases=[
+              {key:"battles",panel:"battlesBlock",body:"battlesBody",status:".hint"},
+              {key:"events",panel:"eventsBlock",body:"eventsBody",status:".pill"},
+              {key:"dm",panel:"dmBlock",body:"dmLog",status:"[role='status']"},
+            ];
+            for (const scenario of emptyTabCases) {
+              mobileInterface.selectTab(scenario.key,false);
+              if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+              await wait(30);
+              const scenarioPanel=doc.getElementById(scenario.panel);
+              const scenarioBody=doc.getElementById(scenario.body);
+              const status=scenarioBody&&scenarioBody.querySelector(scenario.status);
+              const panelRect=scenarioPanel&&scenarioPanel.getBoundingClientRect();
+              const shellRect=shell.getBoundingClientRect();
+              const chatRect=chat.getBoundingClientRect();
+              const inputRect=doc.getElementById("chatInput").getBoundingClientRect();
+              const sendRect=doc.getElementById("btnSend").getBoundingClientRect();
+              const visibleTop=win.visualViewport.offsetTop;
+              const visibleBottom=visibleTop+win.visualViewport.height;
+              const compactLimit=Math.min(320,Math.max(230,win.visualViewport.height*.34));
+              const statusRect=status&&status.getBoundingClientRect();
+              const button=scenario.key==="battles"?doc.querySelector("#battlesBody .actions button"):null;
+              const buttonRect=button&&button.getBoundingClientRect();
+              const buttonHit=buttonRect&&doc.elementFromPoint(Math.floor(buttonRect.left+buttonRect.width/2),Math.floor(buttonRect.top+buttonRect.height/2));
+              const dmStatusAtTop=scenario.key!=="dm"||!!(statusRect&&statusRect.top<=scenarioBody.getBoundingClientRect().top+24);
+              const evidence={tab:scenario.key,panel:rect(scenarioPanel),shell:rect(shell),chat:rect(chat),tabs:rect(tabs),status:rect(status),chatInput:rect(doc.getElementById("chatInput")),send:rect(doc.getElementById("btnSend")),button:rect(button),buttonHit:buttonHit&&{tag:buttonHit.tagName,id:buttonHit.id},limits:{compactLimit,visibleTop,visibleBottom}};
+              emptyPanelGeometry[scenario.key]={height:Math.round(shellRect.height),chat:Math.round(chatRect.height)};
+              checks.push(assert(!!status&&panelRect.height>0&&shellRect.height<=compactLimit&&chatRect.height>shellRect.height
+                &&chatRect.top>=visibleTop&&chatRect.bottom<=visibleBottom
+                &&inputRect.height>0&&inputRect.top>=visibleTop&&inputRect.bottom<=visibleBottom
+                &&sendRect.height>0&&sendRect.top>=visibleTop&&sendRect.bottom<=visibleBottom
+                &&tabs.getBoundingClientRect().height>=40&&dmStatusAtTop
+                &&(scenario.key!=="battles"||(buttonRect&&buttonRect.height>0&&buttonRect.bottom<=shellRect.bottom&&(buttonHit===button||button.contains(buttonHit)))),
+                "empty_mobile_tab_is_compact_and_returns_space_to_chat_"+scenario.key,JSON.stringify(evidence)));
+            }
+            const chatScrollAfter=chatLogForEmptyPanels.scrollTop;
+            const chatScrollMax=chatLogForEmptyPanels.scrollHeight-chatLogForEmptyPanels.clientHeight;
+            checks.push(assert(chatScrollMax>1&&chatScrollBefore>0&&chatScrollAfter>0&&chatScrollMax-chatScrollAfter<=32,
+              "empty_panels_preserve_general_chat_scroll_position",
+              JSON.stringify({before:chatScrollBefore,after:chatScrollAfter,max:chatScrollMax})));
+
+            const transitionCases=["battles","events","dm"];
+            for (const tabKey of transitionCases) {
+              mobileInterface.selectTab(tabKey,false);
+              if (tabKey==="battles") {
+                const card=doc.createElement("div");
+                card.className="battleCard";
+                card.textContent="Проверочная карточка боя";
+                card.style.minHeight="96px";
+                doc.getElementById("battlesBody").appendChild(card);
+              } else if (tabKey==="events") {
+                eventsBlock.classList.remove("mobile-empty-events");
+                eventsBody.classList.remove("mobile-empty-events-body");
+                const card=doc.createElement("div");
+                card.className="eventCard";
+                card.textContent="Проверочная карточка события";
+                card.style.minHeight="96px";
+                eventsBody.appendChild(card);
+              } else {
+                state.players[testThreadId]=testThread;
+                state.dm={open:true,activeId:testThreadId,withId:testThreadId,openIds:[testThreadId],logs:{},unread:{}};
+                state.dm.logs[testThreadId]=Array.from({length:8},(_,line)=>({t:"12:00",from:line%2?String(state.me?.name||"Игрок"):testThread.name,text:"Заполненный тестовый диалог, строка "+(line+1)}));
+                if (ui.renderDM) ui.renderDM();
+              }
+              if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+              await wait(30);
+              const populatedHeight=Math.round(shell.getBoundingClientRect().height);
+              const populatedChat=Math.round(chat.getBoundingClientRect().height);
+              const populatedBody=tabKey==="dm"?doc.getElementById("dmLog"):doc.getElementById(tabKey==="events"?"eventsBody":"battlesBody");
+              const populatedContent=tabKey==="dm"?!!populatedBody?.querySelector(".dmLine"):!!populatedBody?.querySelector(tabKey==="events"?".eventCard":".battleCard");
+              checks.push(assert(populatedContent&&populatedHeight>=emptyPanelGeometry[tabKey].height
+                &&populatedBody.clientHeight>=100,
+                "populated_mobile_tab_reclaims_usable_panel_height_"+tabKey,
+                JSON.stringify({tab:tabKey,empty:emptyPanelGeometry[tabKey],populatedHeight,populatedChat,populatedBody:nodeState(populatedBody,win)})));
+              if (tabKey!=="dm") {
+                const controller=doc.documentElement.__mobilePinnedChatController;
+                const preferred=controller&&controller.preferredHeight||0;
+                checks.push(assert(Math.abs(populatedChat-preferred)<=3,"populated_mobile_tab_restores_user_chat_height_"+tabKey,
+                  JSON.stringify({preferred,populatedChat})));
+              }
+              if (tabKey==="battles") doc.querySelector("#battlesBody .battleCard")?.remove();
+              else if (tabKey==="events") {
+                eventsBody.querySelector(".eventCard")?.remove();
+                eventsBlock.classList.add("mobile-empty-events");
+                eventsBody.classList.add("mobile-empty-events-body");
+              } else {
+                state.dm={open:true,activeId:null,withId:null,openIds:[],logs:{},unread:{}};
+                if (ui.renderDM) ui.renderDM();
+              }
+              if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+              await wait(30);
+              const emptyAgain=Math.round(shell.getBoundingClientRect().height);
+              const chatAgain=Math.round(chat.getBoundingClientRect().height);
+              const dmEmptyDetails=tabKey!=="dm"?null:{title:doc.getElementById("dmTitle")?.textContent,logEmpty:doc.getElementById("dmLog")?.classList.contains("dmEmptyState"),tabs:nodeState(doc.getElementById("dmTabs"),win),header:nodeState(doc.getElementById("dmHeader"),win),log:nodeState(doc.getElementById("dmLog"),win),body:nodeState(doc.querySelector("#dmBlock > .panelBody"),win),children:Array.from(doc.querySelector("#dmBlock > .panelBody")?.children||[]).map((node)=>({id:node.id,className:node.className,rect:rect(node),display:win.getComputedStyle(node).display}))};
+              checks.push(assert(Math.abs(emptyAgain-emptyPanelGeometry[tabKey].height)<=4
+                &&Math.abs(chatAgain-emptyPanelGeometry[tabKey].chat)<=4,"mobile_empty_populated_empty_height_restoration_"+tabKey,
+                JSON.stringify({tab:tabKey,emptyBefore:emptyPanelGeometry[tabKey],populatedHeight,populatedChat,emptyAgain,chatAgain,dmEmptyDetails})));
+            }
+            mobileInterface.selectTab("events",false);
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            doc.getElementById("chatInput").focus();
+            Object.defineProperty(win,"visualViewport",{configurable:true,value:{height:Math.max(240,height-180),offsetTop:24,offsetLeft:0,width:width,scale:1,addEventListener:function(){}}});
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            const keyboardInput=doc.getElementById("chatInput").getBoundingClientRect();
+            const keyboardShell=shell.getBoundingClientRect();
+            const keyboardVisibleBottom=win.visualViewport.offsetTop+win.visualViewport.height;
+            checks.push(assert(doc.body.classList.contains("mobile-keyboard-open")&&blocks.classList.contains("mobile-panel-empty")
+              &&keyboardShell.height<=Math.min(320,Math.max(230,win.visualViewport.height*.34))
+              &&keyboardInput.top>=win.visualViewport.offsetTop&&keyboardInput.bottom<=keyboardVisibleBottom
+              &&isInside(doc.getElementById("chatInputRow"),chat),"empty_panel_keyboard_keeps_chat_input_and_tabs_visible",
+              JSON.stringify({input:rect(doc.getElementById("chatInput")),row:rect(doc.getElementById("chatInputRow")),chat:rect(chat),shell:rect(shell),visual:{top:win.visualViewport.offsetTop,bottom:keyboardVisibleBottom,height:win.visualViewport.height}})));
+            if (originalEmptyPanelVV) Object.defineProperty(win,"visualViewport",originalEmptyPanelVV); else delete win.visualViewport;
+            doc.getElementById("chatInput").blur();
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            checks.push(assert(!doc.body.classList.contains("mobile-keyboard-open"),"empty_panel_keyboard_close_restores_layout_state"));
+          } catch (error) {
+            checks.push(assert(false,"empty_mobile_panel_scenarios_completed",String(error&&error.stack||error)));
+          } finally {
+            if (originalEmptyPanelVV) Object.defineProperty(win,"visualViewport",originalEmptyPanelVV); else delete win.visualViewport;
+            scrollFixture.forEach((row)=>row.remove());
+            state.battles=originalBattles;
+            state.dm=originalDm;
+            if (originalTestThread) state.players[testThreadId]=originalTestThread; else delete state.players[testThreadId];
+            ui._battleInvite=originalBattleInvite;
+            if (stage715Demo && typeof originalStage715IsActive === "function") stage715Demo.isActive=originalStage715IsActive;
+            if (stage715Demo && typeof originalChallengeAvailable === "function") stage715Demo.isChallengeButtonAvailable=originalChallengeAvailable;
+            try { if (ui.renderBattles) ui.renderBattles(); } catch (_) {}
+            try { if (ui.renderEvents) ui.renderEvents(); } catch (_) {}
+            try { if (ui.renderDM) ui.renderDM(); } catch (_) {}
+            mobileInterface.selectTab(previousTab,false);
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+          }
+        }
+
         const originalVV = Object.getOwnPropertyDescriptor(win,"visualViewport");
         const restoreVV = () => {
           if (originalVV) Object.defineProperty(win,"visualViewport",originalVV);

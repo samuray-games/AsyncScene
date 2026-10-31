@@ -1534,6 +1534,7 @@ window.Game = window.Game || {};
     const handle = document.getElementById("chatResizeHandle");
     const tabs = document.getElementById("mobilePanelTabs");
     const blocks = document.getElementById("blocks");
+    const panelShell = document.getElementById("mobilePanelShell");
     const menu = getMenuBlockEl();
     if (!root || !topBar || !chat || !handle || !tabs) return;
 
@@ -1560,12 +1561,89 @@ window.Game = window.Game || {};
       const battles = (Game.__S && Array.isArray(Game.__S.battles)) ? Game.__S.battles : S.battles;
       return Array.isArray(battles) && battles.some((battle) => battle && battle.resolved !== true);
     };
+    const activeTabIsEmpty = (activeTab) => {
+      if (activeTab === "dm") {
+        const log = document.getElementById("dmLog");
+        const dm = (Game.__S && Game.__S.dm) || S.dm || {};
+        const logs = dm.logs && typeof dm.logs === "object" ? dm.logs : {};
+        const hasStoredMessages = Object.keys(logs).some((id) => Array.isArray(logs[id]) && logs[id].length > 0);
+        const hasThreads = !!dm.activeId || !!(Array.isArray(dm.openIds) && dm.openIds.length) || hasStoredMessages;
+        return !!(log && log.classList.contains("dmEmptyState") && !hasThreads
+          && !document.querySelector("#dmTabs .dmTab"));
+      }
+      if (activeTab === "battles") {
+        const body = document.getElementById("battlesBody");
+        if (!body || body.classList.contains("hidden")) return false;
+        const hasRound = !!body.querySelector(".battleCard, [data-battle-id]");
+        const inviteOpen = !!body.querySelector("#battleInviteInput, .mention-list, [role='listbox']");
+        return !hasRound && !inviteOpen && !!body.querySelector(".hint");
+      }
+      if (activeTab === "events") {
+        const panel = document.getElementById("eventsBlock");
+        const body = document.getElementById("eventsBody");
+        return !!(panel && body && panel.classList.contains("mobile-empty-events")
+          && body.classList.contains("mobile-empty-events-body") && !body.querySelector(".eventCard"));
+      }
+      return false;
+    };
+    const compactEmptyPanelsHeight = (activeTab) => {
+      if (!panelShell || !blocks) return 112;
+      const panel = document.getElementById(activeTab === "dm" ? "dmBlock" : activeTab === "battles" ? "battlesBlock" : "eventsBlock");
+      if (!panel) return 112;
+      const body = activeTab === "dm" ? panel.querySelector(":scope > .panelBody")
+        : activeTab === "battles" ? document.getElementById("battlesBody") : document.getElementById("eventsBody");
+      const visible = (node) => {
+        if (!node || node.classList.contains("hidden")) return false;
+        const style = getComputedStyle(node);
+        return style.display !== "none" && style.visibility !== "hidden";
+      };
+      const px = (value) => readPx(value, 0);
+      const frameY = (node, style) => px(style.paddingTop) + px(style.paddingBottom)
+        + px(style.borderTopWidth) + px(style.borderBottomWidth);
+      const marginY = (node) => {
+        const style = getComputedStyle(node);
+        return px(style.marginTop) + px(style.marginBottom);
+      };
+      const intrinsicBodyHeight = () => {
+        if (!body || !visible(body)) return 0;
+        const style = getComputedStyle(body);
+        const rowGap = px(style.rowGap || style.gap);
+        let childHeight = 0;
+        let childCount = 0;
+        Array.from(body.children).forEach((child) => {
+          if (!visible(child)) return;
+          let height = child.getBoundingClientRect().height;
+          if (child.id === "dmLog" && child.classList.contains("dmEmptyState")) {
+            const status = child.querySelector(".dmEmptyStateContent");
+            height = (status ? status.getBoundingClientRect().height : 0) + frameY(child, getComputedStyle(child));
+          }
+          childHeight += height + marginY(child);
+          childCount += 1;
+        });
+        return frameY(body, style) + childHeight + Math.max(0, childCount - 1) * rowGap;
+      };
+      const shellStyle = getComputedStyle(panelShell);
+      const panelStyle = getComputedStyle(panel);
+      const panelGap = px(panelStyle.rowGap || panelStyle.gap);
+      const bodyHeight = intrinsicBodyHeight();
+      let contentHeight = 0;
+      let contentCount = 0;
+      Array.from(panel.children).forEach((child) => {
+        if (!visible(child)) return;
+        const childBody = child === body;
+        contentHeight += (childBody ? bodyHeight : child.getBoundingClientRect().height) + marginY(child);
+        contentCount += 1;
+      });
+      const panelHeight = frameY(panel, panelStyle) + contentHeight + Math.max(0, contentCount - 1) * panelGap;
+      return Math.max(96, Math.ceil(tabHeight() + px(shellStyle.rowGap || shellStyle.gap) + panelHeight + 8));
+    };
     let controller = root.__mobilePinnedChatController;
     if (!controller) {
       controller = {
         preferredHeight: readPx(root.style.getPropertyValue("--mobile-chat-height"), 0),
         activeTab: null,
         dmHeightOverride: false,
+        emptyPanelHeightOverride: false,
         dragging: false,
         pointerId: null,
         dragY: 0,
@@ -1578,12 +1656,16 @@ window.Game = window.Game || {};
     const sync = (requestedHeight) => {
       if (!isMobile()) {
         chat.classList.remove("is-resizing");
+        if (blocks) blocks.classList.remove("mobile-panel-empty", "mobile-panel-empty-dm");
         document.body.classList.remove("mobile-keyboard-open", "mobile-profile-compact");
         ["--mobile-topbar-height", "--mobile-menu-stack-height", "--mobile-chat-height", "--mobile-chat-min", "--mobile-panels-top", "--mobile-panels-height", "--mobile-vv-top", "--mobile-vv-height"].forEach((key) => root.style.removeProperty(key));
         return;
       }
 
       const vv = visual();
+      const chatLog = document.getElementById("chatLog");
+      const chatWasPinnedToBottom = !!(chatLog
+        && chatLog.scrollHeight - chatLog.clientHeight - chatLog.scrollTop <= 24);
       const keyboardOpen = !!(window.visualViewport && window.innerHeight - vv.height > 120);
       document.body.classList.toggle("mobile-keyboard-open", keyboardOpen);
       const activeEditor = document.activeElement;
@@ -1596,6 +1678,12 @@ window.Game = window.Game || {};
       if (controller.activeTab !== activeTab) {
         controller.activeTab = activeTab;
         controller.dmHeightOverride = false;
+        controller.emptyPanelHeightOverride = false;
+      }
+      const compactEmptyPanel = activeTabIsEmpty(activeTab);
+      if (blocks) {
+        blocks.classList.toggle("mobile-panel-empty", compactEmptyPanel);
+        blocks.classList.toggle("mobile-panel-empty-dm", compactEmptyPanel && activeTab === "dm");
       }
       const safeTop = readSafe("--mobile-safe-top");
       const safeBottom = readSafe("--mobile-safe-bottom");
@@ -1625,11 +1713,13 @@ window.Game = window.Game || {};
           return;
         }
       }
-      const panelFloor = keyboardOpen ? Math.max(112, Math.round(vv.height * 0.28)) : desiredPanelHeight;
+      const panelFloor = compactEmptyPanel ? compactEmptyPanelsHeight(activeTab)
+        : (keyboardOpen ? Math.max(112, Math.round(vv.height * 0.28)) : desiredPanelHeight);
       const chatCapacity = Math.max(0, vv.height - fixedHeight - panelFloor);
       if (Number.isFinite(requestedHeight)) {
         controller.preferredHeight = Math.max(0, requestedHeight);
         if (dmTabActive) controller.dmHeightOverride = true;
+        if (compactEmptyPanel) controller.emptyPanelHeightOverride = true;
       }
       const minChatHeight = Math.min(chatCapacity, dmTabActive
         ? (keyboardOpen ? keyboardChatMin : functionalChatMin)
@@ -1641,7 +1731,8 @@ window.Game = window.Game || {};
         const splitSpace = Math.max(minChatHeight, vv.height - safeTop - safeBottom - edge * 2 - topHeight - menuHeight - gap * 3);
         controller.preferredHeight = splitSpace * (activeBattleExists() ? 0.40 : 0.55);
       }
-      const preferredTarget = dmTabActive && !controller.dmHeightOverride ? minChatHeight : controller.preferredHeight;
+      const preferredTarget = compactEmptyPanel && !controller.emptyPanelHeightOverride ? maxChat
+        : (dmTabActive && !controller.dmHeightOverride ? minChatHeight : controller.preferredHeight);
       const chatHeight = Math.round(Math.max(0, Math.min(maxChat, Math.max(minChatHeight, preferredTarget))));
       const panelsTop = chatTop + chatHeight + gap;
       const panelsHeight = Math.max(0, vv.height - safeBottom - edge - (panelsTop - vv.top));
@@ -1653,6 +1744,7 @@ window.Game = window.Game || {};
       root.style.setProperty("--mobile-chat-min", `${minChatHeight}px`);
       root.style.setProperty("--mobile-panels-top", `${panelsTop}px`);
       root.style.setProperty("--mobile-panels-height", `${panelsHeight}px`);
+      if (chatWasPinnedToBottom && chatLog) chatLog.scrollTop = chatLog.scrollHeight;
       handle.setAttribute("aria-valuemin", String(minChatHeight));
       handle.setAttribute("aria-valuemax", String(maxChat));
       handle.setAttribute("aria-valuenow", String(chatHeight));

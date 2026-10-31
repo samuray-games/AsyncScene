@@ -1780,6 +1780,16 @@ button:disabled{opacity:.55; cursor:not-allowed}
     flex:1 1 0%;min-height:108px;max-height:none;overflow-x:hidden;overflow-y:auto;
     padding:8px 9px;gap:7px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
   }
+  #blocks.mobile-panel-empty{flex:0 0 auto;height:auto;min-height:0}
+  #blocks.mobile-panel-empty > .panel:not(#menuBlock){flex:0 0 auto;height:auto;max-height:none;min-height:0}
+  #blocks.mobile-panel-empty > #dmBlock:not(.hidden) .panelBody:not(.hidden),
+  #blocks.mobile-panel-empty > #battlesBlock:not(.hidden) #battlesBody:not(.hidden),
+  #blocks.mobile-panel-empty > #eventsBlock:not(.hidden) #eventsBody:not(.hidden){flex:0 0 auto;height:auto;max-height:none;min-height:0}
+  #blocks.mobile-panel-empty > #dmBlock:not(.hidden) #dmLog.dmEmptyState{
+    flex:0 0 auto;height:auto;max-height:none;min-height:0;justify-content:flex-start;align-items:flex-start;text-align:left;
+  }
+  #blocks.mobile-panel-empty > #dmBlock:not(.hidden) #dmLog.dmEmptyState .dmEmptyStateContent{align-items:flex-start}
+  #blocks.mobile-panel-empty-dm > #dmBlock:not(.hidden) #dmHeader{display:none}
   #dmBlock #dmActions{
     flex:0 1 auto;min-height:0;max-height:36px;overflow-x:auto;overflow-y:hidden;
     flex-wrap:nowrap;padding:3px 6px;gap:5px;-webkit-overflow-scrolling:touch;
