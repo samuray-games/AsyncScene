@@ -4,6 +4,7 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import worker from '../src/worker.mjs';
 import { LocalSQLiteD1 } from '../src/sqlite-d1.mjs';
+import { initializeAuthCheckpoint, LocalCheckpointAuthority } from '../src/checkpoint-authority.mjs';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
 const root = resolve(here, '..');
@@ -17,8 +18,12 @@ export async function createHarness({ rateLimit = 1000, persistDir, dbGeneration
   await mkdir(ownedPersist, { recursive: true });
   const db = new LocalSQLiteD1(join(ownedPersist, 'auth.sqlite'));
   await db.exec(await readFile(resolve(root, 'migrations/0001_auth.sql'), 'utf8'));
+  await initializeAuthCheckpoint(db);
+  const authorityDb = new LocalSQLiteD1(join(ownedPersist, 'checkpoint-authority.sqlite'));
+  const authority = new LocalCheckpointAuthority(authorityDb);
+  await authority.initialize({ bootstrap: true });
   const env = {
-    AUTH_DB: db, AUTH_ORIGIN: ORIGIN, AUTH_RP_ID: RP_ID, AUTH_DB_GENERATION: String(dbGeneration),
+    AUTH_DB: db, AUTHORITY: authority, AUTH_ORIGIN: ORIGIN, AUTH_RP_ID: RP_ID, AUTH_DB_GENERATION: String(dbGeneration),
     AUTH_SESSION_IDLE_MS: '86400000', AUTH_SESSION_ABSOLUTE_MS: '604800000',
     AUTH_TERMINAL_SESSION_RETENTION_MS: '7776000000', AUTH_CHALLENGE_TTL_MS: '300000',
     AUTH_PREAUTH_TTL_MS: '600000', AUTH_INVITE_TTL_MS: '604800000',
@@ -26,8 +31,8 @@ export async function createHarness({ rateLimit = 1000, persistDir, dbGeneration
     AUTH_OPERATOR_SECRET: OPERATOR_SECRET, AUTH_RATE_LIMIT_KEY: RATE_KEY,
   };
   return {
-    db, env, persistDir: ownedPersist,
-    async close({ remove = !persistDir } = {}) { db.close(); if (remove) await rm(ownedPersist, { recursive: true, force: true }); },
+    db, authorityDb, authority, env, persistDir: ownedPersist,
+    async close({ remove = !persistDir } = {}) { db.close(); authorityDb.close(); if (remove) await rm(ownedPersist, { recursive: true, force: true }); },
     async request(path, { method = 'GET', body, cookie = '', csrf = '', headers = {}, authorization } = {}) {
       const requestHeaders = new Headers({ origin: ORIGIN, 'sec-fetch-site': 'same-origin', ...headers });
       if (body !== undefined) requestHeaders.set('content-type', 'application/json');

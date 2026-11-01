@@ -127,6 +127,27 @@ async function readJson(request) {
   return value;
 }
 
+async function bufferRequestBeforeAuthorityLock(request) {
+  if (['GET', 'HEAD'].includes(request.method.toUpperCase()) || !request.body) return { request };
+  const reader = request.body.getReader();
+  const chunks = [];
+  let size = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > MAX_BODY_BYTES) {
+      await reader.cancel().catch(() => {});
+      return { tooLarge: true };
+    }
+    chunks.push(value);
+  }
+  const body = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) { body.set(chunk, offset); offset += chunk.byteLength; }
+  return { request: new Request(request.url, { method: request.method, headers: request.headers, body }) };
+}
+
 function onlyKeys(value, allowed) {
   return Object.keys(value).every((key) => allowed.includes(key));
 }
@@ -173,7 +194,7 @@ async function preauthFromRequest(request, db, now) {
   return row;
 }
 
-export async function resolveSession(request, db, now = Date.now()) {
+async function resolveSessionFromDatabase(request, db, now = Date.now()) {
   const token = cookieValue(request, SESSION_COOKIE);
   if (!token) return { state: 'absent' };
   const tokenHash = await sha256(token);
@@ -199,6 +220,16 @@ export async function resolveSession(request, db, now = Date.now()) {
   };
 }
 
+export async function resolveSession(request, db, authority) {
+  if (!authority?.runExclusive) return { state: 'unavailable' };
+  try {
+    return await authority.runExclusive(async () => {
+      await authority.reconcile(db);
+      return resolveSessionFromDatabase(request, db, Date.now());
+    });
+  } catch { return { state: 'unavailable' }; }
+}
+
 async function resolveSessionWithoutRefresh(tokenHash, db, now) {
   const row = await db.prepare(`SELECT s.*, a.status AS account_status, a.auth_epoch AS current_epoch
     FROM auth_sessions s JOIN auth_accounts a ON a.actor_id = s.actor_id WHERE s.token_hash = ?`).bind(tokenHash).first();
@@ -209,7 +240,7 @@ async function resolveSessionWithoutRefresh(tokenHash, db, now) {
 }
 
 async function sessionFromRequest(request, env, now) {
-  const session = await resolveSession(request, env.AUTH_DB, now);
+  const session = await resolveSessionFromDatabase(request, env.AUTH_DB, now);
   if (session.state !== 'active') return session;
   const csrf = request.headers.get('x-csrf-token');
   if (!csrf || !equalConstantTime(csrf, cookieValue(request, SESSION_CSRF_COOKIE)) || !equalConstantTime(await sha256(csrf), session.csrfHash)) return { state: 'absent' };
@@ -218,13 +249,13 @@ async function sessionFromRequest(request, env, now) {
 
 function authErrorStatus(state) { return state === 'absent' || state === 'expired' || state === 'revoked' ? 401 : 503; }
 
-async function operation(db, { purpose, actorId = null, invitationId = null, preauthId = null, challengeId = null, recoveryCodeId = null, sessionId = null, expectedEpoch = null, expectedCounter = null, credentialId = null, payload, now }) {
+async function operation(db, authority, { purpose, actorId = null, invitationId = null, preauthId = null, challengeId = null, recoveryCodeId = null, sessionId = null, expectedEpoch = null, expectedCounter = null, credentialId = null, payload, now }) {
   const payloadJson = JSON.stringify(payload);
   const payloadHash = await sha256(payloadJson);
-  return db.prepare(`INSERT INTO auth_operation_commits
-    (operation_id, purpose, actor_id, invitation_id, preauth_id, challenge_id, recovery_code_id, session_id, expected_epoch, expected_counter, credential_id, payload_hash, payload_json, occurred_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`) 
-    .bind(randomId(), purpose, actorId, invitationId, preauthId, challengeId, recoveryCodeId, sessionId, expectedEpoch, expectedCounter, credentialId, payloadHash, payloadJson, Date.now()).run();
+  const fields = { operationId: randomId(), purpose, actorId, invitationId, preauthId, challengeId, recoveryCodeId,
+    sessionId, expectedEpoch, expectedCounter, credentialId, payloadHash, payloadJson, occurredAt: now };
+  if (!authority) throw new Error('AUTHORITY_UNAVAILABLE');
+  return authority.commitOperation(db, fields);
 }
 
 function makeSessionMaterial(now, config) {
@@ -263,9 +294,10 @@ async function revokeInvite(request, env, requestId, invitationId) {
   const expected = env.AUTH_OPERATOR_SECRET;
   const supplied = (request.headers.get('authorization') || '').replace(/^Bearer\s+/iu, '');
   if (!expected || !supplied || !equalConstantTime(await sha256(supplied), await sha256(expected))) return errorResponse(401, 'unauthorized', requestId);
-  const result = await env.AUTH_DB.prepare(`UPDATE auth_invitations SET revoked_at = ?
-    WHERE invitation_id = ? AND revoked_at IS NULL AND consumed_at IS NULL`).bind(Date.now(), invitationId).run();
-  return result.meta?.changes === 1 ? json({ ok: true }) : errorResponse(404, 'not_found', requestId);
+  const invite = await env.AUTH_DB.prepare(`SELECT invitation_id FROM auth_invitations WHERE invitation_id = ? AND revoked_at IS NULL AND consumed_at IS NULL`).bind(invitationId).first();
+  if (!invite) return errorResponse(404, 'not_found', requestId);
+  await env.AUTHORITY.revokeInvitation(env.AUTH_DB, invitationId, Date.now());
+  return json({ ok: true });
 }
 
 async function beginRegistration(request, env, config, now, requestId) {
@@ -330,7 +362,7 @@ async function verifyRegistration(request, env, config, now, requestId) {
     recoveryCodes: codes.records,
   };
   try {
-    await operation(env.AUTH_DB, { purpose: 'registration', actorId, invitationId: preauth.invitation_id,
+    await operation(env.AUTH_DB, env.AUTHORITY, { purpose: 'registration', actorId, invitationId: preauth.invitation_id,
       preauthId: preauth.preauth_id, challengeId: challenge.challenge_id, sessionId: session.sessionId,
       credentialId: info.credential.id, payload, now });
   } catch { return errorResponse(409, 'registration_unavailable', requestId); }
@@ -392,7 +424,7 @@ async function verifyLogin(request, env, config, now, requestId) {
   const sessionTokenHash = await session.tokenHashPromise;
   const sessionCsrfHash = await session.csrfHashPromise;
   try {
-    await operation(env.AUTH_DB, { purpose: 'login', actorId: row.actor_id, preauthId: preauth.preauth_id,
+    await operation(env.AUTH_DB, env.AUTHORITY, { purpose: 'login', actorId: row.actor_id, preauthId: preauth.preauth_id,
       challengeId: challenge.challenge_id, sessionId: session.sessionId, expectedEpoch: row.auth_epoch,
       expectedCounter: counter, credentialId: row.credential_id,
       payload: { challenge: challenge.challenge, newCounter: info.newCounter,
@@ -440,7 +472,7 @@ async function verifyAddCredential(request, env, config, now, requestId) {
   const info = verified.registrationInfo;
   if (!verified.verified || !info?.userVerified || !info.credential?.id) return errorResponse(400, 'invalid_credential', requestId);
   try {
-    await operation(env.AUTH_DB, { purpose: 'add_credential', actorId: session.actorId,
+    await operation(env.AUTH_DB, env.AUTHORITY, { purpose: 'add_credential', actorId: session.actorId,
       challengeId: challenge.challenge_id, sessionId: session.sessionId, expectedEpoch: session.authEpoch,
       credentialId: info.credential.id,
       payload: { challenge: challenge.challenge, sessionTokenHash: session.tokenHash,
@@ -509,7 +541,7 @@ async function verifyRecoveryPasskey(request, env, config, now, requestId) {
   const session = makeSessionMaterial(now, config);
   const codes = await makeRecoveryCodes(config.recoveryCount);
   try {
-    await operation(env.AUTH_DB, { purpose: 'recovery', actorId: preauth.actor_id, preauthId: preauth.preauth_id,
+    await operation(env.AUTH_DB, env.AUTHORITY, { purpose: 'recovery', actorId: preauth.actor_id, preauthId: preauth.preauth_id,
       challengeId: challenge.challenge_id, recoveryCodeId: preauth.recovery_code_id,
       sessionId: session.sessionId, expectedEpoch: preauth.auth_epoch, credentialId: info.credential.id,
       payload: { challenge: challenge.challenge, publicKey: bytesToBase64Url(info.credential.publicKey),
@@ -527,7 +559,7 @@ async function logout(request, env, now, requestId) {
   const session = await sessionFromRequest(request, env, now);
   if (session.state !== 'active') return json({ ok: true }, 200, { 'set-cookie': [clearCookie(SESSION_COOKIE), clearCookie(SESSION_CSRF_COOKIE)] });
   try {
-    await operation(env.AUTH_DB, { purpose: 'logout', actorId: session.actorId, sessionId: session.sessionId,
+    await operation(env.AUTH_DB, env.AUTHORITY, { purpose: 'logout', actorId: session.actorId, sessionId: session.sessionId,
       expectedEpoch: session.authEpoch, payload: { sessionTokenHash: session.tokenHash }, now });
   } catch { return errorResponse(503, 'temporarily_unavailable', requestId); }
   return json({ ok: true }, 200, { 'set-cookie': [clearCookie(SESSION_COOKIE), clearCookie(SESSION_CSRF_COOKIE)] });
@@ -536,7 +568,7 @@ async function logout(request, env, now, requestId) {
 async function revokeAll(request, env, now, requestId) {
   const session = await sessionFromRequest(request, env, now);
   if (session.state !== 'active') return errorResponse(authErrorStatus(session.state), GENERIC_AUTH, requestId);
-  try { await operation(env.AUTH_DB, { purpose: 'revoke_all', actorId: session.actorId, sessionId: session.sessionId,
+  try { await operation(env.AUTH_DB, env.AUTHORITY, { purpose: 'revoke_all', actorId: session.actorId, sessionId: session.sessionId,
     expectedEpoch: session.authEpoch, payload: { sessionTokenHash: session.tokenHash }, now }); }
   catch { return errorResponse(503, 'temporarily_unavailable', requestId); }
   return json({ ok: true }, 200, { 'set-cookie': [clearCookie(SESSION_COOKIE), clearCookie(SESSION_CSRF_COOKIE)] });
@@ -546,7 +578,7 @@ async function rotateCodes(request, env, config, now, requestId) {
   const session = await sessionFromRequest(request, env, now);
   if (session.state !== 'active') return errorResponse(authErrorStatus(session.state), GENERIC_AUTH, requestId);
   const codes = await makeRecoveryCodes(config.recoveryCount);
-  try { await operation(env.AUTH_DB, { purpose: 'rotate_recovery_codes', actorId: session.actorId,
+  try { await operation(env.AUTH_DB, env.AUTHORITY, { purpose: 'rotate_recovery_codes', actorId: session.actorId,
     sessionId: session.sessionId, expectedEpoch: session.authEpoch,
     payload: { sessionTokenHash: session.tokenHash, recoveryCodes: codes.records }, now }); }
   catch { return errorResponse(503, 'temporarily_unavailable', requestId); }
@@ -554,39 +586,36 @@ async function rotateCodes(request, env, config, now, requestId) {
 }
 
 
-export async function pruneTerminalSessions(db, now, retentionMs) {
+export async function pruneTerminalSessions(db, now, retentionMs, authority) {
   if (!Number.isSafeInteger(now) || !Number.isSafeInteger(retentionMs) || retentionMs < 0) throw new TypeError('invalid_cleanup_window');
+  if (!authority?.runExclusive) throw new Error('AUTHORITY_UNAVAILABLE');
   const cutoff = now - retentionMs;
-  return db.batch([
-    db.prepare(`UPDATE auth_sessions SET expired_at = ? WHERE expired_at IS NULL AND revoked_at IS NULL AND (idle_expires_at <= ? OR absolute_expires_at <= ?)`)
-      .bind(now, now, now),
-    db.prepare(`DELETE FROM auth_challenges WHERE (consumed_at IS NOT NULL AND consumed_at <= ?) OR expires_at <= ?`)
-      .bind(cutoff, now),
-    db.prepare(`UPDATE auth_preauth SET state = 'expired' WHERE state = 'active' AND expires_at <= ?`).bind(now),
-    db.prepare(`DELETE FROM auth_preauth WHERE state IN ('used', 'expired', 'revoked') AND expires_at <= ?`).bind(cutoff),
-    db.prepare(`DELETE FROM auth_sessions WHERE (revoked_at IS NOT NULL AND revoked_at <= ?) OR (expired_at IS NOT NULL AND expired_at <= ?)`)
-      .bind(cutoff, cutoff),
-    db.prepare(`DELETE FROM auth_rate_limits WHERE expires_at <= ?`).bind(now),
-  ]);
-}
-
-export async function createSessionFenceStatement(db, session, operationId, now = Date.now()) {
-  const payload = JSON.stringify({ sessionTokenHash: session.tokenHash });
-  const payloadHash = await sha256(payload);
-  return db.prepare(`INSERT INTO auth_operation_commits(operation_id, purpose, actor_id, session_id, expected_epoch, payload_hash, payload_json, occurred_at)
-    VALUES (?, 'session_fence', ?, ?, ?, ?, ?, ?)`)
-    .bind(operationId, session.actorId, session.sessionId, session.authEpoch, payloadHash, payload, Date.now());
+  return authority.runExclusive(async () => {
+    await authority.reconcile(db);
+    return db.batch([
+      db.prepare(`UPDATE auth_sessions SET expired_at = ? WHERE expired_at IS NULL AND revoked_at IS NULL AND (idle_expires_at <= ? OR absolute_expires_at <= ?)`)
+        .bind(now, now, now),
+      db.prepare(`DELETE FROM auth_challenges WHERE (consumed_at IS NOT NULL AND consumed_at <= ?) OR expires_at <= ?`)
+        .bind(cutoff, now),
+      db.prepare(`UPDATE auth_preauth SET state = 'expired' WHERE state = 'active' AND expires_at <= ?`).bind(now),
+      db.prepare(`DELETE FROM auth_preauth WHERE state IN ('used', 'expired', 'revoked') AND expires_at <= ?`).bind(cutoff),
+      db.prepare(`DELETE FROM auth_sessions WHERE (revoked_at IS NOT NULL AND revoked_at <= ?) OR (expired_at IS NOT NULL AND expired_at <= ?)`)
+        .bind(cutoff, cutoff),
+      db.prepare(`DELETE FROM auth_rate_limits WHERE expires_at <= ?`).bind(now),
+    ]);
+  });
 }
 
 async function getSession(request, env, now, requestId) {
-  const session = await resolveSession(request, env.AUTH_DB, now);
+  const session = await resolveSessionFromDatabase(request, env.AUTH_DB, now);
   if (session.state !== 'active') return errorResponse(authErrorStatus(session.state), GENERIC_AUTH, requestId);
   return json({ actorId: session.actorId, csrfToken: null });
 }
 
 async function route(request, env, config, requestId) {
-  if (!config || !env.AUTH_DB || !env.AUTH_RATE_LIMIT_KEY) return errorResponse(503, 'temporarily_unavailable', requestId);
+  if (!config || !env.AUTH_DB || !env.AUTHORITY || !env.AUTH_RATE_LIMIT_KEY) return errorResponse(503, 'temporarily_unavailable', requestId);
   const now = Date.now();
+  try { await env.AUTHORITY.reconcile(env.AUTH_DB); } catch { return errorResponse(503, 'temporarily_unavailable', requestId); }
   if (!await storeReady(env.AUTH_DB, config)) return errorResponse(503, 'temporarily_unavailable', requestId);
   const url = new URL(request.url);
   const path = url.pathname;
@@ -626,7 +655,12 @@ async function route(request, env, config, requestId) {
 export default {
   async fetch(request, env) {
     const requestId = randomId();
-    try { return await route(request, env, readConfig(env), requestId); }
+    try {
+      if (!env?.AUTHORITY?.runExclusive) return errorResponse(503, 'temporarily_unavailable', requestId);
+      const buffered = await bufferRequestBeforeAuthorityLock(request);
+      if (buffered.tooLarge) return errorResponse(413, 'body_too_large', requestId);
+      return await env.AUTHORITY.runExclusive(() => route(buffered.request, env, readConfig(env), requestId));
+    }
     catch (error) {
       if (error instanceof RequestInputError) return errorResponse(error.status, error.code, requestId);
       return errorResponse(503, 'temporarily_unavailable', requestId);

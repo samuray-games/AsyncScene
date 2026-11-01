@@ -1,13 +1,16 @@
 import { createServer } from 'node:http';
-import { mkdir, readFile } from 'node:fs/promises';
+import { access, mkdir, readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import worker from './worker.mjs';
 import { LocalSQLiteD1 } from './sqlite-d1.mjs';
+import { initializeAuthCheckpoint, LocalCheckpointAuthority } from './checkpoint-authority.mjs';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const port = Number(process.env.PORT || 8787);
 const dbPath = resolve(process.env.AUTH_DB_PATH || '.local/auth.sqlite');
+const authorityPath = resolve(process.env.AUTH_CHECKPOINT_PATH || '.local/auth-checkpoint.sqlite');
+if (dbPath === authorityPath) throw new Error('Auth DB and checkpoint authority must use separate files.');
 const env = {
   AUTH_ORIGIN: process.env.AUTH_ORIGIN || `http://localhost:${port}`,
   AUTH_RP_ID: process.env.AUTH_RP_ID || 'localhost',
@@ -25,12 +28,42 @@ const env = {
   AUTH_OPERATOR_SECRET: process.env.AUTH_OPERATOR_SECRET,
 };
 if (!env.AUTH_RATE_LIMIT_KEY || !env.AUTH_OPERATOR_SECRET || !env.AUTH_DB_GENERATION) {
-  throw new Error('Set AUTH_RATE_LIMIT_KEY, AUTH_OPERATOR_SECRET, and an externally managed AUTH_DB_GENERATION in the process environment; values are never read from disk or printed.');
+  throw new Error('Set AUTH_RATE_LIMIT_KEY, AUTH_OPERATOR_SECRET, and AUTH_DB_GENERATION in the process environment; values are never read from disk or printed.');
 }
 await mkdir(dirname(dbPath), { recursive: true });
 const db = new LocalSQLiteD1(dbPath);
 await db.exec(await readFile(resolve(root, 'migrations/0001_auth.sql'), 'utf8'));
+await mkdir(dirname(authorityPath), { recursive: true });
+let bootstrapAuthority = false;
+try { await access(authorityPath); }
+catch {
+  if (process.env.AUTH_CHECKPOINT_BOOTSTRAP !== '1') {
+    db.close();
+    throw new Error('Checkpoint authority is missing. Refusing to initialize silently; set AUTH_CHECKPOINT_BOOTSTRAP=1 only for a new empty local auth database.');
+  }
+  const counts = await Promise.all(['auth_accounts', 'auth_credentials', 'auth_invitations', 'auth_preauth', 'auth_challenges',
+    'auth_recovery_codes', 'auth_sessions', 'auth_operation_commits'].map((table) => db.prepare(`SELECT COUNT(*) AS count FROM ${table}`).first()));
+  if (counts.some((row) => row.count !== 0)) {
+    db.close();
+    throw new Error('Checkpoint authority bootstrap requires a completely empty auth database.');
+  }
+  bootstrapAuthority = true;
+}
+const authCheckpoint = await db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'auth_checkpoint'").first();
+if (!authCheckpoint) {
+  const counts = await Promise.all(['auth_accounts', 'auth_credentials', 'auth_invitations', 'auth_preauth', 'auth_challenges',
+    'auth_recovery_codes', 'auth_sessions', 'auth_operation_commits'].map((table) => db.prepare(`SELECT COUNT(*) AS count FROM ${table}`).first()));
+  if (counts.some((row) => row.count !== 0)) {
+    db.close();
+    throw new Error('Existing auth records cannot be adopted without a trusted checkpoint.');
+  }
+}
+await initializeAuthCheckpoint(db);
 env.AUTH_DB = db;
+const authorityDb = new LocalSQLiteD1(authorityPath);
+const authority = new LocalCheckpointAuthority(authorityDb);
+await authority.initialize({ bootstrap: bootstrapAuthority });
+env.AUTHORITY = authority;
 
 const server = createServer(async (incoming, outgoing) => {
   try {
@@ -62,6 +95,6 @@ const server = createServer(async (incoming, outgoing) => {
   }
 });
 server.listen(port, '127.0.0.1', () => process.stdout.write(`Local SQLite auth API listening at http://localhost:${port}\n`));
-const stop = () => server.close(() => { db.close(); process.exit(0); });
+const stop = () => server.close(() => { db.close(); authorityDb.close(); process.exit(0); });
 process.on('SIGINT', stop);
 process.on('SIGTERM', stop);

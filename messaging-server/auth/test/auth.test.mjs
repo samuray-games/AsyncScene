@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test, { afterEach, beforeEach, describe } from 'node:test';
-import worker, { createSessionFenceStatement, pruneTerminalSessions, resolveSession } from '../src/worker.mjs';
+import worker, { pruneTerminalSessions, resolveSession } from '../src/worker.mjs';
 import { createHarness, cookieFrom, cookieValue, issueInvite, login, ORIGIN, register, sessionCookies } from './harness.mjs';
 import { assertionResponse, registrationResponse, virtualAuthenticator } from './virtual-authenticator.mjs';
 
@@ -46,6 +46,14 @@ describe('messaging auth on local SQLite adapter', { concurrency: false }, () =>
     };
   }
 
+  async function rawFenceStatement(db, session, operationId, now = Date.now()) {
+    const payload = JSON.stringify({ sessionTokenHash: session.tokenHash });
+    const payloadHash = createHash('sha256').update(payload).digest('hex');
+    return db.prepare(`INSERT INTO auth_operation_commits(operation_id, purpose, actor_id, session_id, expected_epoch, payload_hash, payload_json, occurred_at)
+      VALUES (?, 'session_fence', ?, ?, ?, ?, ?, ?)`)
+      .bind(operationId, session.actorId, session.sessionId, session.authEpoch, payloadHash, payload, now);
+  }
+
   test('invite registration stores only secret digests and issues separated secure cookies', async () => {
     const player = await makePlayer();
     assert.match(player.actorId, /^[0-9a-f-]{36}$/u);
@@ -63,7 +71,7 @@ describe('messaging auth on local SQLite adapter', { concurrency: false }, () =>
     assert(setCookies.some((value) => value.startsWith('__Host-asynchat-csrf=') && !value.includes('HttpOnly')));
   });
 
-  test('the same passkey signs in to the original actor after a D1/workerd restart', async () => {
+  test('the same passkey signs in to the original actor after a local SQLite connection reopen', async () => {
     const persist = await mkdtemp(join(tmpdir(), 'asyn-auth-reopen-'));
     const first = await createHarness({ persistDir: persist });
     const player = await makePlayer(first);
@@ -120,6 +128,9 @@ describe('messaging auth on local SQLite adapter', { concurrency: false }, () =>
     assert.deepEqual(responses.map((response) => response.status).sort(), [201, 409]);
     assert.equal((await h.db.prepare('SELECT COUNT(*) AS count FROM auth_accounts').first()).count, 1);
     assert.equal((await h.db.prepare('SELECT COUNT(*) AS count FROM auth_invitations WHERE consumed_at IS NOT NULL').first()).count, 1);
+    const successful = responses.find((response) => response.status === 201);
+    const sessionCookie = cookieFrom(successful, '__Host-asynchat');
+    assert.equal((await h.request('/v1/auth/session', { cookie: sessionCookie })).status, 200);
   });
 
   test('replayed registration challenge cannot create a second actor', async () => {
@@ -236,21 +247,21 @@ describe('messaging auth on local SQLite adapter', { concurrency: false }, () =>
   });
 
   test('session resolver distinguishes absent, active, expired and revoked', async () => {
-    const absent = await resolveSession(new Request(`${ORIGIN}/`, { headers: {} }), h.db);
+    const absent = await resolveSession(new Request(`${ORIGIN}/`, { headers: {} }), h.db, h.authority);
     assert.equal(absent.state, 'absent');
     const player = await makePlayer();
-    let session = await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: player.sessionCookie } }), h.db);
+    let session = await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: player.sessionCookie } }), h.db, h.authority);
     assert.equal(session.state, 'active');
     await h.db.prepare('UPDATE auth_sessions SET idle_expires_at = ? WHERE session_id = ?').bind(Date.now() - 1, session.sessionId).run();
-    session = await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: player.sessionCookie } }), h.db);
+    session = await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: player.sessionCookie } }), h.db, h.authority);
     assert.equal(session.state, 'expired');
     const fresh = await login(h, player.credential, player.userHandle, { counter: 0 });
     const freshCookies = sessionCookies(fresh.response);
-    const active = await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: freshCookies.session } }), h.db);
+    const active = await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: freshCookies.session } }), h.db, h.authority);
     assert.equal(active.state, 'active');
     const logout = await h.request('/v1/auth/logout', { method: 'POST', cookie: `${freshCookies.session}; ${freshCookies.csrf}`, csrf: fresh.body.csrfToken, body: {} });
     assert.equal(logout.status, 200);
-    const revoked = await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: freshCookies.session } }), h.db);
+    const revoked = await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: freshCookies.session } }), h.db, h.authority);
     assert.equal(revoked.state, 'revoked');
   });
 
@@ -369,16 +380,16 @@ describe('messaging auth on local SQLite adapter', { concurrency: false }, () =>
   test('session fence and protected effect roll back together when its guard fails', async () => {
     const player = await makePlayer();
     await createFenceEffectGuard();
-    const resolved = await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: player.sessionCookie } }), h.db);
+    const resolved = await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: player.sessionCookie } }), h.db, h.authority);
     await h.db.batch([
-      await createSessionFenceStatement(h.db, resolved, 'authorized-fence', Date.now()),
+      await rawFenceStatement(h.db, resolved, 'authorized-fence', Date.now()),
       h.db.prepare('INSERT INTO auth_test_effects(effect_id, fence_id) VALUES (?, ?)').bind('authorized-effect', 'authorized-fence'),
     ]);
     assert.equal((await h.db.prepare('SELECT COUNT(*) AS count FROM auth_test_effects').first()).count, 1);
     assert((await h.db.prepare('SELECT consumed_at FROM auth_session_fences WHERE operation_id = ?').bind('authorized-fence').first()).consumed_at !== null);
     await h.request('/v1/auth/sessions/revoke-all', { method: 'POST', cookie: `${player.sessionCookie}; ${player.csrfCookie}`, csrf: player.csrf, body: {} });
     await assert.rejects(h.db.batch([
-      await createSessionFenceStatement(h.db, resolved, 'fence-after-revoke', Date.now()),
+      await rawFenceStatement(h.db, resolved, 'fence-after-revoke', Date.now()),
       h.db.prepare('INSERT INTO auth_test_effects(effect_id, fence_id) VALUES (?, ?)').bind('must-roll-back', 'fence-after-revoke'),
     ]));
     assert.equal((await h.db.prepare('SELECT COUNT(*) AS count FROM auth_session_fences').first()).count, 1);
@@ -388,9 +399,9 @@ describe('messaging auth on local SQLite adapter', { concurrency: false }, () =>
   test('revocation racing an authorized effect is atomic, and no effect commits after revoke', async () => {
     const player = await makePlayer();
     await createFenceEffectGuard();
-    const resolved = await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: player.sessionCookie } }), h.db);
+    const resolved = await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: player.sessionCookie } }), h.db, h.authority);
     const attemptFence = h.db.batch([
-      await createSessionFenceStatement(h.db, resolved, 'racing-fence', Date.now()),
+      await rawFenceStatement(h.db, resolved, 'racing-fence', Date.now()),
       h.db.prepare('INSERT INTO auth_test_effects(effect_id, fence_id) VALUES (?, ?)').bind('race-effect', 'racing-fence'),
     ]);
     const revoke = h.request('/v1/auth/sessions/revoke-all', { method: 'POST', cookie: `${player.sessionCookie}; ${player.csrfCookie}`, csrf: player.csrf, body: {} });
@@ -398,9 +409,9 @@ describe('messaging auth on local SQLite adapter', { concurrency: false }, () =>
     const after = await h.db.prepare('SELECT COUNT(*) AS count FROM auth_test_effects').first();
     assert(after.count === 0 || after.count === 1);
     assert.equal((await h.request('/v1/auth/session', { cookie: player.sessionCookie })).status, 401);
-    const stale = await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: player.sessionCookie } }), h.db);
+    const stale = await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: player.sessionCookie } }), h.db, h.authority);
     await assert.rejects(h.db.batch([
-      await createSessionFenceStatement(h.db, stale, 'after-revoke-fence', Date.now()),
+      await rawFenceStatement(h.db, stale, 'after-revoke-fence', Date.now()),
       h.db.prepare('INSERT INTO auth_test_effects(effect_id, fence_id) VALUES (?, ?)').bind('forbidden-effect', 'after-revoke-fence'),
     ]));
     assert.equal((await h.db.prepare('SELECT COUNT(*) AS count FROM auth_test_effects').first()).count, after.count);
@@ -494,7 +505,7 @@ describe('messaging auth on local SQLite adapter', { concurrency: false }, () =>
     const expiredResponse = await h.request('/v1/auth/register/options', { method: 'POST', body: { invitationToken: expired.invitationToken } });
     assert.equal(expiredResponse.status, 400);
     const revoked = await issueInvite(h);
-    await h.db.prepare('UPDATE auth_invitations SET revoked_at = ? WHERE invitation_id = ?').bind(Date.now(), revoked.invitationId).run();
+    await h.authority.runExclusive(() => h.authority.revokeInvitation(h.db, revoked.invitationId, Date.now()));
     const revokedResponse = await h.request('/v1/auth/register/options', { method: 'POST', body: { invitationToken: revoked.invitationToken } });
     assert.equal(revokedResponse.status, 400);
     assert.equal((await h.db.prepare('SELECT COUNT(*) AS count FROM auth_accounts').first()).count, 0);
@@ -517,13 +528,13 @@ describe('messaging auth on local SQLite adapter', { concurrency: false }, () =>
 
   test('expired session records are pruned only after the configured retention window', async () => {
     const player = await makePlayer();
-    const session = await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: player.sessionCookie } }), h.db);
+    const session = await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: player.sessionCookie } }), h.db, h.authority);
     const revokedAt = Date.now() - 100000;
     await h.db.prepare('UPDATE auth_sessions SET revoked_at = ? WHERE session_id = ?').bind(revokedAt, session.sessionId).run();
-    await pruneTerminalSessions(h.db, Date.now(), 200000);
-    assert.equal((await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: player.sessionCookie } }), h.db)).state, 'revoked');
-    await pruneTerminalSessions(h.db, Date.now(), 1000);
-    assert.equal((await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: player.sessionCookie } }), h.db)).state, 'absent');
+    await pruneTerminalSessions(h.db, Date.now(), 200000, h.authority);
+    assert.equal((await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: player.sessionCookie } }), h.db, h.authority)).state, 'revoked');
+    await pruneTerminalSessions(h.db, Date.now(), 1000, h.authority);
+    assert.equal((await resolveSession(new Request(`${ORIGIN}/`, { headers: { cookie: player.sessionCookie } }), h.db, h.authority)).state, 'absent');
   });
 
   test('all external errors use bounded codes and never include tokens or raw exception text', async () => {
