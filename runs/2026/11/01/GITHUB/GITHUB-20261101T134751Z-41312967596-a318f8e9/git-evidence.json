@@ -1,0 +1,106 @@
+{
+  "branch": "HEAD",
+  "commands": [
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--show-toplevel"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-11-01T13:47:51Z",
+      "stderr": "",
+      "stdout": "<HOME>/work/AsyncScene/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "--abbrev-ref",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-11-01T13:47:51Z",
+      "stderr": "",
+      "stdout": "HEAD\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-11-01T13:47:51Z",
+      "stderr": "",
+      "stdout": "b619ea5aeadf8277ee2dd00862243726e126c9e5\n"
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain=v2",
+        "--branch"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-11-01T13:47:52Z",
+      "stderr": "",
+      "stdout": "# branch.oid b619ea5aeadf8277ee2dd00862243726e126c9e5\n# branch.head (detached)\n"
+    },
+    {
+      "command": [
+        "git",
+        "log",
+        "--oneline",
+        "--decorate",
+        "-n",
+        "5"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-11-01T13:47:52Z",
+      "stderr": "",
+      "stdout": "b619ea5a (HEAD, pull/464/merge) Merge fa4a37c99afc273dc3d9dc1a3b614baf345b5453 into 0ae97ff6456a4f3735606dace6a249adcb29ad90\nfa4a37c9 (origin/codex/chat04-2-dm-security-fixtures-20261101) test(04.2): validate DM security scenario catalog\nc61f1c53 test(04.2): add 24 synthetic DM security scenarios\n812ffe31 docs(04.2): define isolated DM security fixture boundaries\n0ae97ff6 (origin/main) Merge branch 'main' of https://github.com/samuray-games/AsyncScene\n"
+    },
+    {
+      "command": [
+        "git",
+        "worktree",
+        "list",
+        "--porcelain"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-11-01T13:47:52Z",
+      "stderr": "",
+      "stdout": "worktree <HOME>/work/AsyncScene/AsyncScene\nHEAD b619ea5aeadf8277ee2dd00862243726e126c9e5\ndetached\n\n"
+    },
+    {
+      "command": [
+        "git",
+        "remote",
+        "-v"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-11-01T13:47:52Z",
+      "stderr": "",
+      "stdout": "origin\thttps://github.com/samuray-games/AsyncScene (fetch)\norigin\thttps://github.com/samuray-games/AsyncScene (push)\n"
+    },
+    {
+      "command": [
+        "git",
+        "rev-parse",
+        "origin/main"
+      ],
+      "exitCode": 0,
+      "observedAtUtc": "2026-11-01T13:47:52Z",
+      "stderr": "",
+      "stdout": "0ae97ff6456a4f3735606dace6a249adcb29ad90\n"
+    }
+  ],
+  "cwd": "<HOME>/work/AsyncScene/AsyncScene",
+  "head": "b619ea5aeadf8277ee2dd00862243726e126c9e5",
+  "observedAtUtc": "2026-11-01T13:47:52Z",
+  "refs": [
+    "origin/main"
+  ],
+  "repositoryRoot": "<HOME>/work/AsyncScene/AsyncScene"
+}
