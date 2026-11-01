@@ -22,8 +22,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Check Worker, both clients, and API test syntax
-        run: node --check gameplay-server/src/worker.js && node --check gameplay-server/test/private_api_local_test.mjs && node --check gameplay-server/test/hosted_chat03b2_d1_preflight.mjs && node --check gameplay-server/test/hosted_chat03b2_d1_preflight.test.mjs && node --check gameplay-server/dev-harness/api.mjs && node --check gameplay-server/dev-harness/client.mjs && node --check gameplay-server/dev-harness/create_local_battle.mjs && node --check gameplay-server/dev-harness/presentation.mjs && node --check gameplay-server/test/two_player_harness.test.mjs && node --check gameplay-server/remote-client/app.mjs && node --check gameplay-server/remote-client/client.mjs && node --check gameplay-server/remote-client/build.mjs && node --check gameplay-server/remote-client/config.mjs && node --check gameplay-server/test/remote_client.test.mjs
+      - name: Check Worker, both clients, API test syntax, and Chat05A contract syntax
+        run: node --check gameplay-server/src/worker.js && node --check gameplay-server/test/private_api_local_test.mjs && node --check gameplay-server/test/hosted_chat03b2_d1_preflight.mjs && node --check gameplay-server/test/hosted_chat03b2_d1_preflight.test.mjs && node --check gameplay-server/dev-harness/api.mjs && node --check gameplay-server/dev-harness/client.mjs && node --check gameplay-server/dev-harness/create_local_battle.mjs && node --check gameplay-server/dev-harness/presentation.mjs && node --check gameplay-server/test/two_player_harness.test.mjs && node --check gameplay-server/remote-client/app.mjs && node --check gameplay-server/remote-client/client.mjs && node --check gameplay-server/remote-client/build.mjs && node --check gameplay-server/remote-client/config.mjs && node --check gameplay-server/test/remote_client.test.mjs && node --check gameplay-server/src/social-vote-contract.mjs && node --check gameplay-server/test/social_vote_contract_test.mjs
+      - name: Chat05A pure trigger and stable vote ID contract tests
+        run: node --test gameplay-server/test/social_vote_contract_test.mjs
       - name: Participant-only remote client contract and storage regressions
         run: node gameplay-server/test/remote_client.test.mjs
       - name: Hosted D1 harness offline safety tests (no Cloudflare credentials)

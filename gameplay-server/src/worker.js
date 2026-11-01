@@ -6,6 +6,7 @@
 
 import "../../AsyncScene/Web/conflict/tactical-resolver.js";
 import "../../AsyncScene/Web/conflict/tactical-lifecycle.js";
+import { deriveSocialVoteId, canonicalWordSignature, TEXT_NORMALIZATION_VERSION } from "./social-vote-contract.mjs";
 
 const lifecycle = globalThis.TacticalCombatLifecycleV1.createLifecycle(globalThis.Game.TacticalCombatV1);
 const MAX_BODY = 8192;
@@ -15,6 +16,10 @@ const SELECTION_FIELDS = ["attackColor", "defenseColor", "attackType", "defenseT
 const SELECTION_COLORS = new Set(["y", "o", "r", "k"]);
 const SELECTION_ATTACKS = new Set(["N", "P", "T"]);
 const SELECTION_DEFENSES = new Set(["S", "C", "G"]);
+const TEXT_CHANNELS = ["attack", "defense"];
+const TEXT_SIDES = ["A", "B"];
+const MAX_TEXT_BYTES = 4096;
+const MAX_TEXT_CODEPOINTS = 1000;
 
 function normalizeSelection(selection, expectedRole) {
   if (!selection || typeof selection !== "object" || Array.isArray(selection) ||
@@ -204,6 +209,131 @@ function participantValid(p) {
     p.role !== "mafia"; // V12 black-color/mafia gate not approved
 }
 
+function exactObjectKeys(value, keys) {
+  return value && typeof value === "object" && !Array.isArray(value) &&
+    Object.keys(value).length === keys.length &&
+    keys.every(key => Object.prototype.hasOwnProperty.call(value, key));
+}
+
+function validText(value) {
+  if (typeof value !== "string" || !value.trim() ||
+      te.encode(value).length > MAX_TEXT_BYTES || Array.from(value).length > MAX_TEXT_CODEPOINTS ||
+      value.includes("\u0000")) return false;
+  for (let i = 0; i < value.length; i++) {
+    const code = value.charCodeAt(i);
+    if (code >= 0xd800 && code <= 0xdbff) {
+      const next = value.charCodeAt(i + 1);
+      if (!(next >= 0xdc00 && next <= 0xdfff)) return false;
+      i++;
+    } else if (code >= 0xdc00 && code <= 0xdfff) return false;
+  }
+  return true;
+}
+
+function validateTextOffers(body) {
+  if (!exactObjectKeys(body, ["catalogVersion", "offers"]) ||
+      typeof body.catalogVersion !== "string" || !/^[A-Za-z0-9._-]{1,64}$/.test(body.catalogVersion) ||
+      !Array.isArray(body.offers) || body.offers.length < 4 || body.offers.length > 256) return null;
+  const seen = new Set(), counts = new Set(), normalized = [];
+  for (const offer of body.offers) {
+    if (!exactObjectKeys(offer, ["side", "channel", "offerId", "text"]) ||
+        !TEXT_SIDES.includes(offer.side) || !TEXT_CHANNELS.includes(offer.channel) ||
+        typeof offer.offerId !== "string" || !/^[A-Za-z0-9_-]{1,64}$/.test(offer.offerId) || !validText(offer.text)) return null;
+    const key = offer.side + ":" + offer.channel + ":" + offer.offerId;
+    if (seen.has(key)) return null;
+    seen.add(key);
+    counts.add(offer.side + ":" + offer.channel);
+    normalized.push({ side: offer.side, channel: offer.channel, offerId: offer.offerId,
+      phraseText: offer.text, wordSignature: canonicalWordSignature(offer.text) });
+  }
+  if (counts.size !== 4) return null;
+  return { catalogVersion: body.catalogVersion, normalizationVersion: TEXT_NORMALIZATION_VERSION, offers: normalized };
+}
+
+async function pinTextOffers(db, battleId, body) {
+  const catalog = validateTextOffers(body);
+  if (!catalog) return { error: "INVALID_TEXT_CATALOG", status: 400 };
+  const battle = await db.prepare("SELECT state_json FROM gameplay_battles WHERE battle_id=?").bind(battleId).first();
+  if (!battle) return { error: "NOT_FOUND", status: 404 };
+  const state = JSON.parse(battle.state_json);
+  if (!["created", "waiting"].includes(state.phase) || Object.keys(state.commits || {}).length !== 0) {
+    return { error: "TEXT_CATALOG_TOO_LATE", status: 409 };
+  }
+  const bindings = await db.prepare("SELECT COUNT(*) AS count FROM gameplay_battle_persons WHERE battle_id=?")
+    .bind(battleId).first();
+  if (bindings?.count !== 2) return { error: "TEXT_PARTICIPANTS_UNBOUND", status: 409 };
+  const manifestOffers = catalog.offers.slice().sort((a, b) =>
+    (a.side + ":" + a.channel + ":" + a.offerId).localeCompare(b.side + ":" + b.channel + ":" + b.offerId));
+  const manifestHash = await sha256hex(canonical({
+    catalogVersion: catalog.catalogVersion,
+    normalizationVersion: catalog.normalizationVersion,
+    offers: manifestOffers,
+  }));
+  const writes = [
+    db.prepare("INSERT INTO gameplay_battle_text_catalogs (battle_id,catalog_version,normalization_version,expected_offer_count,manifest_sha256,sealed,created_at_ms) VALUES (?,?,?,?,?,0,?)")
+      .bind(battleId, catalog.catalogVersion, catalog.normalizationVersion, catalog.offers.length, manifestHash, Date.now()),
+    ...catalog.offers.map(offer => db.prepare(
+      "INSERT INTO gameplay_battle_text_offers (battle_id,side,channel,offer_id,phrase_text,word_signature) VALUES (?,?,?,?,?,?)"
+    ).bind(battleId, offer.side, offer.channel, offer.offerId, offer.phraseText, offer.wordSignature)),
+    db.prepare("UPDATE gameplay_battle_text_catalogs SET sealed=1 WHERE battle_id=? AND sealed=0").bind(battleId),
+  ];
+  try {
+    await db.batch(writes);
+    return { status: 201, catalogVersion: catalog.catalogVersion, normalizationVersion: catalog.normalizationVersion };
+  } catch (error) {
+    if (String(error).includes("TEXT_CATALOG_IMMUTABLE")) return { error: "TEXT_CATALOG_IMMUTABLE", status: 409 };
+    if (String(error).includes("TEXT_CATALOG_TOO_LATE")) return { error: "TEXT_CATALOG_TOO_LATE", status: 409 };
+    throw error;
+  }
+}
+
+async function prepareTextIntent(db, battleId, side, body) {
+  const catalog = await db.prepare("SELECT catalog_version,normalization_version FROM gameplay_battle_text_catalogs WHERE battle_id=? AND sealed=1")
+    .bind(battleId).first();
+  const supplied = Object.prototype.hasOwnProperty.call(body, "textIntent");
+  if (!catalog) return supplied ? { error: "TEXT_NOT_ENABLED", status: 409 } : { value: null };
+  if (!supplied || !exactObjectKeys(body.textIntent, TEXT_CHANNELS)) return { error: "TEXT_INTENT_REQUIRED", status: 409 };
+  if (catalog.normalization_version !== TEXT_NORMALIZATION_VERSION) return { error: "TEXT_NORMALIZATION_UNSUPPORTED", status: 409 };
+  const prepared = { catalogVersion: catalog.catalog_version, normalizationVersion: catalog.normalization_version };
+  for (const channel of TEXT_CHANNELS) {
+    const intent = body.textIntent[channel];
+    if (!intent || typeof intent !== "object" || Array.isArray(intent) ||
+        !Object.prototype.hasOwnProperty.call(intent, "offerId") ||
+        Object.keys(intent).some(key => !["offerId", "finalText"].includes(key)) ||
+        typeof intent.offerId !== "string" || !/^[A-Za-z0-9_-]{1,64}$/.test(intent.offerId) ||
+        (Object.prototype.hasOwnProperty.call(intent, "finalText") && !validText(intent.finalText))) return { error: "INVALID_TEXT_INTENT", status: 400 };
+    const offer = await db.prepare("SELECT phrase_text,word_signature FROM gameplay_battle_text_offers WHERE battle_id=? AND side=? AND channel=? AND offer_id=?")
+      .bind(battleId, side, channel, intent.offerId).first();
+    if (!offer) return { error: "UNKNOWN_TEXT_OFFER", status: 409 };
+    const finalText = Object.prototype.hasOwnProperty.call(intent, "finalText") ? intent.finalText : offer.phrase_text;
+    const signature = canonicalWordSignature(finalText);
+    prepared[channel] = { offerId: intent.offerId, finalText, wordSignature: signature, wordsEdited: signature !== offer.word_signature };
+  }
+  return { value: prepared };
+}
+
+async function participantView(db, state, participantId) {
+  const view = lifecycle.getPublicView(state, participantId);
+  const side = state.participants.A?.id === participantId ? "A" : state.participants.B?.id === participantId ? "B" : null;
+  if (!side) return view;
+  const catalog = await db.prepare("SELECT catalog_version,normalization_version FROM gameplay_battle_text_catalogs WHERE battle_id=? AND sealed=1")
+    .bind(state.battleId).first();
+  if (!catalog) return view;
+  if (state.phase !== "revealed") {
+    const rows = await db.prepare("SELECT channel,offer_id,phrase_text FROM gameplay_battle_text_offers WHERE battle_id=? AND side=? ORDER BY channel,offer_id")
+      .bind(state.battleId, side).all();
+    return { ...view, readyTextOffers: { catalogVersion: catalog.catalog_version,
+      normalizationVersion: catalog.normalization_version, offers: rows.results || [] } };
+  }
+  const rows = await db.prepare("SELECT side,attack_offer_id,attack_text,attack_words_edited,defense_offer_id,defense_text,defense_words_edited FROM gameplay_battle_text_commits WHERE battle_id=? ORDER BY side")
+    .bind(state.battleId).all();
+  if ((rows.results || []).length !== 2) throw Error("TEXT_REVEAL_INCOMPLETE");
+  return { ...view, committedTexts: Object.fromEntries(rows.results.map(row => [row.side, {
+    attack: { offerId: row.attack_offer_id, text: row.attack_text, wordsEdited: row.attack_words_edited === 1 },
+    defense: { offerId: row.defense_offer_id, text: row.defense_text, wordsEdited: row.defense_words_edited === 1 },
+  }])) };
+}
+
 async function load(db, id) {
   const row = await db.prepare(
     "SELECT version,state_json FROM gameplay_battles WHERE battle_id=?"
@@ -267,7 +397,7 @@ async function storedParticipantReceipt(db, id, commandId, authorized) {
     authorized.token_sha256, authorized.generation).first();
 }
 
-function insertTransition(db, current, result, commandId, fingerprint, now) {
+function transitionStatement(db, current, result, commandId, fingerprint, now) {
   const newlyEmitted = result.state.events.filter(x => result.eventIds.includes(x.eventId));
   if (newlyEmitted.length !== result.eventIds.length) throw Error("EVENT_SOURCE_MISMATCH");
   return db.prepare(
@@ -278,7 +408,22 @@ function insertTransition(db, current, result, commandId, fingerprint, now) {
   ).bind(
     current.battleId, current.version, commandId, fingerprint, result.code,
     JSON.stringify(result.eventIds), JSON.stringify(result.state), JSON.stringify(newlyEmitted), now,
-  ).run();
+  );
+}
+
+function textTransitionStatement(db, current, result, commandId, fingerprint, now, authorized, textIntent) {
+  const newlyEmitted = result.state.events.filter(x => result.eventIds.includes(x.eventId));
+  if (newlyEmitted.length !== result.eventIds.length) throw Error("EVENT_SOURCE_MISMATCH");
+  return db.prepare(
+    `INSERT INTO gameplay_apply_participant_text_transition (battle_id,expected_version,command_id,fingerprint,receipt_code,receipt_event_ids_json,next_state_json,events_json,trusted_now_ms,capability_side,capability_token_sha256,expected_generation,catalog_version,normalization_version,attack_offer_id,attack_text,attack_signature,attack_words_edited,defense_offer_id,defense_text,defense_signature,defense_words_edited) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+  ).bind(current.battleId, current.version, commandId, fingerprint, result.code, JSON.stringify(result.eventIds),
+    JSON.stringify(result.state), JSON.stringify(newlyEmitted), now, authorized.side, authorized.token_sha256, authorized.generation,
+    textIntent.catalogVersion, textIntent.normalizationVersion, textIntent.attack.offerId, textIntent.attack.finalText,
+    textIntent.attack.wordSignature, Number(textIntent.attack.wordsEdited), textIntent.defense.offerId,
+    textIntent.defense.finalText, textIntent.defense.wordSignature, Number(textIntent.defense.wordsEdited));
+}
+function insertTransition(db, current, result, commandId, fingerprint, now) {
+  return transitionStatement(db, current, result, commandId, fingerprint, now).run();
 }
 
 function insertParticipantTransition(db, current, result, commandId, fingerprint, now, authorized) {
@@ -295,6 +440,149 @@ function insertParticipantTransition(db, current, result, commandId, fingerprint
     JSON.stringify(result.eventIds), JSON.stringify(result.state), JSON.stringify(newlyEmitted), now,
     authorized.side, authorized.token_sha256, authorized.generation,
   ).run();
+}
+
+async function registerPerson(db, idempotencyKey) {
+  const keyHash = await sha256hex("chat05a:person-registration:v1:" + idempotencyKey);
+  const prior = await db.prepare(
+    "SELECT person_id FROM gameplay_person_registration_requests WHERE idempotency_key_sha256=?"
+  ).bind(keyHash).first();
+  if (prior) return { personId: prior.person_id, status: 200 };
+  const personId = crypto.randomUUID();
+  const now = Date.now();
+  try {
+    await db.batch([
+      db.prepare("INSERT INTO gameplay_persons (person_id,created_at_ms) VALUES (?,?)")
+        .bind(personId, now),
+      db.prepare("INSERT INTO gameplay_person_registration_requests (idempotency_key_sha256,person_id,created_at_ms) VALUES (?,?,?)")
+        .bind(keyHash, personId, now),
+    ]);
+  } catch (error) {
+    const winner = await db.prepare(
+      "SELECT person_id FROM gameplay_person_registration_requests WHERE idempotency_key_sha256=?"
+    ).bind(keyHash).first();
+    if (winner) return { personId: winner.person_id, status: 200 };
+    throw error;
+  }
+  return { personId, status: 201 };
+}
+
+function validPersonId(value) {
+  return typeof value === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(value);
+}
+
+async function issueSpectatorCapability(db, battleId, personId, expectedGeneration) {
+  if (!validPersonId(personId) || !Number.isSafeInteger(expectedGeneration) ||
+      expectedGeneration < 0 || expectedGeneration >= 9007199254740991) {
+    return { error: "INVALID_SPECTATOR_CAPABILITY_REQUEST", status: 400 };
+  }
+  const battle = await db.prepare("SELECT 1 AS found FROM gameplay_battles WHERE battle_id=?")
+    .bind(battleId).first();
+  if (!battle) return { error: "BATTLE_NOT_FOUND", status: 404 };
+  const person = await db.prepare("SELECT person_id FROM gameplay_persons WHERE person_id=?")
+    .bind(personId).first();
+  if (!person) return { error: "PERSON_NOT_FOUND", status: 404 };
+  const participant = await db.prepare(
+    "SELECT 1 AS found FROM gameplay_battle_persons WHERE battle_id=? AND person_id=?"
+  ).bind(battleId, personId).first();
+  if (participant) return { error: "PARTICIPANT_CANNOT_RECEIVE_SPECTATOR_CAPABILITY", status: 409 };
+
+  const current = await db.prepare(
+    "SELECT status,generation FROM gameplay_battle_spectator_capabilities WHERE battle_id=? AND person_id=?"
+  ).bind(battleId, personId).first();
+  if ((expectedGeneration === 0 && current) ||
+      (expectedGeneration > 0 && (!current || current.generation !== expectedGeneration))) {
+    return { error: "STALE_GENERATION", status: 409 };
+  }
+
+  const token = newCapability();
+  const digest = await sha256hex(token);
+  const now = Date.now();
+  if (expectedGeneration === 0) {
+    try {
+      await db.prepare(
+        `INSERT INTO gameplay_battle_spectator_capabilities
+         (battle_id,person_id,token_sha256,created_at_ms,status,generation)
+         VALUES (?,?,?,?,'active',1)`
+      ).bind(battleId, personId, digest, now).run();
+    } catch (_) {
+      return { error: "STALE_GENERATION", status: 409 };
+    }
+    return { personId, token, generation: 1, status: 201 };
+  }
+  const updated = await db.prepare(
+    `UPDATE gameplay_battle_spectator_capabilities
+     SET token_sha256=?,status='active',generation=generation+1
+     WHERE battle_id=? AND person_id=? AND generation=?
+     RETURNING generation`
+  ).bind(digest, battleId, personId, expectedGeneration).all();
+  const row = updated.results?.[0];
+  if (!row) return { error: "STALE_GENERATION", status: 409 };
+  return { personId, token, generation: row.generation, status: 200 };
+}
+
+async function revokeSpectatorCapability(db, battleId, personId, expectedGeneration) {
+  if (!validPersonId(personId) || !Number.isSafeInteger(expectedGeneration) ||
+      expectedGeneration < 1 || expectedGeneration >= 9007199254740991) {
+    return { error: "INVALID_EXPECTED_GENERATION", status: 400 };
+  }
+  const updated = await db.prepare(
+    `UPDATE gameplay_battle_spectator_capabilities
+     SET status='revoked',generation=generation+1
+     WHERE battle_id=? AND person_id=? AND status='active' AND generation=?
+     RETURNING generation`
+  ).bind(battleId, personId, expectedGeneration).all();
+  const row = updated.results?.[0];
+  if (!row) return { error: "STALE_GENERATION", status: 409 };
+  return { personId, capabilityStatus: "revoked", generation: row.generation };
+}
+
+async function authorizeSpectator(db, battleId, token) {
+  if (!token) return null;
+  const tokenHash = await sha256hex(token);
+  return db.prepare(
+    `SELECT c.person_id,c.token_sha256,c.generation,v.vote_id
+     FROM gameplay_battle_spectator_capabilities c
+     JOIN gameplay_social_votes v ON v.battle_id=c.battle_id AND v.status='open'
+     WHERE c.battle_id=? AND c.token_sha256=? AND c.status='active'`
+  ).bind(battleId, tokenHash).first();
+}
+
+async function readBallot(db, voteId, personId) {
+  return db.prepare(
+    "SELECT choice FROM gameplay_social_ballots WHERE vote_id=? AND person_id=?"
+  ).bind(voteId, personId).first();
+}
+
+async function castSocialBallot(db, battleId, auth, token, choice) {
+  const existing = await readBallot(db, auth.vote_id, auth.person_id);
+  if (existing) return existing.choice === choice
+    ? { voteId: auth.vote_id, choice, replayed: true }
+    : { error: "BALLOT_IMMUTABLE", status: 409 };
+  try {
+    await db.prepare(
+      `INSERT INTO gameplay_cast_social_vote
+       (battle_id,vote_id,token_sha256,expected_generation,choice,trusted_now_ms)
+       VALUES (?,?,?,?,?,?)`
+    ).bind(battleId, auth.vote_id, auth.token_sha256, auth.generation, choice, Date.now()).run();
+    return { voteId: auth.vote_id, choice, replayed: false };
+  } catch (error) {
+    // A concurrent retry may have won the unique (voteId, personId) insert.
+    // Reauthorize after the failed insert so a concurrent revoke fails closed.
+    const current = await authorizeSpectator(db, battleId, token);
+    if (!current || current.person_id !== auth.person_id ||
+        current.vote_id !== auth.vote_id || current.generation !== auth.generation) {
+      return { error: "UNAUTHORIZED", status: 401 };
+    }
+    const winner = await readBallot(db, auth.vote_id, auth.person_id);
+    if (winner) return winner.choice === choice
+      ? { voteId: auth.vote_id, choice, replayed: true }
+      : { error: "BALLOT_IMMUTABLE", status: 409 };
+    if (String(error).includes("INVALID_SPECTATOR_CAPABILITY")) {
+      return { error: "UNAUTHORIZED", status: 401 };
+    }
+    throw error;
+  }
 }
 
 async function storedCreation(db, idempotencyHash) {
@@ -349,14 +637,22 @@ async function recoverCreation(row, fingerprint, idempotencyHash, env) {
 }
 
 async function createBattle(db, body, env, idempotencyKey) {
-  if (!exactKeys(body, ["participants"])) return { error: "INVALID_CREATE", status: 400 };
+  if (!exactKeys(body, ["participants", "personIds"])) return { error: "INVALID_CREATE", status: 400 };
   const ps = body.participants;
+  const personIds = body.personIds;
   if (!ps || !participantValid(ps.A) || !participantValid(ps.B) ||
       !exactKeys(ps, ["A", "B"]) || ps.A.id === ps.B.id) {
     return { error: "INVALID_PARTICIPANTS", status: 400 };
   }
+  if (!personIds || !exactKeys(personIds, ["A", "B"]) ||
+      !validPersonId(personIds.A) || !validPersonId(personIds.B) ||
+      personIds.A === personIds.B) return { error: "INVALID_PERSON_BINDINGS", status: 400 };
+  const registered = await db.prepare(
+    "SELECT COUNT(*) AS count FROM gameplay_persons WHERE person_id IN (?,?)"
+  ).bind(personIds.A, personIds.B).first();
+  if (registered?.count !== 2) return { error: "PERSON_NOT_FOUND", status: 409 };
   const idempotencyHash = await sha256hex("chat03b2:create-battle:v1:" + idempotencyKey);
-  const fingerprint = await sha256hex(canonical({ participants: ps }));
+  const fingerprint = await sha256hex(canonical({ participants: ps, personIds }));
   const prior = await storedCreation(db, idempotencyHash);
   if (prior) return recoverCreation(prior, fingerprint, idempotencyHash, env);
   const now = Date.now();
@@ -386,6 +682,12 @@ async function createBattle(db, body, env, idempotencyKey) {
     db.prepare(
       "INSERT INTO gameplay_create_battle (battle_id,initial_state_json,creation_event_json,trusted_now_ms) VALUES (?,?,?,?)"
     ).bind(id, JSON.stringify(created.state), JSON.stringify(created.state.events[0]), now),
+    db.prepare(
+      "INSERT INTO gameplay_battle_persons (battle_id,side,person_id) VALUES (?,?,?)"
+    ).bind(id, "A", personIds.A),
+    db.prepare(
+      "INSERT INTO gameplay_battle_persons (battle_id,side,person_id) VALUES (?,?,?)"
+    ).bind(id, "B", personIds.B),
     db.prepare(
       `INSERT INTO gameplay_battle_capabilities
        (battle_id,side,participant_id,token_sha256,created_at_ms,status,generation)
@@ -478,12 +780,53 @@ async function applySystem(db, id, type) {
     if (type === "reveal" && state.phase !== "committed") return false;
     if (type === "expire" && (!["created", "waiting"].includes(state.phase) || Date.now() < state.deadlineAt)) return false;
     const now = Date.now();
-    const result = lifecycle.execute(state, {
+    const baseCommand = {
       commandId, expectedVersion: state.version, type, actorId: "system",
-    }, now);
+    };
+    let result = lifecycle.execute(state, baseCommand, now);
     if (!result.ok) return false;
+    let socialVoteTrigger = "NONE";
+    if (type === "reveal") {
+      const catalog = await db.prepare(
+        "SELECT 1 AS present FROM gameplay_battle_text_catalogs WHERE battle_id=? AND sealed=1"
+      ).bind(id).first();
+      let authoredEdit = false;
+      if (catalog) {
+        const textRows = await db.prepare(
+          "SELECT COUNT(*) AS count, MAX(attack_words_edited + defense_words_edited) AS has_edit FROM gameplay_battle_text_commits WHERE battle_id=?"
+        ).bind(id).first();
+        if (textRows?.count !== 2) throw Error("TEXT_REVEAL_INCOMPLETE");
+        authoredEdit = Number(textRows.has_edit) > 0;
+      }
+      if (result.state.mechanicalOutcome === "DRAW") {
+        socialVoteTrigger = authoredEdit ? "BOTH" : "DRAW";
+      } else {
+        socialVoteTrigger = authoredEdit ? "AUTHORED_TEXT" : "NONE";
+      }
+      result = lifecycle.execute(state, { ...baseCommand, socialVoteTrigger }, now);
+      if (!result.ok) return false;
+    }
     try {
-      await insertTransition(db, state, result, commandId, fingerprint, now);
+      // Old battles without trusted people still follow their existing reveal
+      // path. Text catalogs are only accepted for bound participant pairs.
+      const bindingCount = type === "reveal" && socialVoteTrigger !== "NONE"
+        ? await db.prepare("SELECT COUNT(*) AS count FROM gameplay_battle_persons WHERE battle_id=?").bind(id).first()
+        : null;
+      if (type === "reveal" && socialVoteTrigger !== "NONE" && bindingCount?.count === 2) {
+        const voteId = await deriveSocialVoteId(id);
+        await db.batch([
+          transitionStatement(db, state, result, commandId, fingerprint, now),
+          db.prepare(
+            `INSERT INTO gameplay_social_votes
+             (vote_id,battle_id,trigger_reason,status,created_at_ms)
+             VALUES (?,?,?,'open',?)`
+          ).bind(voteId, id, socialVoteTrigger, now),
+        ]);
+      } else {
+        // Reveal remains valid for legacy unbound battles; no person identity
+        // is inferred from a participant capability or browser payload.
+        await insertTransition(db, state, result, commandId, fingerprint, now);
+      }
       return true;
     } catch (error) {
       if (!String(error).includes("VERSION_CONFLICT")) throw error;
@@ -491,17 +834,21 @@ async function applySystem(db, id, type) {
   }
   return false;
 }
-
 async function commit(db, id, authorized, body) {
-  if (!exactKeys(body, ["commandId", "selection"]) ||
+  if (!exactKeys(body, ["commandId", "selection", "textIntent"]) ||
       typeof body.commandId !== "string" || !/^[A-Za-z0-9:_-]{4,100}$/.test(body.commandId) ||
       !body.selection || typeof body.selection !== "object" || Array.isArray(body.selection)) {
     return { error: "INVALID_COMMAND", status: 400 };
   }
+  const textResult = await prepareTextIntent(db, id, authorized.side, body);
+  if (textResult.error) return textResult;
+  const textIntent = textResult.value;
   // Per-player command namespace: two clients may independently generate
   // the same local id. Never let A claim, collide with, or probe B's receipt.
   const scopedCommandId = authorized.side + ":" + body.commandId;
-  const fingerprint = canonical({ side: authorized.side, commandId: body.commandId, selection: body.selection });
+  const fingerprintInput = { side: authorized.side, commandId: body.commandId, selection: body.selection };
+  if (textIntent) fingerprintInput.textIntent = body.textIntent;
+  const fingerprint = canonical(fingerprintInput);
   for (let attempt = 0; attempt < MAX_COMMAND_RETRIES; attempt++) {
     const prior = await storedParticipantReceipt(db, id, scopedCommandId, authorized);
     if (prior) {
@@ -514,7 +861,7 @@ async function commit(db, id, authorized, body) {
       return {
         code: prior.code, replayed: true, eventIds: JSON.parse(prior.event_ids_json),
         version: prior.recorded_version,
-        view: lifecycle.getPublicView(current, authorized.participant_id),
+        view: await participantView(db, current, authorized.participant_id),
       };
     }
     // Recheck the complete capability tuple in the same read that supplies
@@ -548,7 +895,8 @@ async function commit(db, id, authorized, body) {
     const result = lifecycle.execute(state, command, now);
     if (!result.ok) return { error: result.error, status: 409 };
     try {
-      await insertParticipantTransition(db, state, result, command.commandId, fingerprint, now, authorized);
+      if (textIntent) await textTransitionStatement(db, state, result, command.commandId, fingerprint, now, authorized, textIntent).run();
+      else await insertParticipantTransition(db, state, result, command.commandId, fingerprint, now, authorized);
       // Disclosure requires both commits; automatically reveal without trusting
       // client/system credentials. Cron also retries if interrupted here.
       if (result.state.phase === "committed") {
@@ -560,8 +908,9 @@ async function commit(db, id, authorized, body) {
       const latest = await load(db, id);
       return { code: result.code, replayed: false, eventIds: result.eventIds,
         version: result.state.version,
-        view: lifecycle.getPublicView(latest, authorized.participant_id) };
+        view: await participantView(db, latest, authorized.participant_id) };
     } catch (error) {
+      if (String(error).includes("TEXT_COMMIT_REQUIRED")) return { error: "TEXT_INTENT_REQUIRED", status: 409 };
       if (String(error).includes("INVALID_CAPABILITY")) {
         return { error: "INVALID_CAPABILITY", status: 403 };
       }
@@ -599,6 +948,62 @@ async function api(request, env) {
   }
 
   config(env);
+  const textOffersMatch = /^\/v1\/admin\/battles\/([a-f0-9-]{36})\/text-offers$/.exec(pathname);
+  if (textOffersMatch) {
+    if (request.headers.has("origin") || request.method === "OPTIONS") return encodeJSON({ error: "ORIGIN_FORBIDDEN" }, 403);
+    if (request.method !== "POST") return encodeJSON({ error: "METHOD_NOT_ALLOWED" }, 405);
+    if (!adminAuthorized(request, env)) return encodeJSON({ error: "UNAUTHORIZED" }, 401);
+    const result = await pinTextOffers(env.DB, textOffersMatch[1], await parseBody(request));
+    const { status, ...payload } = result;
+    return encodeJSON(payload, status || 200, null);
+  }
+  const personRegistryMatch = pathname === "/v1/admin/persons";
+  const spectatorMatch = /^\/v1\/admin\/battles\/([a-f0-9-]{36})\/spectators\/([A-Za-z0-9_-]{8,64})\/capability(?:\/(revoke|status))?$/.exec(pathname);
+  if (personRegistryMatch || spectatorMatch) {
+    if (request.headers.has("origin") || request.method === "OPTIONS") {
+      return encodeJSON({ error: "ORIGIN_FORBIDDEN" }, 403);
+    }
+    if (!adminAuthorized(request, env)) return encodeJSON({ error: "UNAUTHORIZED" }, 401);
+    if (personRegistryMatch) {
+      if (request.method !== "POST") return encodeJSON({ error: "METHOD_NOT_ALLOWED" }, 405);
+      const body = await parseBody(request);
+      const key = request.headers.get("idempotency-key") || "";
+      if (!exactKeys(body, []) || !/^[A-Za-z0-9_-]{32,128}$/.test(key)) {
+        return encodeJSON({ error: "INVALID_PERSON_REGISTRATION" }, 400);
+      }
+      const result = await registerPerson(env.DB, key);
+      const { status, ...payload } = result;
+      return encodeJSON(payload, status, null);
+    }
+    const [, battleId, personId, operation] = spectatorMatch;
+    if (!operation && request.method === "POST") {
+      const body = await parseBody(request);
+      if (!exactKeys(body, ["expectedGeneration"]) ||
+          !Number.isSafeInteger(body.expectedGeneration) || body.expectedGeneration < 0) {
+        return encodeJSON({ error: "INVALID_SPECTATOR_CAPABILITY_REQUEST" }, 400);
+      }
+      const result = await issueSpectatorCapability(env.DB, battleId, personId, body.expectedGeneration);
+      const { status, ...payload } = result;
+      return encodeJSON(payload, status || 200, null);
+    }
+    if (operation === "revoke" && request.method === "POST") {
+      const body = await parseBody(request);
+      if (!exactKeys(body, ["expectedGeneration"]) ||
+          !Number.isSafeInteger(body.expectedGeneration) || body.expectedGeneration < 1) {
+        return encodeJSON({ error: "INVALID_EXPECTED_GENERATION" }, 400);
+      }
+      const result = await revokeSpectatorCapability(env.DB, battleId, personId, body.expectedGeneration);
+      const { status, ...payload } = result;
+      return encodeJSON(payload, status || 200, null);
+    }
+    if (operation === "status" && request.method === "GET") {
+      const row = await env.DB.prepare(
+        "SELECT generation,status AS capabilityStatus FROM gameplay_battle_spectator_capabilities WHERE battle_id=? AND person_id=?"
+      ).bind(battleId, personId).first();
+      return row ? encodeJSON(row, 200, null) : encodeJSON({ error: "NOT_FOUND" }, 404, null);
+    }
+    return encodeJSON({ error: "METHOD_NOT_ALLOWED" }, 405, null);
+  }
   const origin = request.headers.get("origin");
   if (origin && (typeof env.ALLOWED_ORIGIN !== "string" || origin !== env.ALLOWED_ORIGIN)) {
     return encodeJSON({ error: "ORIGIN_FORBIDDEN" }, 403);
@@ -634,9 +1039,20 @@ async function api(request, env) {
     const { status, ...payload } = result;
     return encodeJSON(payload, status || 200, origin);
   }
-  const match = /^\/v1\/battles\/([a-f0-9-]{36})(?:\/(commit))?$/.exec(pathname);
+  const match = /^\/v1\/battles\/([a-f0-9-]{36})(?:\/(commit|votes))?$/.exec(pathname);
   if (!match) return encodeJSON({ error: "NOT_FOUND" }, 404, origin);
   const id = match[1];
+  if (match[2] === "votes" && request.method === "POST") {
+    const spectator = await authorizeSpectator(env.DB, id, bearer(request));
+    if (!spectator) return encodeJSON({ error: "UNAUTHORIZED" }, 401, origin);
+    const body = await parseBody(request);
+    if (!exactKeys(body, ["choice"]) || !["A", "B"].includes(body.choice)) {
+      return encodeJSON({ error: "INVALID_BALLOT" }, 400, origin);
+    }
+    const result = await castSocialBallot(env.DB, id, spectator, bearer(request), body.choice);
+    const { status, ...payload } = result;
+    return encodeJSON(payload, status || 200, origin);
+  }
   const auth = await authorizePlayer(env.DB, id, bearer(request));
   if (!auth) return encodeJSON({ error: "UNAUTHORIZED" }, 401, origin);
   if (match[2] === "commit" && request.method === "POST") {
@@ -646,7 +1062,7 @@ async function api(request, env) {
   }
   if (!match[2] && request.method === "GET") {
     const state = await loadAuthorized(env.DB, id, auth);
-    return state ? encodeJSON(lifecycle.getPublicView(state, auth.participant_id), 200, origin)
+    return state ? encodeJSON(await participantView(env.DB, state, auth.participant_id), 200, origin)
       : encodeJSON({ error: "UNAUTHORIZED" }, 401, origin);
   }
   return encodeJSON({ error: "METHOD_NOT_ALLOWED" }, 405, origin);

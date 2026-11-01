@@ -118,6 +118,8 @@
       result.resolution = copyJson(state.resolution);
       result.socialOutcome = state.socialOutcome;
       result.recognizedOutcome = state.recognizedOutcome;
+      result.socialVoteTrigger = state.socialVoteTrigger ??
+        (state.mechanicalOutcome === "DRAW" ? "DRAW" : "NONE");
     }
     if (state.phase === "expired") {
       result.expiredAt = state.expiredAt;
@@ -182,17 +184,27 @@
     if (!hasReveal && (state.mechanicalOutcome !== null || state.resolution !== null)) {
       return "unrevealed state contains a resolution";
     }
-    if (state.phase === "revealed" &&
-        (state.recognizedOutcome !== "PENDING" ||
-         state.socialOutcome !== (state.mechanicalOutcome === "DRAW" ? "PENDING" : "NONE"))) {
-      return "revealed social state is invalid";
+    if (state.phase === "revealed") {
+      const trigger = state.socialVoteTrigger ??
+        (state.mechanicalOutcome === "DRAW" ? "DRAW" : "NONE");
+      const triggerValid = ["DRAW", "AUTHORED_TEXT", "BOTH", "NONE"].includes(trigger) &&
+        ((trigger === "DRAW" || trigger === "BOTH") === (state.mechanicalOutcome === "DRAW")) &&
+        (trigger !== "AUTHORED_TEXT" || state.mechanicalOutcome !== "DRAW");
+      if (!triggerValid || state.recognizedOutcome !== "PENDING" ||
+          state.socialOutcome !== (trigger === "NONE" ? "NONE" : "PENDING")) {
+        return "revealed social state is invalid";
+      }
     }
-    if (state.phase === "final" &&
-        (state.mechanicalOutcome === "DRAW" ||
-         state.recognizedOutcome !== state.mechanicalOutcome || state.socialOutcome !== "NONE")) {
-      return "final recognition state is invalid";
+    if (state.phase === "final") {
+      const trigger = state.socialVoteTrigger ??
+        (state.mechanicalOutcome === "DRAW" ? "DRAW" : "NONE");
+      if (trigger !== "NONE" || state.mechanicalOutcome === "DRAW" ||
+          state.recognizedOutcome !== state.mechanicalOutcome || state.socialOutcome !== "NONE") {
+        return "final recognition state is invalid";
+      }
     }
-    if (!hasReveal && (state.recognizedOutcome !== null || state.socialOutcome !== null)) {
+    if (!hasReveal && (state.recognizedOutcome !== null || state.socialOutcome !== null ||
+        hasOwn(state, "socialVoteTrigger"))) {
       return "pre-reveal state contains a social result";
     }
     for (const [id, receipt] of Object.entries(state.commandReceipts)) {
@@ -280,7 +292,7 @@
       }
       const allowedKeysByType = new Map([
         ["commit", new Set(["commandId", "expectedVersion", "type", "actorId", "participantId", "selection"])],
-        ["reveal", new Set(["commandId", "expectedVersion", "type", "actorId", "participantId"])],
+        ["reveal", new Set(["commandId", "expectedVersion", "type", "actorId", "participantId", "socialVoteTrigger"])],
         ["expire", new Set(["commandId", "expectedVersion", "type", "actorId", "participantId"])],
         ["finalize", new Set(["commandId", "expectedVersion", "type", "actorId", "participantId", "recognizedOutcome"])]
       ]);
@@ -348,8 +360,11 @@
           if (currentState.phase !== "revealed") {
             return error("FINALIZATION_NOT_READY", "mechanical outcome must be revealed first");
           }
-          if (currentState.mechanicalOutcome === "DRAW") {
-            return error("FINALIZATION_GATE_REQUIRED", "draw requires a separate approved recognition gate");
+          const trigger = currentState.socialVoteTrigger ??
+            (currentState.mechanicalOutcome === "DRAW" ? "DRAW" : "NONE");
+          if (currentState.mechanicalOutcome === "DRAW" || currentState.socialOutcome === "PENDING" ||
+              trigger !== "NONE") {
+            return error("FINALIZATION_GATE_REQUIRED", "a required social outcome must resolve before finalization");
           }
           if (command.recognizedOutcome !== currentState.mechanicalOutcome) {
             return error("INVALID_RECOGNITION", "final recognized outcome must match the mechanical result");
@@ -402,14 +417,24 @@
         if (!resolution || resolution.ok !== true || resolution.rulesVersion !== RULES_VERSION) {
           return error("RESOLUTION_FAILED", "tactical_v1 resolver rejected committed selections");
         }
+        const trigger = command.socialVoteTrigger ??
+          (resolution.mechanicalOutcome === "DRAW" ? "DRAW" : "NONE");
+        if (!["DRAW", "AUTHORED_TEXT", "BOTH", "NONE"].includes(trigger) ||
+            ((trigger === "DRAW" || trigger === "BOTH") !== (resolution.mechanicalOutcome === "DRAW")) ||
+            (trigger === "AUTHORED_TEXT" && resolution.mechanicalOutcome === "DRAW")) {
+          return error("INVALID_SOCIAL_VOTE_TRIGGER", "reveal trigger does not match the mechanical result");
+        }
         const next = cloneState(currentState);
         next.version += 1;
         next.phase = "revealed";
         next.resolution = copyJson(resolution);
         next.mechanicalOutcome = resolution.mechanicalOutcome;
-        next.socialOutcome = resolution.mechanicalOutcome === "DRAW" ? "PENDING" : "NONE";
+        next.socialVoteTrigger = trigger;
+        next.socialOutcome = trigger === "NONE" ? "NONE" : "PENDING";
         next.recognizedOutcome = "PENDING";
-        const id = appendEvent(next, next.version, "battle.revealed", { selections: { A: a, B: b } });
+        const id = appendEvent(next, next.version, "battle.revealed", {
+          selections: { A: a, B: b }, socialVoteTrigger: trigger
+        });
         writeReceipt(next.commandReceipts, command.commandId, {
           fingerprint, code: "REVEALED", eventIds: [id]
         });

@@ -85,25 +85,45 @@ test("client validates battle IDs and one-player tokens before making a request"
   assert.equal(calls, 0);
 });
 
-test("local bootstrap sends synthetic A and B creation only to loopback server-to-server", async () => {
-  let captured;
+test("local bootstrap registers server person IDs before creating a synthetic battle", async () => {
+  const calls = [];
+  let registrationIndex = 0;
+  const personIds = [
+    "123e4567-e89b-42d3-a456-426614174001",
+    "123e4567-e89b-42d3-a456-426614174002",
+  ];
   const created = { battleId, capabilities: { A: { token: tokenA }, B: { token: tokenB } } };
   const result = await createSyntheticBattle({
     adminToken: "local-admin-token-" + "x".repeat(40),
     fetchImpl: async (url, options) => {
-      captured = { url, options };
+      calls.push({ url, options });
+      if (url.endsWith("/v1/admin/persons")) {
+        const personId = personIds[registrationIndex++];
+        return { ok: true, status: 201, json: async () => ({ personId }) };
+      }
       return { ok: true, status: 201, json: async () => created };
     },
   });
   assert.equal(result, created);
-  assert.equal(captured.url, localApiBase + "/v1/admin/battles");
-  assert.equal(captured.options.credentials, "omit");
-  assert.equal(captured.options.headers.authorization, "Bearer local-admin-token-" + "x".repeat(40));
-  assert.match(captured.options.headers["idempotency-key"], /^[A-Za-z0-9_-]{43}$/);
-  const payload = JSON.parse(captured.options.body);
+  assert.equal(calls.length, 3);
+  for (const call of calls.slice(0, 2)) {
+    assert.equal(call.url, localApiBase + "/v1/admin/persons");
+    assert.equal(call.options.credentials, "omit");
+    assert.equal(call.options.cache, "no-store");
+    assert.equal(call.options.headers.authorization, "Bearer local-admin-token-" + "x".repeat(40));
+    assert.match(call.options.headers["idempotency-key"], /^[A-Za-z0-9_-]{43}$/);
+    assert.equal(call.options.body, "{}");
+  }
+  const createdCall = calls[2];
+  assert.equal(createdCall.url, localApiBase + "/v1/admin/battles");
+  assert.equal(createdCall.options.credentials, "omit");
+  assert.equal(createdCall.options.headers.authorization, "Bearer local-admin-token-" + "x".repeat(40));
+  assert.match(createdCall.options.headers["idempotency-key"], /^[A-Za-z0-9_-]{43}$/);
+  const payload = JSON.parse(createdCall.options.body);
   assert.equal(payload.participants.A.role, "citizen");
   assert.equal(payload.participants.B.role, "citizen");
   assert.notEqual(payload.participants.A.id, payload.participants.B.id);
+  assert.deepEqual(payload.personIds, { A: personIds[0], B: personIds[1] });
 });
 
 test("bootstrap refuses malformed credentials and remote Worker targets", async () => {
