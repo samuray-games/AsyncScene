@@ -1,5 +1,5 @@
 # Project-scoped agent roles, model defaults, and concurrency settings.
-default_permissions = "stage715-read-only-loopback"
+default_permissions = ":workspace"
 
 [features]
 multi_agent = true
