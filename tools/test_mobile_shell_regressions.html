@@ -1,0 +1,957 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mobile shell regression runner</title>
+  <style>
+    body{font:14px/1.4 system-ui,sans-serif;margin:12px;color:#17202a}
+    #report{white-space:pre-wrap;margin:10px 0;padding:10px;border:1px solid #8795a1;border-radius:8px}
+    #appFrame{display:block;border:1px solid #7a8790;max-width:none;max-height:none}
+    .pass{color:#126b35}.fail{color:#ad1d1d}
+    body.show-fixture-only{margin:0;padding:0;width:390px;overflow:hidden}
+    body.show-fixture-only h1,body.show-fixture-only #identity,body.show-fixture-only #report{display:none}
+    body.show-fixture-only #appFrame{transform:scale(.82);transform-origin:top left;border:0}
+  </style>
+</head>
+<body>
+  <h1>Mobile shell regression runner</h1>
+  <p id="identity">Initializing Headless Chromium viewport fixtures…</p>
+  <pre id="report" aria-live="polite">RUNNING</pre>
+  <iframe id="appFrame" title="Asynchronia viewport fixture"></iframe>
+  <script>
+  (() => {
+    const sizes = [
+      [320,568,"mobile"],[360,640,"mobile"],[390,844,"mobile"],[430,932,"mobile"],
+      [768,1024,"tablet"],[1280,720,"desktop"],[1440,900,"desktop"],
+    ];
+    const params = new URLSearchParams(location.search);
+    const requestedView = params.get("view");
+    document.body.classList.toggle("show-fixture-only", requestedView !== null);
+    const selectedRuns = requestedView === null
+      ? sizes.map((size,index) => [index,size])
+      : [[Number(requestedView),sizes[Number(requestedView)]]].filter((entry) => entry[1]);
+    const report = document.getElementById("report");
+    const identity = document.getElementById("identity");
+    const frame = document.getElementById("appFrame");
+    const results = [];
+    let completedCheckCount = 0;
+    let completedPassCount = 0;
+    const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const assert = (condition, code, details) => ({pass:!!condition,code,details:details||""});
+    const skip = (code,details) => ({pass:false,skipped:true,code,details:details||""});
+    const rect = (node) => {
+      const value = node && node.getBoundingClientRect();
+      return value ? {x:Math.round(value.x),y:Math.round(value.y),top:Math.round(value.top),right:Math.round(value.right),bottom:Math.round(value.bottom),left:Math.round(value.left),width:Math.round(value.width),height:Math.round(value.height)} : null;
+    };
+    const nodeState = (node,win) => {
+      if (!node) return null;
+      const style = win.getComputedStyle(node);
+      return {rect:rect(node),connected:node.isConnected,display:style.display,visibility:style.visibility,overflowX:style.overflowX,overflowY:style.overflowY,scrollTop:Math.round(node.scrollTop||0),scrollLeft:Math.round(node.scrollLeft||0),scrollHeight:node.scrollHeight,scrollWidth:node.scrollWidth,clientHeight:node.clientHeight,clientWidth:node.clientWidth,maxScrollTop:Math.max(0,node.scrollHeight-node.clientHeight),maxScrollLeft:Math.max(0,node.scrollWidth-node.clientWidth)};
+    };
+    const diagnostic = (win,doc,inputId,inputs) => ({
+      viewport:{innerWidth:win.innerWidth,innerHeight:win.innerHeight,scrollX:win.scrollX,scrollY:win.scrollY,visual:{offsetLeft:win.visualViewport&&win.visualViewport.offsetLeft||0,offsetTop:win.visualViewport&&win.visualViewport.offsetTop||0,width:win.visualViewport&&win.visualViewport.width||win.innerWidth,height:win.visualViewport&&win.visualViewport.height||win.innerHeight,scale:win.visualViewport&&win.visualViewport.scale||1},visibleBottom:(win.visualViewport&&win.visualViewport.offsetTop||0)+(win.visualViewport&&win.visualViewport.height||win.innerHeight)},
+      active:nodeState(doc.activeElement,win),
+      elements:Object.fromEntries(["topBar","balance","meNamePill","weeklyCapLine","left","chatInputRow","chatLog","mobilePanelShell","mobilePanelTabs","dmBlock","dmPanelBody","dmLog","dmActions","dmInputRow","dmSend","dmExtraRow","reportInput","reportList","menuBlock","btnMenu","argTierPill","argNextPill"].map((id)=>[id,nodeState(id==="dmPanelBody"?doc.querySelector("#dmBlock > .panelBody"):doc.getElementById(id),win)])),
+      focusedScenario:inputId,fields:Object.fromEntries(Object.entries(inputs).map(([id,node])=>[id,nodeState(node,win)])),
+      layoutVars:Object.fromEntries(["--mobile-vv-top","--mobile-vv-height","--mobile-topbar-height","--mobile-menu-stack-height","--mobile-chat-height","--mobile-chat-min","--mobile-panels-top","--mobile-panels-height"].map((key)=>[key,doc.documentElement.style.getPropertyValue(key)])),
+    });
+    const isInside = (node,ancestor) => {
+      if (!node||!ancestor) return false;
+      const target=node.getBoundingClientRect(), box=ancestor.getBoundingClientRect();
+      const top=box.top+ancestor.clientTop, left=box.left+ancestor.clientLeft;
+      return target.top>=top-1&&target.bottom<=top+ancestor.clientHeight+1&&target.left>=left-1&&target.right<=left+ancestor.clientWidth+1;
+    };
+    const intersects = (node,ancestor) => {
+      if (!node||!ancestor) return false;
+      const target=node.getBoundingClientRect(), box=ancestor.getBoundingClientRect();
+      const top=box.top+ancestor.clientTop, left=box.left+ancestor.clientLeft;
+      return target.bottom>top&&target.top<top+ancestor.clientHeight&&target.right>left&&target.left<left+ancestor.clientWidth;
+    };
+    const revealHorizontally = (node,scrollport,reservedRight=0) => {
+      if (!node||!scrollport) return false;
+      const target=node.getBoundingClientRect(), box=scrollport.getBoundingClientRect();
+      const left=box.left+scrollport.clientLeft, right=left+scrollport.clientWidth-reservedRight;
+      if (target.left<left) scrollport.scrollLeft-=left-target.left;
+      else if (target.right>right) scrollport.scrollLeft+=target.right-right;
+      const after=node.getBoundingClientRect();
+      return after.right>left&&after.left<right&&after.top>=box.top&&after.bottom<=box.bottom;
+    };
+    const probeScroll = (node,axis) => {
+      if (!node) return {supported:false,moved:false};
+      const horizontal=axis==="x", previous=horizontal?node.scrollLeft:node.scrollTop;
+      const probe=document.createElement("div");
+      probe.setAttribute("aria-hidden","true");
+      probe.dataset.regressionScrollProbe="1";
+      probe.style.cssText=horizontal?"flex:0 0 480px;width:480px;min-width:480px;height:1px;pointer-events:none":"flex:0 0 480px;height:480px;min-height:480px;width:1px;pointer-events:none";
+      node.appendChild(probe);
+      if (horizontal) {node.scrollLeft=0;node.scrollLeft=node.scrollWidth;}
+      else {node.scrollTop=0;node.scrollTop=node.scrollHeight;}
+      const after=horizontal?node.scrollLeft:node.scrollTop;
+      probe.remove();
+      if (horizontal) node.scrollLeft=previous; else node.scrollTop=previous;
+      return {supported:true,moved:after>0,previous:Math.round(previous),after:Math.round(after),client:horizontal?node.clientWidth:node.clientHeight,scroll:horizontal?node.scrollWidth:node.scrollHeight};
+    };
+    const verticalOverflow = (node,win) => {
+      if (!node) return {supported:false,scrollable:false,overflowY:"missing",client:0,scroll:0,max:0};
+      const overflowY=win.getComputedStyle(node).overflowY;
+      const max=Math.max(0,node.scrollHeight-node.clientHeight);
+      return {supported:true,scrollable:max>1&&(overflowY==="auto"||overflowY==="scroll"),overflowY,client:node.clientHeight,scroll:node.scrollHeight,max};
+    };
+    const dispatchDrag = (target,start,end,pointerId) => {
+      const common = {bubbles:true,cancelable:true,pointerId:pointerId,pointerType:"touch",button:0,isPrimary:true};
+      target.dispatchEvent(new PointerEvent("pointerdown",Object.assign({},common,{clientX:start[0],clientY:start[1]})));
+      target.dispatchEvent(new PointerEvent("pointermove",Object.assign({},common,{clientX:end[0],clientY:end[1]})));
+      target.dispatchEvent(new PointerEvent("pointerup",Object.assign({},common,{clientX:end[0],clientY:end[1]})));
+    };
+    const loadSize = async ([width,height,kind],index) => {
+      frame.style.width = width + "px";
+      frame.style.height = height + "px";
+      await new Promise((resolve) => {
+        frame.onload = resolve;
+        frame.onerror = resolve;
+        frame.src = new URL("/AsyncScene/index.html?mobileShellRegression=" + index,location.origin).href;
+      });
+      await wait(250);
+      const win = frame.contentWindow;
+      const doc = frame.contentDocument;
+      const startScreen = doc && doc.getElementById("startScreen");
+      if (startScreen && !startScreen.classList.contains("hidden") && win.getComputedStyle(startScreen).display !== "none") {
+        const nameInput = doc.getElementById("nameInput");
+        const startButton = doc.getElementById("btnStart");
+        if (nameInput) nameInput.value = "Mobile Regression";
+        if (startButton) startButton.click();
+        const startDeadline = Date.now() + 15000;
+        while (Date.now() < startDeadline && !startScreen.classList.contains("hidden") && win.getComputedStyle(startScreen).display !== "none") await wait(80);
+        await wait(150);
+      }
+      const game = win && win.Game;
+      const ui = game && game.UI;
+      const mobileInterface = game && game.__DEV && game.__DEV.mobileInterface;
+      const state = game && game.__S;
+      const uiInitialState = ui ? {
+        activeTab:mobileInterface && mobileInterface.getActiveTab ? mobileInterface.getActiveTab() : "dm",
+        dmOpen:state && state.dm ? state.dm.open : undefined,
+        menuOpen:state && state.flags ? state.flags.menuOpen : undefined,
+        battleInvite:ui._battleInvite ? Object.assign({},ui._battleInvite) : undefined,
+      } : {};
+      const initialFlags = state && state.flags ? {
+        stage715Demo:state.flags.stage715Demo,
+        manifestOpen:state.flags.manifestOpen,
+      } : {};
+      const tabs = doc && doc.getElementById("mobilePanelTabs");
+      const shell = doc && doc.getElementById("mobilePanelShell");
+      const top = doc && doc.getElementById("topBar");
+      const menuButton = doc && doc.getElementById("btnMenu");
+      const chat = doc && doc.getElementById("left");
+      const blocks = doc && doc.getElementById("blocks");
+      const handle = doc && doc.getElementById("chatResizeHandle");
+      const mobile = width <= 860;
+      const appStyleLink=doc&&doc.querySelector('link[rel="stylesheet"][href*="style.css"]');
+      const baseImport=appStyleLink&&appStyleLink.sheet&&Array.from(appStyleLink.sheet.cssRules).find((rule)=>rule.href&&rule.href.includes("style-base.css"));
+      const baseStyleLoadedThroughApp=!!(baseImport&&baseImport.styleSheet);
+      const stageLocked = doc && doc.documentElement.classList.contains("stage7-first-experience-active");
+      if (stageLocked && doc && mobileInterface) {
+        doc.documentElement.classList.remove("stage7-first-experience-active");
+        mobileInterface.selectTab("dm",false);
+        if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+      }
+      const checks = [];
+      const bounds = {top:rect(top),menu:rect(menuButton),chat:rect(chat),tabs:rect(tabs),shell:rect(shell),lower:rect(blocks),splitter:rect(handle)};
+      const dims = {width:win && win.innerWidth,height:win && win.innerHeight,scrollWidth:doc && doc.documentElement.scrollWidth};
+      checks.push(assert(!!game && !!ui && !!mobileInterface,"app_booted"));
+      checks.push(assert(dims.width === width && dims.height === height,"fixture_viewport_exact",JSON.stringify(dims)));
+      checks.push(assert(dims.scrollWidth <= width,"no_horizontal_overflow",dims.scrollWidth + "/" + width));
+      checks.push(assert(baseStyleLoadedThroughApp,"base_stylesheet_loaded_in_original_import_cascade",JSON.stringify({href:appStyleLink&&appStyleLink.href,baseImport:baseImport&&baseImport.href,loaded:!!(baseImport&&baseImport.styleSheet)})));
+      if (mobile) {
+        const buttons = Array.from(tabs ? tabs.querySelectorAll('[role="tab"]') : []);
+        checks.push(assert(tabs && win.getComputedStyle(tabs).display !== "none" && bounds.tabs.height >= 40,"three_tabs_visible",JSON.stringify(bounds.tabs)));
+        checks.push(assert(buttons.length === 3,"exactly_three_tabs",String(buttons.length)));
+        checks.push(assert(tabs && tabs.getAttribute("role") === "tablist","tablist_accessible"));
+        checks.push(assert(top && bounds.top.height > 0 && win.getComputedStyle(top).display !== "none","topbar_visible",JSON.stringify(bounds.top)));
+        checks.push(assert(menuButton && bounds.menu.height > 0 && bounds.menu.x >= 0 && bounds.menu.x + bounds.menu.width <= width,"menu_button_visible_inside_viewport",JSON.stringify(bounds.menu)));
+        checks.push(assert(chat && bounds.chat.height > 0 && win.getComputedStyle(chat).display !== "none","chat_visible",JSON.stringify(bounds.chat)));
+        checks.push(assert(handle && win.getComputedStyle(handle).display !== "none" && bounds.splitter.height >= 16,"splitter_visible",JSON.stringify(bounds.splitter)));
+        const labels = buttons.map((button) => button.querySelector("span") ? button.querySelector("span").textContent.trim() : "");
+        checks.push(assert(labels[0] === "Личка" && labels[2] === "События" && labels[1].length > 0,"tab_order_and_labels",labels.join("|")));
+        checks.push(assert(mobileInterface.getActiveTab() === "dm","initial_tab_is_dm",mobileInterface.getActiveTab()));
+        const counterSources = ["dmHeaderCount","battleCount","eventsHeaderCount"];
+        const counterMatches = buttons.every((button,index) => {
+          const source = doc.getElementById(counterSources[index]);
+          const sourceDigits = String(source && source.textContent || "").match(/-?\d+/);
+          const badge = button.querySelector('[data-mobile-count="' + ["dm","battles","events"][index] + '"]');
+          return badge && badge.textContent === (sourceDigits ? String(Math.max(0,Number.parseInt(sourceDigits[0],10)||0)) : "0");
+        });
+        checks.push(assert(counterMatches,"tab_counts_follow_existing_sources"));
+        const sourceSnapshots = counterSources.map((id) => {
+          const node = doc.getElementById(id);
+          return node ? {node:node,text:node.textContent} : null;
+        });
+        sourceSnapshots.forEach((snapshot) => {if (snapshot) snapshot.node.textContent = " (9) ";});
+        mobileInterface.updateCounters();
+        const countersRefresh = buttons.every((button,index) => button.querySelector('[data-mobile-count="' + ["dm","battles","events"][index] + '"]')?.textContent === "9");
+        sourceSnapshots.forEach((snapshot) => {if (snapshot) snapshot.node.textContent = snapshot.text;});
+        mobileInterface.updateCounters();
+        checks.push(assert(countersRefresh,"tab_counts_refresh_from_existing_sources"));
+
+        const refs = {chat:state.chat,battles:state.battles,events:state.events,dmLogs:state.dm.logs};
+        buttons[1].click();
+        checks.push(assert(mobileInterface.getActiveTab() === "battles" && buttons[1].getAttribute("aria-selected") === "true","single_tap_switches_tab",mobileInterface.getActiveTab()));
+        const gameEntitiesPreserved = state.chat === refs.chat && state.battles === refs.battles && state.events === refs.events && state.dm.logs === refs.dmLogs;
+        checks.push(assert(gameEntitiesPreserved,"gameplay_entity_state_preserved"));
+
+        const keyboardStart = buttons[0];
+        keyboardStart.focus();
+        keyboardStart.dispatchEvent(new KeyboardEvent("keydown",{key:"ArrowRight",bubbles:true,cancelable:true}));
+        checks.push(assert(mobileInterface.getActiveTab() === "battles" && doc.activeElement === buttons[1],"arrow_key_navigation"));
+
+        buttons[1].click();
+        const inviteButton = doc.querySelector("#battlesBody .actions button");
+        if (inviteButton) {
+          inviteButton.click();
+          await wait(40);
+          checks.push(assert(!!doc.getElementById("battleInviteInput"),"game_action_entry_opens_on_first_click"));
+          if (ui._battleInvite) ui._battleInvite.open = false;
+          if (ui.renderBattles) ui.renderBattles();
+        } else checks.push(skip("game_action_entry_unavailable_without_battle_fixture","The isolated start state contains no battle action to open."));
+
+        const scrollBody = doc.getElementById("battlesBody");
+        if (scrollBody && scrollBody.scrollHeight > scrollBody.clientHeight + 1) {
+          scrollBody.scrollTop = Math.min(48,scrollBody.scrollHeight-scrollBody.clientHeight);
+          const savedScrollTop = scrollBody.scrollTop;
+          buttons[2].click();
+          buttons[1].click();
+          checks.push(assert(scrollBody.scrollTop === savedScrollTop,"panel_scroll_position_preserved",scrollBody.scrollTop + "/" + savedScrollTop));
+        } else checks.push(skip("panel_scroll_position_preserved","no overflow content in this fixture"));
+        const battleBody = doc.getElementById("battlesBody");
+        mobileInterface.selectTab("battles",false);
+        dispatchDrag(battleBody,[Math.round(width*.5),Math.round(height*.6)],[Math.round(width*.5)+4,Math.round(height*.6)+90],102);
+        checks.push(assert(mobileInterface.getActiveTab() === "battles","vertical_drag_does_not_switch",mobileInterface.getActiveTab()));
+        dispatchDrag(buttons[0],[width-35,Math.round(height*.6)],[width-110,Math.round(height*.6)],103);
+        checks.push(assert(mobileInterface.getActiveTab() === "battles","interactive_tab_drag_not_intercepted",mobileInterface.getActiveTab()));
+
+        const chatBefore = chat.getBoundingClientRect().height;
+        const splitterMin = Number(handle.getAttribute("aria-valuemin")) || 0;
+        const splitterMax = Number(handle.getAttribute("aria-valuemax")) || Number.POSITIVE_INFINITY;
+        const dragDelta = chatBefore >= splitterMax - 2 ? -28 : 28;
+        dispatchDrag(handle,[Math.round(width*.5),Math.round(chat.getBoundingClientRect().bottom-8)],[Math.round(width*.5),Math.round(chat.getBoundingClientRect().bottom-8+dragDelta)],104);
+        const chatAfter = chat.getBoundingClientRect().height;
+        const chatMin = Number.parseFloat(win.getComputedStyle(doc.documentElement).getPropertyValue("--mobile-chat-min")) || 0;
+        const panelHeight = Number.parseFloat(win.getComputedStyle(doc.documentElement).getPropertyValue("--mobile-panels-height")) || 0;
+        checks.push(assert(chatAfter !== chatBefore || chatBefore <= splitterMin + 1 || chatBefore >= splitterMax - 1,"splitter_drag_changes_chat_height_or_respects_bound",JSON.stringify({before:chatBefore,after:chatAfter,min:splitterMin,max:splitterMax})));
+        checks.push(assert(chatAfter >= chatMin && panelHeight >= 88,"splitter_minimum_heights",Math.round(chatAfter) + "/" + chatMin + "; panels=" + panelHeight));
+
+        if (index === 0 || index === 3) {
+          const previousTab = mobileInterface.getActiveTab();
+          const originalBattles = state.battles;
+          const originalDm = state.dm;
+          const originalBattleInvite = ui._battleInvite;
+          const stage715Demo = game.Stage715Demo;
+          const originalStage715IsActive = stage715Demo && stage715Demo.isActive;
+          const originalChallengeAvailable = stage715Demo && stage715Demo.isChallengeButtonAvailable;
+          const originalEmptyPanelVV = Object.getOwnPropertyDescriptor(win,"visualViewport");
+          const eventsBlock = doc.getElementById("eventsBlock");
+          const eventsBody = doc.getElementById("eventsBody");
+          const chatLogForEmptyPanels = doc.getElementById("chatLog");
+          const emptyPanelGeometry = {};
+          const testThreadId = "mobile-empty-panel-thread-" + index;
+          const testThread = {id:testThreadId,name:"Заполненный диалог для теста",role:"citizen",npc:true};
+          const originalTestThread = state.players[testThreadId];
+          const scrollFixture = [];
+          try {
+            for (let line=0;line<24;line++) {
+              const row=doc.createElement("div");
+              row.textContent="Прокрутка общего чата, тестовая строка " + (line+1);
+              row.style.cssText="min-height:28px;flex:0 0 28px";
+              row.dataset.mobileEmptyPanelScrollFixture="1";
+              chatLogForEmptyPanels.appendChild(row);
+              scrollFixture.push(row);
+            }
+            chatLogForEmptyPanels.scrollTop=chatLogForEmptyPanels.scrollHeight;
+            const chatScrollBefore=chatLogForEmptyPanels.scrollTop;
+            // The empty-state layout fixture models ordinary gameplay. The tutorial
+            // intentionally withholds the battle CTA until its scripted checkpoint.
+            if (stage715Demo && typeof originalStage715IsActive === "function") {
+              stage715Demo.isActive = () => false;
+            }
+            if (stage715Demo && typeof originalChallengeAvailable === "function") {
+              stage715Demo.isChallengeButtonAvailable = () => true;
+            }
+            state.battles=[];
+            ui._battleInvite={open:false,q:"",sel:0};
+            if (ui.renderBattles) ui.renderBattles();
+            state.dm={open:true,activeId:null,withId:null,openIds:[],logs:{"mobile-closed-history":[{from:"Игрок",text:"Сохранённая история закрытого диалога"}]},unread:{}};
+            if (ui.renderDM) ui.renderDM();
+            if (eventsBody) {
+              eventsBody.replaceChildren();
+              const emptyEventStatus=doc.createElement("div");
+              emptyEventStatus.className="pill";
+              emptyEventStatus.textContent="Движ пока спит.";
+              eventsBody.appendChild(emptyEventStatus);
+              eventsBody.classList.remove("hidden");
+              eventsBody.classList.add("mobile-empty-events-body");
+              eventsBlock.classList.add("mobile-empty-events");
+            }
+            const emptyTabCases=[
+              {key:"battles",panel:"battlesBlock",body:"battlesBody",status:".hint"},
+              {key:"events",panel:"eventsBlock",body:"eventsBody",status:".pill"},
+              {key:"dm",panel:"dmBlock",body:"dmLog",status:"[role='status']"},
+            ];
+            for (const scenario of emptyTabCases) {
+              mobileInterface.selectTab(scenario.key,false);
+              if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+              await wait(30);
+              const scenarioPanel=doc.getElementById(scenario.panel);
+              const scenarioBody=doc.getElementById(scenario.body);
+              const status=scenarioBody&&scenarioBody.querySelector(scenario.status);
+              const panelRect=scenarioPanel&&scenarioPanel.getBoundingClientRect();
+              const shellRect=shell.getBoundingClientRect();
+              const chatRect=chat.getBoundingClientRect();
+              const inputRect=doc.getElementById("chatInput").getBoundingClientRect();
+              const sendRect=doc.getElementById("btnSend").getBoundingClientRect();
+              const visibleTop=win.visualViewport.offsetTop;
+              const visibleBottom=visibleTop+win.visualViewport.height;
+              const compactLimit=Math.min(320,Math.max(230,win.visualViewport.height*.34));
+              const statusRect=status&&status.getBoundingClientRect();
+              const chatLog=doc.getElementById("chatLog");
+              const chatLogStyle=win.getComputedStyle(chatLog);
+              const button=scenario.key==="battles"?doc.querySelector("#battlesBody .actions button"):null;
+              const buttonRect=button&&button.getBoundingClientRect();
+              const buttonHit=buttonRect&&doc.elementFromPoint(Math.floor(buttonRect.left+buttonRect.width/2),Math.floor(buttonRect.top+buttonRect.height/2));
+              const dmStatusAtTop=scenario.key!=="dm"||!!(statusRect&&statusRect.top<=scenarioBody.getBoundingClientRect().top+24);
+              const evidence={tab:scenario.key,panel:rect(scenarioPanel),shell:rect(shell),chat:rect(chat),tabs:rect(tabs),status:rect(status),chatInput:rect(doc.getElementById("chatInput")),send:rect(doc.getElementById("btnSend")),button:rect(button),buttonHit:buttonHit&&{tag:buttonHit.tagName,id:buttonHit.id},limits:{compactLimit,visibleTop,visibleBottom}};
+              emptyPanelGeometry[scenario.key]={height:Math.round(shellRect.height),chat:Math.round(chatRect.height)};
+              checks.push(assert(!!status&&panelRect.height>0&&shellRect.height<=compactLimit&&chatRect.height>shellRect.height
+                &&chatRect.top>=visibleTop&&chatRect.bottom<=visibleBottom
+                &&chatLog.clientHeight>0&&chatLogStyle.overflowY==="auto"&&chatLog.scrollHeight>chatLog.clientHeight
+                &&inputRect.height>0&&inputRect.top>=visibleTop&&inputRect.bottom<=visibleBottom
+                &&sendRect.height>0&&sendRect.top>=visibleTop&&sendRect.bottom<=visibleBottom
+                &&tabs.getBoundingClientRect().height>=40&&dmStatusAtTop
+                &&(scenario.key!=="battles"||(buttonRect&&buttonRect.height>0&&buttonRect.bottom<=shellRect.bottom&&(buttonHit===button||button.contains(buttonHit)))),
+                "empty_mobile_tab_is_compact_and_returns_space_to_chat_"+scenario.key,JSON.stringify(evidence)));
+            }
+            const chatScrollAfter=chatLogForEmptyPanels.scrollTop;
+            const chatScrollMax=chatLogForEmptyPanels.scrollHeight-chatLogForEmptyPanels.clientHeight;
+            checks.push(assert(chatScrollMax>1&&chatScrollBefore>0&&chatScrollAfter>0&&chatScrollMax-chatScrollAfter<=32,
+              "empty_panels_preserve_general_chat_scroll_position",
+              JSON.stringify({before:chatScrollBefore,after:chatScrollAfter,max:chatScrollMax})));
+
+            const transitionCases=["battles","events","dm"];
+            for (const tabKey of transitionCases) {
+              mobileInterface.selectTab(tabKey,false);
+              if (tabKey==="battles") {
+                const card=doc.createElement("div");
+                card.className="battleCard";
+                card.textContent="Проверочная карточка боя";
+                card.style.minHeight="96px";
+                doc.getElementById("battlesBody").appendChild(card);
+              } else if (tabKey==="events") {
+                eventsBlock.classList.remove("mobile-empty-events");
+                eventsBody.classList.remove("mobile-empty-events-body");
+                const card=doc.createElement("div");
+                card.className="eventCard";
+                card.textContent="Проверочная карточка события";
+                card.style.minHeight="96px";
+                eventsBody.appendChild(card);
+              } else {
+                state.players[testThreadId]=testThread;
+                state.dm={open:true,activeId:testThreadId,withId:testThreadId,openIds:[testThreadId],logs:{},unread:{}};
+                state.dm.logs[testThreadId]=Array.from({length:8},(_,line)=>({t:"12:00",from:line%2?String(state.me?.name||"Игрок"):testThread.name,text:"Заполненный тестовый диалог, строка "+(line+1)}));
+                if (ui.renderDM) ui.renderDM();
+              }
+              if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+              await wait(30);
+              const populatedHeight=Math.round(shell.getBoundingClientRect().height);
+              const populatedChat=Math.round(chat.getBoundingClientRect().height);
+              const populatedBody=tabKey==="dm"?doc.getElementById("dmLog"):doc.getElementById(tabKey==="events"?"eventsBody":"battlesBody");
+              const populatedContent=tabKey==="dm"?!!populatedBody?.querySelector(".dmLine"):!!populatedBody?.querySelector(tabKey==="events"?".eventCard":".battleCard");
+              checks.push(assert(populatedContent&&populatedHeight>=emptyPanelGeometry[tabKey].height
+                &&populatedBody.clientHeight>=100,
+                "populated_mobile_tab_reclaims_usable_panel_height_"+tabKey,
+                JSON.stringify({tab:tabKey,empty:emptyPanelGeometry[tabKey],populatedHeight,populatedChat,populatedBody:nodeState(populatedBody,win)})));
+              if (tabKey!=="dm") {
+                const controller=doc.documentElement.__mobilePinnedChatController;
+                const preferred=controller&&controller.preferredHeight||0;
+              checks.push(assert(Math.abs(populatedChat-preferred)<=3,"populated_mobile_tab_restores_user_chat_height_"+tabKey,
+                  JSON.stringify({preferred,populatedChat})));
+              }
+              if (tabKey==="battles") doc.querySelector("#battlesBody .battleCard")?.remove();
+              else if (tabKey==="events") {
+                eventsBody.querySelector(".eventCard")?.remove();
+                eventsBlock.classList.add("mobile-empty-events");
+                eventsBody.classList.add("mobile-empty-events-body");
+              } else {
+                state.dm={open:true,activeId:null,withId:null,openIds:[],logs:{},unread:{}};
+                if (ui.renderDM) ui.renderDM();
+              }
+              if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+              await wait(30);
+              const emptyAgain=Math.round(shell.getBoundingClientRect().height);
+              const chatAgain=Math.round(chat.getBoundingClientRect().height);
+              const dmEmptyDetails=tabKey!=="dm"?null:{title:doc.getElementById("dmTitle")?.textContent,logEmpty:doc.getElementById("dmLog")?.classList.contains("dmEmptyState"),tabs:nodeState(doc.getElementById("dmTabs"),win),header:nodeState(doc.getElementById("dmHeader"),win),log:nodeState(doc.getElementById("dmLog"),win),body:nodeState(doc.querySelector("#dmBlock > .panelBody"),win),children:Array.from(doc.querySelector("#dmBlock > .panelBody")?.children||[]).map((node)=>({id:node.id,className:node.className,rect:rect(node),display:win.getComputedStyle(node).display}))};
+              checks.push(assert(Math.abs(emptyAgain-emptyPanelGeometry[tabKey].height)<=4
+                &&Math.abs(chatAgain-emptyPanelGeometry[tabKey].chat)<=4,"mobile_empty_populated_empty_height_restoration_"+tabKey,
+                JSON.stringify({tab:tabKey,emptyBefore:emptyPanelGeometry[tabKey],populatedHeight,populatedChat,emptyAgain,chatAgain,dmEmptyDetails})));
+            }
+            state.dm.logs=state.dm.logs||{};
+            state.dm.logs["mobile-closed-history"]=[{from:"Игрок",text:"Сохранённая история закрытого диалога"}];
+            if (ui.renderDM) ui.renderDM();
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            const dmLogStore=state.dm.logs;
+            checks.push(assert(Object.keys(dmLogStore).length===1&&dmLogStore["mobile-closed-history"]?.length===1
+              &&doc.getElementById("dmLog").classList.contains("dmEmptyState")
+              &&blocks.classList.contains("mobile-panel-empty-dm")&&!chat.classList.contains("dm-priority")
+              &&chatLogForEmptyPanels.clientHeight>0&&chatLogForEmptyPanels.scrollHeight>chatLogForEmptyPanels.clientHeight,
+              "closed_dm_history_keeps_empty_state_and_public_chat_available",
+              JSON.stringify({storedHistory:dmLogStore,empty:doc.getElementById("dmLog").classList.contains("dmEmptyState"),chatLog:nodeState(chatLogForEmptyPanels,win)})));
+            const controllerForEmptyDrag=doc.documentElement.__mobilePinnedChatController;
+            const savedPreferred=controllerForEmptyDrag.preferredHeight;
+            const savedOverrides=Object.assign({},controllerForEmptyDrag.emptyPanelHeightOverrides||{});
+            mobileInterface.selectTab("dm",false);
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            const beforeDmEmptyDrag=chat.getBoundingClientRect().height;
+            const dmHandleRect=handle.getBoundingClientRect();
+            dispatchDrag(handle,[Math.round(dmHandleRect.left+dmHandleRect.width/2),Math.round(dmHandleRect.top+dmHandleRect.height/2)],
+              [Math.round(dmHandleRect.left+dmHandleRect.width/2),Math.round(dmHandleRect.top+dmHandleRect.height/2-30)],208);
+            const manuallySizedDmEmpty=chat.getBoundingClientRect().height;
+            mobileInterface.selectTab("battles",false);
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            mobileInterface.selectTab("dm",false);
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            const restoredDmEmpty=chat.getBoundingClientRect().height;
+            checks.push(assert(controllerForEmptyDrag.emptyPanelHeightOverrides.dm===true
+              &&Math.abs(manuallySizedDmEmpty-beforeDmEmptyDrag)>4&&Math.abs(restoredDmEmpty-manuallySizedDmEmpty)<=3,
+              "empty_dm_user_splitter_preference_restores_after_tab_switch",
+              JSON.stringify({beforeDmEmptyDrag,manuallySizedDmEmpty,restoredDmEmpty,overrides:controllerForEmptyDrag.emptyPanelHeightOverrides})));
+            mobileInterface.selectTab("events",false);
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            const beforeEmptyDrag=chat.getBoundingClientRect().height;
+            const handleRect=handle.getBoundingClientRect();
+            dispatchDrag(handle,[Math.round(handleRect.left+handleRect.width/2),Math.round(handleRect.top+handleRect.height/2)],
+              [Math.round(handleRect.left+handleRect.width/2),Math.round(handleRect.top+handleRect.height/2-36)],207);
+            const manuallySizedEmpty=chat.getBoundingClientRect().height;
+            const manualOverride=controllerForEmptyDrag.emptyPanelHeightOverrides.events===true;
+            mobileInterface.selectTab("battles",false);
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            mobileInterface.selectTab("events",false);
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            const restoredEmptyDrag=chat.getBoundingClientRect().height;
+            checks.push(assert(manualOverride&&Math.abs(manuallySizedEmpty-beforeEmptyDrag)>4
+              &&Math.abs(restoredEmptyDrag-manuallySizedEmpty)<=3,
+              "empty_tab_user_splitter_preference_restores_after_tab_switch",
+              JSON.stringify({beforeEmptyDrag,manuallySizedEmpty,restoredEmptyDrag,overrides:controllerForEmptyDrag.emptyPanelHeightOverrides})));
+            controllerForEmptyDrag.preferredHeight=savedPreferred;
+            controllerForEmptyDrag.emptyPanelHeightOverrides=savedOverrides;
+            controllerForEmptyDrag.emptyPanelHeightOverride=!!savedOverrides.events;
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            mobileInterface.selectTab("events",false);
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            doc.getElementById("chatInput").focus();
+            for(const keyboardTab of ["battles","events","dm"]){
+              mobileInterface.selectTab(keyboardTab,false);
+              Object.defineProperty(win,"visualViewport",{configurable:true,value:{height:277,offsetTop:0,offsetLeft:0,width:width,scale:1,addEventListener:function(){}}});
+              if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+              const keyboardInput=doc.getElementById("chatInput").getBoundingClientRect();
+              const keyboardSend=doc.getElementById("btnSend").getBoundingClientRect();
+              const keyboardShell=shell.getBoundingClientRect();
+              const keyboardVisibleBottom=win.visualViewport.offsetTop+win.visualViewport.height;
+              const chatLog=doc.getElementById("chatLog");
+              checks.push(assert(doc.body.classList.contains("mobile-keyboard-open")&&blocks.classList.contains("mobile-panel-empty")
+                &&keyboardShell.height<=Math.min(320,Math.max(230,win.visualViewport.height*.34))
+                &&keyboardInput.top>=win.visualViewport.offsetTop&&keyboardInput.bottom<=keyboardVisibleBottom
+                &&keyboardSend.top>=win.visualViewport.offsetTop&&keyboardSend.bottom<=keyboardVisibleBottom
+                &&isInside(doc.getElementById("chatInputRow"),chat)&&chatLog.clientHeight>0,
+                "short_keyboard_empty_tab_keeps_chat_input_send_and_log_"+keyboardTab,
+                JSON.stringify({tab:keyboardTab,input:rect(doc.getElementById("chatInput")),send:rect(doc.getElementById("btnSend")),row:rect(doc.getElementById("chatInputRow")),chat:rect(chat),chatLog:nodeState(chatLog,win),shell:rect(shell),visual:{top:win.visualViewport.offsetTop,bottom:keyboardVisibleBottom,height:win.visualViewport.height}})));
+            }
+            if (originalEmptyPanelVV) Object.defineProperty(win,"visualViewport",originalEmptyPanelVV); else delete win.visualViewport;
+            doc.getElementById("chatInput").blur();
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+            checks.push(assert(!doc.body.classList.contains("mobile-keyboard-open"),"empty_panel_keyboard_close_restores_layout_state"));
+          } catch (error) {
+            checks.push(assert(false,"empty_mobile_panel_scenarios_completed",String(error&&error.stack||error)));
+          } finally {
+            if (originalEmptyPanelVV) Object.defineProperty(win,"visualViewport",originalEmptyPanelVV); else delete win.visualViewport;
+            scrollFixture.forEach((row)=>row.remove());
+            state.battles=originalBattles;
+            state.dm=originalDm;
+            if (originalTestThread) state.players[testThreadId]=originalTestThread; else delete state.players[testThreadId];
+            ui._battleInvite=originalBattleInvite;
+            if (stage715Demo && typeof originalStage715IsActive === "function") stage715Demo.isActive=originalStage715IsActive;
+            if (stage715Demo && typeof originalChallengeAvailable === "function") stage715Demo.isChallengeButtonAvailable=originalChallengeAvailable;
+            try { if (ui.renderBattles) ui.renderBattles(); } catch (_) {}
+            try { if (ui.renderEvents) ui.renderEvents(); } catch (_) {}
+            try { if (ui.renderDM) ui.renderDM(); } catch (_) {}
+            mobileInterface.selectTab(previousTab,false);
+            if (ui.ensureMobilePinnedChatLayout) ui.ensureMobilePinnedChatLayout();
+          }
+        }
+
+        const originalVV = Object.getOwnPropertyDescriptor(win,"visualViewport");
+        const restoreVV = () => {
+          if (originalVV) Object.defineProperty(win,"visualViewport",originalVV);
+          else delete win.visualViewport;
+        };
+        const reducedVV = () => ({height:Math.max(240,height-180),offsetTop:24,offsetLeft:0,width:width,scale:1,addEventListener:function(){}});
+        let keyboardResponsive = false;
+        const keyboardFocusResults = [];
+        const expectedFocusCodes=["chatInput","dmInput","reportInput"].flatMap((id)=>{
+          const label=id.replace(/[A-Z]/g,(letter)=>"_"+letter.toLowerCase());
+          return ["short_keyboard_menu_focus_geometry_"+label,"keyboard_menu_size_restore_"+label,"menu_reopens_after_keyboard_"+label,"keyboard_focus_case_completed_"+label];
+        });
+        if (index === 0) {
+          const previousTab = mobileInterface.getActiveTab();
+          const previousTabGeometry={chat:Math.round(chat.getBoundingClientRect().height),panels:Math.round(shell.getBoundingClientRect().height)};
+          const dmSnapshot = JSON.parse(JSON.stringify(state.dm||{}));
+          const copReportSnapshot = ui._copReport ? JSON.parse(JSON.stringify(ui._copReport)) : null;
+          const dmTargets = Object.values(state.players||{}).filter((player)=>player&&player.id!==state.me?.id);
+          const dmRecipient = dmTargets.find((player)=>player.role!=="cop");
+          const syntheticDmPlayers=[];
+          mobileInterface.selectTab("dm",false);
+          state.dm={open:false,activeId:null,withId:null,openIds:[],logs:{},unread:{}};
+          ui.renderDM();
+          const emptyDm=doc.getElementById("dmBlock");
+          const emptyLog=doc.getElementById("dmLog");
+          const emptyStatus=emptyLog?.querySelector('[role="status"]');
+          checks.push(assert(emptyDm&&win.getComputedStyle(emptyDm).display!=="none"&&emptyStatus
+            &&/переписок пока нет/i.test(emptyStatus.textContent)&&emptyLog.querySelectorAll(".dmLine").length===0
+            &&doc.getElementById("dmInputRow")?.classList.contains("hidden"),
+            "mobile_dm_zero_threads_has_clear_empty_state_without_fake_messages",
+            JSON.stringify({panel:rect(emptyDm),status:emptyStatus?.textContent,lines:emptyLog?.querySelectorAll(".dmLine").length,inputHidden:doc.getElementById("dmInputRow")?.classList.contains("hidden")})));
+          const multiIds=[];
+          for(let i=0;i<3;i++){
+            const player={id:"mobile-regression-dm-"+i,name:"Проверочный собеседник с длинным именем "+(i+1),role:"citizen",npc:true};
+            state.players[player.id]=player;syntheticDmPlayers.push(player.id);multiIds.push(player.id);
+          }
+          mobileInterface.selectTab("battles",false);
+          state.dm={open:true,activeId:multiIds[0],withId:multiIds[0],openIds:multiIds.slice(),logs:{},unread:{}};
+          for(const [threadIndex,id] of multiIds.entries())state.dm.logs[id]=Array.from({length:18},(_,i)=>({t:"12:00",from:i%2?String(state.me?.name||"Тестовый игрок"):state.players[id].name,text:"Сообщение " +(i+1)+" в проверочной переписке " +(threadIndex+1)}));
+          ui.renderDM();
+          mobileInterface.selectTab("dm",false);
+          await wait(40);
+          ui.ensureMobilePinnedChatLayout();
+          const multiLog=doc.getElementById("dmLog"),multiTabs=doc.getElementById("dmTabs");
+          const multiBody=doc.querySelector("#dmBlock > .panelBody"),multiInput=doc.getElementById("dmInput"),multiSend=doc.getElementById("dmSend");
+          const multiLogRect=multiLog?.getBoundingClientRect(),multiBodyRect=multiBody?.getBoundingClientRect();
+          checks.push(assert(multiIds.every((id)=>multiTabs?.textContent.includes(state.players[id].name))
+            &&multiLog?.querySelectorAll(".dmLine").length===18&&multiLog.clientHeight>=100
+            &&multiLogRect?.bottom<=doc.getElementById("dmInputRow")?.getBoundingClientRect().top+1
+            &&multiInput?.getBoundingClientRect().height>0&&multiSend?.getBoundingClientRect().height>0,
+            "mobile_dm_multiple_threads_prioritize_scrollable_message_log_and_composer",
+            JSON.stringify({tabs:multiTabs?.textContent,activeTab:mobileInterface.getActiveTab(),log:nodeState(multiLog,win),logLines:multiLog?.querySelectorAll(".dmLine").length,logRect:rect(multiLog),inputRow:rect(doc.getElementById("dmInputRow")),logBelowComposer:multiLogRect?.bottom<=doc.getElementById("dmInputRow")?.getBoundingClientRect().top+1,body:rect(multiBody),bodyRect:multiBodyRect?.toJSON(),chat:rect(chat),top:rect(top),layoutVars:Object.fromEntries(["--mobile-topbar-height","--mobile-chat-height","--mobile-panels-height"].map((key)=>[key,doc.documentElement.style.getPropertyValue(key)])),input:rect(multiInput),send:rect(multiSend)})));
+          const existingCop = dmTargets.find((player)=>player.role==="cop");
+          const syntheticCop = !existingCop ? {id:"mobile-regression-cop",name:"Проверочный коп",role:"cop",npc:true} : null;
+          if (syntheticCop) state.players[syntheticCop.id]=syntheticCop;
+          const copRecipient = existingCop||syntheticCop;
+          checks.push(assert(!!dmRecipient&&!!copRecipient,"keyboard_fixture_real_dm_and_cop_targets",JSON.stringify({dm:dmRecipient&&dmRecipient.id,cop:copRecipient&&copRecipient.id,syntheticCop:!!syntheticCop})));
+          const syntheticReportPlayers=[];
+          for (let i=0;i<14;i++) {
+            const player={id:"mobile-report-target-"+i,name:"Проверяемая жалоба "+String(i+1).padStart(2,"0"),role:"citizen",npc:true};
+            state.players[player.id]=player;
+            syntheticReportPlayers.push(player.id);
+          }
+          if (dmRecipient && ui.openDM) {
+            ui.openDM(dmRecipient.id);
+            state.dm.logs[dmRecipient.id]=Array.from({length:14},(_,i)=>({t:"12:00",from:i%2?String(state.me&&state.me.name||"Тестовый игрок"):String(dmRecipient.name||"Собеседник"),text:"Приоритетная личная переписка "+(i+1)}));
+            ui.renderDM();
+            mobileInterface.selectTab("battles",false);
+            const preferredBeforeDm=Math.round(chat.getBoundingClientRect().height);
+            mobileInterface.selectTab("dm",false);
+            const minimizedForDm=Math.round(chat.getBoundingClientRect().height);
+            const dmPanelHeight=Math.round(shell.getBoundingClientRect().height);
+            const dmPanelVisible=doc.getElementById("dmBlock")?.getBoundingClientRect().height>0;
+            checks.push(assert(minimizedForDm<preferredBeforeDm-12&&dmPanelHeight>112&&dmPanelVisible,
+              "dm_tab_minimizes_general_chat_and_expands_dm_panel",JSON.stringify({preferredBeforeDm,minimizedForDm,dmPanelHeight,dmPanelVisible})));
+            const generalHeader=doc.getElementById("chatHeader");
+            const generalComposer=doc.getElementById("chatInputRow");
+            const generalHandle=doc.getElementById("chatResizeHandle");
+            checks.push(assert(isInside(generalHeader,chat)&&isInside(generalComposer,chat)&&isInside(generalHandle,chat),
+              "minimized_general_chat_keeps_header_composer_and_resize_handle",JSON.stringify({header:rect(generalHeader),composer:rect(generalComposer),handle:rect(generalHandle),chat:rect(chat)})));
+            mobileInterface.selectTab("battles",false);
+            const restoredAfterDm=Math.round(chat.getBoundingClientRect().height);
+            checks.push(assert(Math.abs(restoredAfterDm-preferredBeforeDm)<=2,"dm_tab_restores_preferred_general_chat_height",JSON.stringify({preferredBeforeDm,restoredAfterDm})));
+            mobileInterface.selectTab("dm",false);
+          }
+          const inputCases=[
+            {id:"chatInput",recipient:null},
+            {id:"dmInput",recipient:dmRecipient},
+            {id:"reportInput",recipient:copRecipient},
+          ];
+          try {
+            ui.hideMenu();
+            Object.defineProperty(win,"visualViewport",{configurable:true,value:reducedVV()});
+            ui.ensureMobilePinnedChatLayout();
+            const compactHeight=Number.parseFloat(doc.documentElement.style.getPropertyValue("--mobile-topbar-height"))||0;
+            const compactChatMin=Number.parseFloat(doc.documentElement.style.getPropertyValue("--mobile-chat-min"))||0;
+            keyboardResponsive=doc.body.classList.contains("mobile-keyboard-open")
+              &&Number.parseFloat(doc.documentElement.style.getPropertyValue("--mobile-vv-height"))===Math.max(240,height-180)
+              &&Number.parseFloat(doc.documentElement.style.getPropertyValue("--mobile-vv-top"))===24
+              &&compactHeight>0&&compactHeight<=104&&compactChatMin>=72;
+            restoreVV();
+            ui.ensureMobilePinnedChatLayout();
+            for (const {id:inputId,recipient} of inputCases) {
+              restoreVV();
+              mobileInterface.selectTab(inputId==="chatInput"?"battles":"dm",false);
+              ui.hideMenu();
+              if (inputId!=="chatInput") {
+                if (!recipient||!ui.openDM||ui.openDM(recipient.id)===false) throw new Error("Could not open live DM fixture for "+inputId);
+                state.dm.logs=state.dm.logs||{};
+                state.dm.logs[recipient.id]=Array.from({length:14},(_,i)=>({t:"12:00",from:i%2?String(state.me&&state.me.name||"Тестовый игрок"):String(recipient.name||"Собеседник"),text:"Проверка прокручиваемой переписки "+(i+1)}));
+                ui.renderDM();
+                await wait(50);
+                if (inputId==="reportInput") {
+                  const opener=doc.getElementById("reportOpenBtn");
+                  if (!opener||!doc.getElementById("dmExtraRow")?.contains(opener)) throw new Error("The real cop report opener was not rendered in dmExtraRow");
+                  opener.click();
+                  await wait(50);
+                  if (!doc.getElementById("reportInput")?.isConnected||doc.getElementById("reportInput").closest("#dmExtraRow")===null) throw new Error("The live cop report flow did not create reportInput inside dmExtraRow");
+                }
+              }
+              const input=doc.getElementById(inputId);
+              const menu=doc.getElementById("menuBlock");
+              if (!input||!input.isConnected) throw new Error("Focused field is missing: "+inputId);
+              const panelBody=inputId==="chatInput"?null:doc.querySelector("#dmBlock > .panelBody");
+              const dmLog=inputId==="chatInput"?null:doc.getElementById("dmLog");
+              const baseline={chat:Math.round(chat.getBoundingClientRect().height),panels:Math.round(shell.getBoundingClientRect().height)};
+              ui.showMenu();
+              input.focus();
+              ui.ensureMobilePinnedChatLayout();
+              const compactBeforeKeyboard=doc.body.classList.contains("mobile-profile-compact")
+                &&Math.ceil(top.getBoundingClientRect().height)<=50
+                &&menuButton.getBoundingClientRect().height>0;
+              keyboardFocusResults.push(assert(compactBeforeKeyboard,"profile_header_compact_on_field_focus_before_keyboard_"+inputId,JSON.stringify({compact:doc.body.classList.contains("mobile-profile-compact"),height:rect(top),menu:rect(menuButton)})));
+              const focusScrollBefore=panelBody?Math.round(panelBody.scrollTop):0;
+              const menuStartedOpen=menu.classList.contains("menu-open")&&doc.activeElement===input;
+              Object.defineProperty(win,"visualViewport",{configurable:true,value:reducedVV()});
+              const controllerScrollBefore=panelBody?panelBody.scrollTop:0;
+              ui.ensureMobilePinnedChatLayout();
+              const compactDuringKeyboard=doc.body.classList.contains("mobile-profile-compact")
+                &&Math.ceil(top.getBoundingClientRect().height)<=50;
+              keyboardFocusResults.push(assert(compactDuringKeyboard,"profile_header_compact_with_keyboard_"+inputId,JSON.stringify({compact:doc.body.classList.contains("mobile-profile-compact"),height:rect(top)})));
+              if (inputId==="reportInput") {
+                win.dispatchEvent(new Event("resize"));
+                await wait(40);
+              }
+              const controllerScrollAfter=panelBody?panelBody.scrollTop:0;
+              const menuClosedForSpace=!menu.classList.contains("menu-open");
+              const visibleTop=win.visualViewport.offsetTop;
+              const visibleBottom=visibleTop+win.visualViewport.height;
+              const visibleLeft=win.visualViewport.offsetLeft||0;
+              const visibleRight=visibleLeft+win.visualViewport.width;
+              let panelScroll={required:false,moved:false,topBefore:0,topAfter:0,max:0};
+              const panelScrollMax=panelBody?Math.max(0,panelBody.scrollHeight-panelBody.clientHeight):0;
+              const dmLogOverflow=inputId==="chatInput"?{supported:false,scrollable:false}:verticalOverflow(dmLog,win);
+              panelScroll={required:!!(panelBody&&panelScrollMax>0),moved:Math.abs(controllerScrollAfter-controllerScrollBefore)>0,topBefore:Math.round(controllerScrollBefore),topAfter:Math.round(controllerScrollAfter),max:panelScrollMax};
+              const inputRect=input.getBoundingClientRect();
+              const topRect=top.getBoundingClientRect();
+              const leftRect=chat.getBoundingClientRect();
+              const chatInput=doc.getElementById("chatInput");
+              const chatInputRow=doc.getElementById("chatInputRow");
+              const chatLog=doc.getElementById("chatLog");
+              const shellRect=shell.getBoundingClientRect();
+              const tabsRect=tabs.getBoundingClientRect();
+              const dmPanel=doc.getElementById("dmBlock");
+              const menuButtonRect=menuButton&&menuButton.getBoundingClientRect();
+              const chatLogState=nodeState(chatLog,win);
+              const keyboardMin=Number.parseFloat(doc.documentElement.style.getPropertyValue("--mobile-chat-min"))||0;
+              const chatLogScroll=probeScroll(chatLog,"y");
+              const chatLogScrollable=chatLogScroll.supported&&chatLogScroll.moved;
+              const panelBodyScroll=panelBody?probeScroll(panelBody,"y"):{supported:false,moved:false};
+              const balance=doc.getElementById("balance");
+              const statChips=Array.from(balance.querySelectorAll(".statChip"))
+                .filter((node)=>win.getComputedStyle(node).display!=="none"&&win.getComputedStyle(node).visibility!=="hidden");
+              const profileItems=[...statChips,doc.getElementById("meNamePill"),doc.getElementById("argTierPill"),doc.getElementById("argNextPill"),doc.getElementById("weeklyCapLine")]
+                .filter((node)=>node&&node.isConnected&&win.getComputedStyle(node).display!=="none"&&win.getComputedStyle(node).visibility!=="hidden"&&(node.getBoundingClientRect().width>0||node.getBoundingClientRect().height>0));
+              const topbarScrollStart=top.scrollLeft;
+              const topbarScrollMax=Math.max(0,top.scrollWidth-top.clientWidth);
+              const profileReachability=profileItems.map((node)=>{
+                top.scrollLeft=0;
+                const leftVisible=revealHorizontally(node,top,menuButtonRect?menuButtonRect.width+14:72);
+                const leftRect=rect(node);
+                const start=top.scrollLeft;
+                const width=node.getBoundingClientRect().width;
+                const viewportWidth=Math.max(1,top.clientWidth-(menuButtonRect?menuButtonRect.width+14:72));
+                if(width>viewportWidth) top.scrollLeft=Math.min(topbarScrollMax,start+width-viewportWidth);
+                const rightVisible=revealHorizontally(node,top,menuButtonRect?menuButtonRect.width+14:72);
+                return {id:node.id||node.className,leftVisible,rightVisible,rect:leftRect,scrollLeft:Math.round(top.scrollLeft)};
+              });
+              const topbarScrollProbe=probeScroll(top,"x");
+              const profileAccessible=profileReachability.length>=statChips.length+2
+                &&profileReachability.every((entry)=>entry.leftVisible&&entry.rightVisible)
+                &&(topbarScrollMax===0||topbarScrollProbe.moved);
+              top.scrollLeft=topbarScrollStart;
+              const balanceScroll={required:topbarScrollMax>0,topBefore:Math.round(topbarScrollStart),topAfter:Math.round(topbarScrollMax),max:topbarScrollMax};
+              const balanceAccessible=profileAccessible;
+              const chatInputVisible=inputId!=="chatInput"||(inputRect.top>=visibleTop&&inputRect.bottom<=visibleBottom&&isInside(input,chat)&&isInside(chatInputRow,chat));
+              const activeInputVisible=inputRect.height>0&&inputRect.top>=visibleTop&&inputRect.bottom<=visibleBottom
+                &&(inputId==="chatInput"?isInside(input,chat):isInside(input,panelBody));
+              const topbarCompact=topRect.height>0&&topRect.height<=104
+                &&menuButtonRect&&menuButtonRect.top>=visibleTop&&menuButtonRect.bottom<=visibleBottom
+                &&menuButtonRect.left>=topRect.left&&menuButtonRect.right<=topRect.right
+                &&isInside(menuButton,top);
+              const shellAndTabsVisible=shellRect.height>=112&&shellRect.top>=visibleTop&&shellRect.bottom<=visibleBottom
+                &&tabsRect.height>=36&&tabsRect.top>=shellRect.top&&tabsRect.bottom<=shellRect.bottom
+                &&(inputId==="chatInput"||(dmPanel.getBoundingClientRect().height>0&&isInside(dmPanel,shell)&&isInside(panelBody,dmPanel)));
+              const chatLogAcceptable=inputId==="chatInput"
+                ?chatLogState.clientHeight>0&&(chatLogState.overflowY==="auto"||chatLogState.overflowY==="scroll")&&chatLogScrollable
+                :(chatLogState.clientHeight===0||(chatLogState.overflowY==="auto"||chatLogState.overflowY==="scroll")&&chatLogScrollable);
+              const chatAreaUsable=leftRect.height>=72&&leftRect.top>=visibleTop&&leftRect.bottom<=visibleBottom
+                &&leftRect.height>=keyboardMin&&nodeState(chatInputRow,win).rect.height>0&&isInside(chatInputRow,chat)
+                &&chatInput.getBoundingClientRect().height>0
+                &&(inputId!=="chatInput"||chatInputVisible)
+                &&chatLogAcceptable;
+              const dmLogAccessible=inputId==="chatInput"||!!(panelBody&&dmLog&&dmLog.parentElement===panelBody&&dmLogOverflow.scrollable);
+              const dmThreadScrollable=inputId==="chatInput"||!!(dmLogOverflow.scrollable&&nodeState(dmLog,win).rect.height>=36);
+              const panelScrollValid=activeInputVisible&&(!panelScroll.required||panelScroll.moved||inputRect.top>=visibleTop&&inputRect.bottom<=visibleBottom);
+              const dmSend=doc.getElementById("dmSend");
+              const dmSendRect=dmSend&&dmSend.getBoundingClientRect();
+              const dmSendHit=dmSendRect&&doc.elementFromPoint(Math.floor(dmSendRect.left+dmSendRect.width/2),Math.floor(dmSendRect.top+dmSendRect.height/2));
+              const dmSendReachable=inputId!=="dmInput"||!!(dmSendRect&&dmSendRect.width>0&&dmSendRect.height>0&&dmSendRect.top>=visibleTop&&dmSendRect.bottom<=visibleBottom&&isInside(dmSend,panelBody)&&(dmSendHit===dmSend||dmSend.contains(dmSendHit)));
+              let reportDropdownEvidence=null;
+              let reportDropdownReachable=true;
+              if (inputId==="reportInput") {
+                const reportList=doc.getElementById("reportList");
+                const reportOptions=reportList?Array.from(reportList.querySelectorAll('[role="option"]')):[];
+                const listRect=reportList&&reportList.getBoundingClientRect();
+                const reportScroll=verticalOverflow(reportList,win);
+                const firstVisible=reportOptions.find((option)=>{const r=option.getBoundingClientRect();return r.bottom>listRect.top&&r.top<listRect.bottom;});
+                const optionRect=firstVisible&&firstVisible.getBoundingClientRect();
+                const optionHit=optionRect&&doc.elementFromPoint(Math.floor(optionRect.left+Math.min(optionRect.width/2,20)),Math.floor(optionRect.top+Math.min(optionRect.height/2,16)));
+                const insideViewport=!!(listRect&&listRect.width>0&&listRect.height>0&&listRect.left>=visibleLeft&&listRect.right<=visibleRight&&listRect.top>=visibleTop&&listRect.bottom<=visibleBottom);
+                const listOnUsableSide=!!(listRect&&(listRect.bottom<=inputRect.top-1||listRect.top>=inputRect.bottom+1));
+                const optionHitReachable=!!(firstVisible&&optionHit&&reportList.contains(optionHit));
+                reportDropdownReachable=insideViewport&&listOnUsableSide&&reportScroll.scrollable&&optionHitReachable&&reportOptions.length>=syntheticReportPlayers.length&&reportList.getAttribute("aria-hidden")==="false";
+                reportDropdownEvidence={rect:rect(reportList),input:rect(input),visible:{top:visibleTop,bottom:visibleBottom,left:visibleLeft,right:visibleRight},insideViewport,listOnUsableSide,options:reportOptions.length,scroll:reportScroll,optionHit:optionHit&&{id:optionHit.id,role:optionHit.getAttribute("role"),className:String(optionHit.className)},optionHitReachable,ariaHidden:reportList.getAttribute("aria-hidden")};
+                if (panelBody) {
+                  const anchoredAfterScrollportMoves=!!ui._copReport&&typeof ui._copReport._reportPositionBinding?.handler==="function";
+                  reportDropdownEvidence.scrollportRepositionListener=anchoredAfterScrollportMoves;
+                  reportDropdownReachable=reportDropdownReachable&&anchoredAfterScrollportMoves;
+                }
+                const optionToTap=reportOptions.find((option)=>{const r=option.getBoundingClientRect();return r.bottom>visibleTop&&r.top<visibleBottom&&r.bottom>reportList.getBoundingClientRect().top&&r.top<reportList.getBoundingClientRect().bottom;});
+                if (optionToTap) {
+                  optionToTap.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,cancelable:true,pointerId:88,pointerType:"touch",button:0,isPrimary:true}));
+                  optionToTap.click();
+                }
+                const optionSelectionKeptFocus=!!optionToTap&&doc.activeElement===input&&input.value===optionToTap.textContent&&reportList.style.display==="none";
+                reportDropdownEvidence.optionSelectionKeptFocus=optionSelectionKeptFocus;
+                reportDropdownReachable=reportDropdownReachable&&optionSelectionKeptFocus;
+              }
+              const geometryAccessible=menuStartedOpen&&menuClosedForSpace&&doc.activeElement===input&&!input.disabled
+                &&activeInputVisible&&topbarCompact&&balanceAccessible&&shellAndTabsVisible&&chatAreaUsable&&dmLogAccessible&&panelScrollValid
+                &&dmThreadScrollable&&dmSendReachable&&reportDropdownReachable&&(inputId==="chatInput"||(!panelBody||panelBody.clientHeight>0));
+              const label=inputId.replace(/[A-Z]/g,(letter)=>"_"+letter.toLowerCase());
+              const inputs={chatInput,dmInput:doc.getElementById("dmInput"),reportInput:doc.getElementById("reportInput")};
+              const topBarStyle=win.getComputedStyle(top);
+              const evidence={menuStartedOpen,menuClosedForSpace,activeInputVisible,focusScrollBefore,panelScroll,panelBodyScroll,dmLogOverflow,dmThreadScrollable,dmSendReachable,reportDropdownReachable,reportDropdownEvidence,topbarCompact,topBarLayout:{display:topBarStyle.display,overflowX:topBarStyle.overflowX,scrollWidth:top.scrollWidth,clientWidth:top.clientWidth},balanceAccessible,balanceScroll,profileReachability,statChips:statChips.map((node)=>rect(node)),shellAndTabsVisible,chatAreaUsable,chatLogScrollable,chatLogScroll,dmLogAccessible,panelScrollValid,keyboardMin,diagnostic:diagnostic(win,doc,inputId,inputs)};
+              keyboardFocusResults.push(assert(geometryAccessible,"short_keyboard_menu_focus_geometry_"+label,JSON.stringify(evidence)));
+              keyboardFocusResults.push(assert(dmThreadScrollable,"dm_conversation_has_independent_scroll_range_"+label,JSON.stringify({dmLogOverflow,dmLog:nodeState(dmLog,win),panelBody:nodeState(panelBody,win)})));
+              if (inputId==="dmInput") keyboardFocusResults.push(assert(dmSendReachable,"dm_send_button_visible_and_hit_testable",JSON.stringify({send:rect(dmSend),hit:dmSendHit&&{id:dmSendHit.id,className:String(dmSendHit.className),tag:dmSendHit.tagName},viewport:{top:visibleTop,bottom:visibleBottom},panelBody:rect(panelBody)})));
+              if (inputId==="reportInput") keyboardFocusResults.push(assert(reportDropdownReachable,"report_suggestions_fit_viewport_scroll_and_preserve_focus",JSON.stringify(reportDropdownEvidence)));
+              const menuAtStart=rect(menuButton);
+              top.scrollLeft=topbarScrollMax;
+              const menuAtProfileEnd=rect(menuButton);
+              const menuCenter={x:Math.floor((menuAtProfileEnd.left+menuAtProfileEnd.right)/2),y:Math.floor((menuAtProfileEnd.top+menuAtProfileEnd.bottom)/2)};
+              const hitTarget=doc.elementFromPoint(menuCenter.x,menuCenter.y);
+              const menuRemainsPinned=menuAtStart&&menuAtProfileEnd
+                &&Math.abs(menuAtStart.left-menuAtProfileEnd.left)<=1&&Math.abs(menuAtStart.right-menuAtProfileEnd.right)<=1
+                &&menuAtProfileEnd.left>=0&&menuAtProfileEnd.right<=width
+                &&menuAtProfileEnd.top>=visibleTop&&menuAtProfileEnd.bottom<=visibleBottom;
+              keyboardFocusResults.push(assert(menuRemainsPinned,"menu_button_stays_visible_at_profile_scroll_end_"+label,JSON.stringify({menuAtStart,menuAtProfileEnd,scrollLeft:top.scrollLeft,scrollMax:topbarScrollMax})));
+              keyboardFocusResults.push(assert(hitTarget===menuButton||menuButton.contains(hitTarget),"menu_button_receives_hit_test_at_profile_scroll_end_"+label,JSON.stringify({menuCenter,target:hitTarget&&hitTarget.id,menuAtProfileEnd})));
+              input.blur();
+              menuButton.click();
+              await wait(40);
+              const menuClickOpened=menu.classList.contains("menu-open")&&win.getComputedStyle(menu).display!=="none"&&menu.getBoundingClientRect().height>0;
+              keyboardFocusResults.push(assert(menuClickOpened,"menu_button_click_works_at_profile_scroll_end_"+label,JSON.stringify({open:menuClickOpened,rect:rect(menu)})));
+              ui.hideMenu();
+              top.scrollLeft=topbarScrollStart;
+              input.focus();
+              ui.ensureMobilePinnedChatLayout();
+              keyboardFocusResults.push(assert(true,"keyboard_focus_case_completed_"+label,JSON.stringify({inputId,scenario:inputId==="reportInput"?"live cop report flow":inputId==="dmInput"?"live DM flow":"public chat composer"})));
+              restoreVV();
+              input.blur();
+              ui.hideMenu();
+              ui.ensureMobilePinnedChatLayout();
+              const headerRestored=!doc.body.classList.contains("mobile-profile-compact")
+                &&Math.ceil(top.getBoundingClientRect().height)>50;
+              keyboardFocusResults.push(assert(headerRestored,"profile_header_restores_after_keyboard_"+inputId,JSON.stringify({compact:doc.body.classList.contains("mobile-profile-compact"),height:rect(top)})));
+              mobileInterface.selectTab(previousTab,false);
+              ui.ensureMobilePinnedChatLayout();
+              const restored={chat:Math.round(chat.getBoundingClientRect().height),panels:Math.round(shell.getBoundingClientRect().height)};
+              keyboardFocusResults.push(assert(Math.abs(restored.chat-previousTabGeometry.chat)<=2&&Math.abs(restored.panels-previousTabGeometry.panels)<=2,"keyboard_menu_size_restore_"+label,JSON.stringify({expected:previousTabGeometry,baseline,restored})));
+              ui.showMenu();
+              const menuAfter={open:menu.classList.contains("menu-open")&&win.getComputedStyle(menu).display!=="none"&&menu.getBoundingClientRect().height>0,rect:rect(menu)};
+              keyboardFocusResults.push(assert(menuAfter.open,"menu_reopens_after_keyboard_"+label,JSON.stringify(menuAfter)));
+              ui.hideMenu();
+            }
+          } catch (error) {
+            restoreVV();
+            keyboardFocusResults.push(assert(false,"keyboard_focus_scenarios_threw",String(error&&error.stack||error)));
+          }
+          restoreVV();
+          if (ui._copReport&&ui._copReport._outsideHandler) doc.removeEventListener("click",ui._copReport._outsideHandler,true);
+          const orphanReportDropdown=doc.getElementById("reportList");
+          if (orphanReportDropdown) orphanReportDropdown.remove();
+          state.dm=dmSnapshot;
+          if (syntheticCop) delete state.players[syntheticCop.id];
+          syntheticReportPlayers.forEach((id)=>delete state.players[id]);
+          syntheticDmPlayers.forEach((id)=>delete state.players[id]);
+          ui._copReport=copReportSnapshot||{open:false,q:"",sel:0,list:[],dropdownOpen:false};
+          ui.renderDM();
+          mobileInterface.selectTab(previousTab,false);
+        } else {
+          Object.defineProperty(win,"visualViewport",{configurable:true,value:reducedVV()});
+          ui.ensureMobilePinnedChatLayout();
+          const vvHeight=Number.parseFloat(doc.documentElement.style.getPropertyValue("--mobile-vv-height"))||0;
+          const vvTop=Number.parseFloat(doc.documentElement.style.getPropertyValue("--mobile-vv-top"))||0;
+          keyboardResponsive=doc.body.classList.contains("mobile-keyboard-open")&&vvHeight===Math.max(240,height-180)&&vvTop===24
+            &&(Number.parseFloat(doc.documentElement.style.getPropertyValue("--mobile-chat-min"))||0)>=72;
+          restoreVV();
+        }
+        checks.push(assert(keyboardResponsive,"visual_viewport_keyboard_compaction"));
+        checks.push(...keyboardFocusResults);
+        if(index===0){
+          const completed=new Set(keyboardFocusResults.map((item)=>item.code));
+          const missing=expectedFocusCodes.filter((code)=>!completed.has(code));
+          checks.push(assert(missing.length===0,"all_keyboard_focus_cases_completed",JSON.stringify({expected:expectedFocusCodes.length,completed:completed.size,missing})));
+        }
+        const hintTarget = doc.querySelector("#balance [data-stat-hover-hint]");
+        if (hintTarget) {
+          const common = {bubbles:true,cancelable:true,pointerId:201,pointerType:"touch",button:0,isPrimary:true,clientX:10,clientY:10};
+          hintTarget.dispatchEvent(new PointerEvent("pointerdown",common));
+          hintTarget.dispatchEvent(new PointerEvent("pointerup",common));
+          hintTarget.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true}));
+          const hint = doc.getElementById("mobileLongPressHint");
+          const shortTapNoHint = !hint || hint.getAttribute("aria-hidden") === "true";
+          const hold = Object.assign({},common,{pointerId:202});
+          hintTarget.dispatchEvent(new PointerEvent("pointerdown",hold));
+          await wait(560);
+          hintTarget.dispatchEvent(new PointerEvent("pointerup",hold));
+          hintTarget.dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true}));
+          const shownHint = doc.getElementById("mobileLongPressHint");
+          checks.push(assert(shortTapNoHint,"short_stat_tap_does_not_open_hint"));
+          checks.push(assert(shownHint && shownHint.classList.contains("is-visible") && shownHint.getAttribute("aria-hidden") === "false" && hintTarget.getAttribute("aria-describedby") === shownHint.id,"long_press_opens_accessible_hint"));
+          doc.body.dispatchEvent(new PointerEvent("pointerdown",Object.assign({},common,{pointerId:203})));
+        } else checks.push(assert(false,"stat_hint_target_available"));
+
+        if (index === 2) {
+          const menuBlock = doc.getElementById("menuBlock");
+          if (menuButton && win.getComputedStyle(menuButton).display !== "none") {
+            ui.hideMenu();
+            menuButton.click();
+            await wait(40);
+            const menuOpened = doc.getElementById("menuBlock").classList.contains("menu-open");
+            checks.push(assert(menuOpened,"menu_opens"));
+            if (menuOpened && doc.getElementById("btnManifestToggle")) {
+              const goalButton = doc.getElementById("btnManifestToggle");
+              goalButton.click();
+              const goal = doc.getElementById("manifestBody");
+              const openHeightA = goal && Math.round(goal.getBoundingClientRect().height);
+              const oldCopy = goal && goal.textContent;
+              if (goal) {
+                goal.textContent = "Создай свою историю в Асинхронии. Вступай в конфликты, выбирай, кого поддерживать, и решай, чего добиваться.";
+                const openHeightB = Math.round(goal.getBoundingClientRect().height);
+                goal.textContent = oldCopy;
+                checks.push(assert(openHeightA > 0 && openHeightB > 0 && win.getComputedStyle(goal).flex === "0 0 auto","goal_body_visible_for_copy_lengths",JSON.stringify({openHeightA,openHeightB,flex:win.getComputedStyle(goal).flex})));
+              } else checks.push(assert(false,"goal_block_available"));
+            }
+            menuButton.click();
+            await wait(40);
+            checks.push(assert(!menuBlock.classList.contains("menu-open"),"menu_closes"));
+          } else checks.push(assert(false,"menu_button_available"));
+          state.flags = state.flags || {};
+          state.flags.stage715Demo = true;
+          state.flags.manifestOpen = false;
+          ui.renderMenu();
+          doc.documentElement.classList.add("stage7-first-experience-active");
+          const goal = doc.getElementById("manifestBody");
+          const goalClosed = goal && goal.hidden && goal.getAttribute("aria-hidden") === "true";
+          const goalParentHidden = menuBlock && win.getComputedStyle(menuBlock).display === "none";
+          const closedHeight = goal && Math.round(goal.getBoundingClientRect().height);
+          state.flags.manifestOpen = true;
+          ui.showMenu();
+          ui.renderMenu();
+          const openWhileLocked = goal && !goal.hidden && goal.getAttribute("aria-hidden") === "false";
+          const lockedHeight = goal && Math.round(goal.getBoundingClientRect().height);
+          checks.push(assert(goalClosed && goalParentHidden && closedHeight === 0 && openWhileLocked && lockedHeight === 0,"onboarding_lock_keeps_goal_panel_hidden",JSON.stringify({closedHeight,lockedHeight})));
+          ui.hideMenu();
+          doc.documentElement.classList.remove("stage7-first-experience-active");
+          state.flags.stage715Demo = initialFlags.stage715Demo;
+          state.flags.manifestOpen = initialFlags.manifestOpen;
+          ui.renderMenu();
+        }
+        if (state.dm && uiInitialState.dmOpen !== undefined) {
+          state.dm.open = uiInitialState.dmOpen;
+          ui.renderDM();
+        }
+        state.flags = state.flags || {};
+        state.flags.menuOpen = !!uiInitialState.menuOpen;
+        if (ui._battleInvite && ui._battleInvite._clickOutsideHandler) doc.removeEventListener("click",ui._battleInvite._clickOutsideHandler,true);
+        if (ui._battleInvite && ui._battleInvite._clickOutsideTimer) clearTimeout(ui._battleInvite._clickOutsideTimer);
+        const orphanInviteDropdown = doc.getElementById("battleInviteDropdown");
+        if (orphanInviteDropdown) orphanInviteDropdown.remove();
+        ui._battleInvite = uiInitialState.battleInvite;
+        if (ui.renderBattles) ui.renderBattles();
+        mobileInterface.selectTab(uiInitialState.activeTab || "dm",false);
+        if (uiInitialState.menuOpen) ui.showMenu(); else ui.hideMenu();
+        ui.ensureMobilePinnedChatLayout();
+      } else {
+        checks.push(assert(tabs && win.getComputedStyle(tabs).display === "none","desktop_tab_strip_hidden"));
+        checks.push(assert(shell && win.getComputedStyle(shell).display === "contents","desktop_panels_keep_flow"));
+        checks.push(assert(chat && top && bounds.chat.height > 0 && bounds.top.height > 0,"desktop_chat_and_topbar_visible"));
+        checks.push(assert(!handle || win.getComputedStyle(handle).display === "none","desktop_splitter_hidden"));
+      }
+      const failures = checks.filter((item) => !item.pass&&!item.skipped);
+      const skipped = checks.filter((item) => item.skipped);
+      const total = checks.filter((item) => !item.skipped).length;
+      const passed = checks.filter((item) => item.pass).length;
+      results.push({size:width + "x" + height,kind:kind,passed:passed,total:total,skipped:skipped,failures:failures,checks:checks,bounds:bounds,dims:dims});
+      completedCheckCount += total;
+      completedPassCount += passed;
+      report.textContent = results.map((result) => (result.passed===result.total&&result.failures.length===0?"PASS":"FAIL") + " " + result.size + " " + result.kind + ": " + result.passed + "/" + result.total + (result.skipped.length ? " ("+result.skipped.length+" skipped)" : "") + (result.failures.length ? "\n  " + result.failures.map((item) => item.code + " " + item.details).join("\n  ") : "") + (result.skipped.length ? "\n  " + result.skipped.map((item) => "SKIP " + item.code + " " + item.details).join("\n  ") : "")).join("\n");
+      report.className = failures.length ? "fail" : "pass";
+      identity.textContent = "Headless Chromium fixture " + width + "×" + height + "; exact iframe viewport " + dims.width + "×" + dims.height + "; app " + frame.contentDocument.title;
+      frame.contentWindow.scrollTo(0,0);
+      await wait(80);
+    };
+    (async () => {
+      for (const [index,size] of selectedRuns) await loadSize(size,index);
+      const total = results.reduce((sum,item) => sum + item.total,0);
+      const passed = results.reduce((sum,item) => sum + item.passed,0);
+      const skippedCount=results.reduce((sum,item)=>sum+item.skipped.length,0);
+      const expectedRunCount=requestedView===null?sizes.length:1;
+      const complete=selectedRuns.length===expectedRunCount&&results.length===selectedRuns.length&&selectedRuns.length>0;
+      const finalPass=complete&&passed===total;
+      report.className = finalPass?"pass":"fail";
+      report.textContent += "\n\nTOTAL " + passed + "/" + total + " " + (finalPass?"PASS":"FAIL");
+      const failureCodes=results.flatMap((item)=>item.failures.map((failure)=>item.size+" "+failure.code));
+      if (failureCodes.length) report.textContent += "\nFAILURE CODES " + failureCodes.join(" | ");
+      const failureEvidence=results.flatMap((item)=>item.failures.map((failure)=>{
+        let details=String(failure.details||"");
+        let evidence;
+        try { evidence=JSON.parse(details); }
+        catch (parseError) { details += " [evidence JSON parse failed: "+parseError.message+"]"; }
+        if (evidence) {
+          if (failure.code.startsWith("short_keyboard")) {
+            const flags=Object.fromEntries(["menuStartedOpen","menuClosedForSpace","activeInputVisible","topbarCompact","balanceAccessible","shellAndTabsVisible","chatAreaUsable","dmLogAccessible","panelScrollValid","dmThreadScrollable","dmSendReachable","reportDropdownReachable"].filter((key)=>key in evidence).map((key)=>[key,evidence[key]]));
+            const diagnostic=evidence.diagnostic;
+            if (!evidence.dmLogAccessible&&diagnostic) flags.dmLogGeometry={dmPanelBody:diagnostic.elements.dmPanelBody,dmLog:diagnostic.elements.dmLog,dmActions:diagnostic.elements.dmActions,dmInputRow:diagnostic.elements.dmInputRow,dmExtraRow:diagnostic.elements.dmExtraRow,reportInput:diagnostic.elements.reportInput,reportList:diagnostic.elements.reportList};
+            details=JSON.stringify(flags);
+          } else details=JSON.stringify(evidence);
+        }
+        return item.size+" "+failure.code+" "+details.slice(0,2400);
+      }));
+      if (failureEvidence.length) report.textContent += "\nFAILURE EVIDENCE " + failureEvidence.join(" | ");
+      if (skippedCount) report.textContent += "\nSKIPPED " + skippedCount + " (excluded from PASS total)";
+      if (!complete) report.textContent += "\nRUNS INCOMPLETE " + results.length + "/" + selectedRuns.length;
+      identity.textContent = "Finished " + results.length + " exact-size Headless Chromium iframe runs. " + results.map((item) => item.size + " " + item.passed + "/" + item.total).join("; ");
+      frame.title = "Asynchronia viewport fixture: " + report.textContent.replace(/\n/g," | ");
+    })().catch((error) => {
+      report.className = "fail";
+      report.textContent += "\n\nRUNNER ERROR " + (error && error.stack || error);
+      report.textContent += "\nTOTAL " + completedPassCount + "/" + completedCheckCount + " FAIL\nRUNS INCOMPLETE " + results.length + "/" + selectedRuns.length;
+    });
+  })();
+  </script>
+</body>
+</html>
