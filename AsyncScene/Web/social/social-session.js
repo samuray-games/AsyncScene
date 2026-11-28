@@ -66,12 +66,25 @@
     } catch (_) {}
   }
 
+  // Session changes are announced so a mounted UI drops the previous account at once,
+  // in this tab (event) and in other tabs of the same origin (BroadcastChannel).
+  const SESSION_EVENT = "asynchronia:social-session-changed";
+  let channel = null;
+  try { channel = typeof root.BroadcastChannel === "function" ? new root.BroadcastChannel("asynchronia-social-session") : null; } catch (_) { channel = null; }
+  function announce() {
+    try { root.dispatchEvent(new root.CustomEvent(SESSION_EVENT)); } catch (_) {}
+    try { if (channel) channel.postMessage("changed"); } catch (_) {}
+  }
+  if (channel) channel.onmessage = () => { dropAllDrafts(); try { root.dispatchEvent(new root.CustomEvent(SESSION_EVENT)); } catch (_) {} };
+
   async function setSession(sessionId, apiOrigin) {
     if (typeof sessionId !== "string" || !/^[A-Za-z0-9_-]{16,128}$/.test(sessionId)) throw Error("INVALID_SESSION_ID");
     if (typeof apiOrigin !== "string" || !apiOrigin) throw Error("INVALID_API_ORIGIN");
     const prior = await getValue("session");
-    if (!prior || prior.sessionId !== sessionId || prior.apiOrigin !== apiOrigin) dropAllDrafts();
+    const changed = !prior || prior.sessionId !== sessionId || prior.apiOrigin !== apiOrigin;
+    if (changed) dropAllDrafts();
     await putValue("session", { sessionId, apiOrigin });
+    if (changed) announce();
   }
 
   async function getSession(apiOrigin) {
@@ -83,6 +96,7 @@
   async function clearSession() {
     dropAllDrafts();
     await deleteValue("session");
+    announce();
   }
 
   function hex(buffer) {
@@ -122,6 +136,6 @@
 
   root.Game = root.Game || {};
   root.Game.SocialSession = Object.freeze({
-    SIGNATURE_SCHEME, canonicalString, ensureDeviceKey, setSession, getSession, clearSession, signRequest
+    SIGNATURE_SCHEME, SESSION_EVENT, canonicalString, ensureDeviceKey, setSession, getSession, clearSession, signRequest
   });
 })(typeof window === "object" ? window : globalThis);

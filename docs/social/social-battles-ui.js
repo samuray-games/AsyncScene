@@ -161,7 +161,15 @@
   }
 
   // ---------- controller ----------
-  function createController({ api, mount, apiOrigin }) {
+  const DISPOSED = Object.freeze({ code: "DISPOSED" });
+
+  function createController({ api: rawApi, mount, apiOrigin }) {
+    // After dispose() nothing of this controller may touch the DOM, drafts or the network result:
+    // late responses of the previous session are dropped here.
+    let disposed = false;
+    const api = Object.fromEntries(Object.keys(rawApi).map((name) => [name, (...args) => rawApi[name](...args).then(
+      (value) => { if (disposed) throw DISPOSED; return value; },
+      (error) => { throw disposed ? DISPOSED : error; })]));
     const state = {
       me: null, players: [], battles: [], awaiting: 0,
       views: new Map(), expanded: null, error: null, editing: 0, busy: new Set(), pendingCreate: null
@@ -170,12 +178,13 @@
     let listTimer = null;
     const scope = () => ({ apiOrigin, actorId: state.me.actorId });
     const load = (view) => loadDraft(scope(), view.selfSide, view.battleId);
-    const save = (view, draft) => saveDraft(scope(), view.selfSide, view.battleId, draft);
+    const save = (view, draft) => { if (!disposed) saveDraft(scope(), view.selfSide, view.battleId, draft); };
     // Any change to the draft starts a new command: the previous commandId may only be retried
     // with exactly the payload it was first sent with (K1 §4.2).
     const touch = (view, draft) => { delete draft.commandId; save(view, draft); };
 
     const setError = (error) => {
+      if (error === DISPOSED) return;
       state.error = error ? (ERROR_TEXT[error.code] || "Ошибка: " + (error.code || "UNKNOWN")) : null;
     };
 
@@ -218,6 +227,7 @@
         return;
       }
       await refreshAll();
+      if (disposed) return;
       pollTimer = root.setInterval(pollExpanded, POLL_MS);
       listTimer = root.setInterval(() => { if (!state.editing && !doc.hidden) refreshAll(); }, LIST_POLL_MS);
     }
@@ -283,6 +293,7 @@
 
     // ---------- rendering ----------
     function render() {
+      if (disposed) return;
       if (state.editing) return; // never replace DOM under an open inline editor
       mount.body.replaceChildren();
       mount.count.textContent = String(state.awaiting);
@@ -420,7 +431,7 @@
       makeEditablePlate(plate, () => d.text, (value) => { d.text = value; touch(view, draft); },
         // No re-render when editing ends: the plate already shows the saved text, and replacing
         // the DOM here would swallow the click that closed the editor (e.g. on «Готово»).
-        (on) => { state.editing += on ? 1 : -1; });
+        (on) => { if (!disposed) state.editing += on ? 1 : -1; });
       plateRow.append(plate);
       slot.append(plateRow);
       return slot;
@@ -458,7 +469,14 @@
       return box;
     }
 
-    return { start, render, state, stop: () => { root.clearInterval(pollTimer); root.clearInterval(listTimer); } };
+    function dispose() {
+      disposed = true;
+      root.clearInterval(pollTimer);
+      root.clearInterval(listTimer);
+      state.editing = 0;
+    }
+
+    return { start, render, refresh: refreshAll, state, dispose, get disposed() { return disposed; } };
   }
 
   function ensureMount() {
@@ -485,12 +503,31 @@
     return { block, body, count };
   }
 
+  // One live controller per page. A session change (login as someone else, logout, another tab)
+  // disposes it, wipes the panel and boots again for the new session without a reload.
+  let active = null;
+  let bootSeq = 0;
+  let listening = false;
+
+  function teardown(mount) {
+    if (active) { active.dispose(); active = null; }
+    root.Game.SocialBattles.controller = null;
+    if (mount) { mount.body.replaceChildren(); mount.count.textContent = "0"; }
+  }
+
   async function boot() {
     const config = root.Game && root.Game.SocialConfig ? root.Game.SocialConfig.read() : { enabled: false };
     if (!config.enabled) return null; // flag off: no DOM, no network
     const mount = ensureMount();
     if (!mount) return null;
+    if (!listening && root.Game.SocialSession && root.Game.SocialSession.SESSION_EVENT) {
+      listening = true;
+      root.addEventListener(root.Game.SocialSession.SESSION_EVENT, () => { boot(); });
+    }
+    const seq = ++bootSeq;
+    teardown(mount);
     const session = await root.Game.SocialSession.getSession(config.apiOrigin).catch(() => null);
+    if (seq !== bootSeq) return null; // a newer session change already took over
     if (!session) {
       purgeForeignDrafts(null);
       mount.body.replaceChildren(el("p", "sb-empty", "Бои с людьми доступны после входа по приглашению."));
@@ -498,9 +535,10 @@
     }
     const api = root.Game.SocialApi.create({ apiOrigin: config.apiOrigin, sessionId: session.sessionId });
     const controller = createController({ api, mount, apiOrigin: config.apiOrigin });
+    active = controller;
     root.Game.SocialBattles.controller = controller;
     await controller.start();
-    return controller;
+    return controller.disposed ? null : controller;
   }
 
   root.Game = root.Game || {};

@@ -93,6 +93,19 @@ async function login(player, mock, actorId) {
 
 const card = (page) => page.locator("#socialBattlesBlock .sb-card").first();
 
+// Session change on a mounted page, WITHOUT reload (the UI must react on its own).
+async function switchSession(player, mock, actorId) {
+  const { publicJwk } = await player.page.evaluate(() => window.Game.SocialSession.ensureDeviceKey());
+  const res = await fetch(mock.origin + "/__test__/sessions", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ actorId, publicJwk })
+  });
+  const { sessionId } = await res.json();
+  await player.page.evaluate(([sid, api]) => window.Game.SocialSession.setSession(sid, api), [sessionId, mock.origin]);
+  return sessionId;
+}
+const draftKeys = (page) => page.evaluate(() => Object.keys(sessionStorage).filter((k) => k.startsWith("asynchronia.socialBattles.draft.")));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 test("social battles: flag off, two-player battle, privacy, drafts, reveal", async (t) => {
   const site = await startStatic();
   const mock = await startMockServer({ pageOrigin: site.origin });
@@ -180,6 +193,60 @@ test("social battles: flag off, two-player battle, privacy, drafts, reveal", asy
     await login(D, mock, "actor-c"); // another account in the same tab
     assert.deepEqual(await keys(), [], "previous account's drafts are gone");
     assert.ok(!(await D.page.locator("#socialBattlesBlock").innerText()).includes("черновик Бори"));
+    await D.context.close();
+  });
+
+  await t.test("no reload: account switch and logout fully replace the previous player's UI and controller", async () => {
+    const D = await newPlayer(browser, { pageOrigin: site.origin, apiOrigin: mock.origin });
+    await login(D, mock, "actor-b"); // setup only; everything below happens without reload
+    await card(D.page).locator(".sb-commit").waitFor();
+    const plate = card(D.page).locator(".sb-plate.sb-own").first();
+    await plate.click();
+    await D.page.keyboard.type(" МАРКЕР-БОРИ");
+    await D.page.mouse.click(5, 5);
+    assert.match(await D.page.locator("#socialBattlesBlock").innerText(), /МАРКЕР-БОРИ/);
+    const oldSession = (await D.page.evaluate((api) => window.Game.SocialSession.getSession(api), mock.origin)).sessionId;
+
+    // 1) switch to another account while B's draft is on screen
+    const switchedAt = mock.log.length;
+    const cSession = await switchSession(D, mock, "actor-c");
+    await D.page.waitForFunction(() => window.Game.SocialBattles.controller &&
+      window.Game.SocialBattles.controller.state.me && window.Game.SocialBattles.controller.state.me.actorId === "actor-c");
+    await D.page.locator("#socialBattlesBlock .sb-challenge").waitFor();
+    const text = await D.page.locator("#socialBattlesBlock").innerText();
+    assert.ok(!text.includes("МАРКЕР-БОРИ"), "previous account's draft is gone from the DOM");
+    assert.ok(!text.includes("Бой: Аня"), "previous account's battle card is gone");
+    assert.equal(await D.page.locator("#socialBattlesBlock .sb-card").count(), 0);
+    assert.deepEqual(await draftKeys(D.page), []);
+    await sleep(3500); // longer than the expanded-battle poll
+    assert.equal(mock.log.slice(switchedAt).filter((e) => e.sessionId === oldSession).length, 0, "old controller stopped polling");
+
+    // 2) a late reply of the previous session must not repaint the old account
+    const bSession = await switchSession(D, mock, "actor-b");
+    await card(D.page).locator(".sb-commit").waitFor();
+    await D.page.route(mock.origin + "/**", async (route) => {
+      if (route.request().headers()["session-id"] === bSession) await sleep(1500);
+      return route.fallback();
+    });
+    const refreshing = D.page.evaluate(() => { window.Game.SocialBattles.controller.refresh(); });
+    await refreshing;
+    await switchSession(D, mock, "actor-c");
+    await sleep(2500); // the delayed reply for actor-b arrives after the switch
+    assert.equal(await D.page.evaluate(() => window.Game.SocialBattles.controller.state.me.actorId), "actor-c");
+    assert.equal(await D.page.locator("#socialBattlesBlock .sb-card").count(), 0, "late reply ignored");
+    await D.page.unroute(mock.origin + "/**");
+
+    // 3) logout without reload
+    const loggedOutAt = mock.log.length;
+    const currentC = (await D.page.evaluate((api) => window.Game.SocialSession.getSession(api), mock.origin)).sessionId;
+    await D.page.evaluate(() => window.Game.SocialSession.clearSession());
+    await D.page.locator("#socialBattlesBlock .sb-empty", { hasText: "входа по приглашению" }).waitFor();
+    assert.equal(await D.page.evaluate(() => window.Game.SocialBattles.controller), null);
+    assert.equal(await D.page.locator("#socialBattlesBlock .sb-challenge").count(), 0);
+    assert.deepEqual(await draftKeys(D.page), []);
+    await sleep(3500);
+    const mine = new Set([oldSession, cSession, bSession, currentC]); // every session this tab ever had
+    assert.equal(mock.log.slice(loggedOutAt).filter((e) => mine.has(e.sessionId)).length, 0, "no signed requests after logout");
     await D.context.close();
   });
 
