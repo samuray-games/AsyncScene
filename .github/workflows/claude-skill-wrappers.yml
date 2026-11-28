@@ -1,0 +1,33 @@
+name: claude-skill-wrappers
+
+on:
+  push:
+    paths:
+      - .claude/skills/**
+      - plugins/asynchronia/skills/**
+      - tools/test_claude_skill_wrappers.py
+      - .github/workflows/claude-skill-wrappers.yml
+  pull_request:
+    paths:
+      - .claude/skills/**
+      - plugins/asynchronia/skills/**
+      - tools/test_claude_skill_wrappers.py
+      - .github/workflows/claude-skill-wrappers.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Claude skill wrapper parity
+        run: python3 -m unittest tools.test_claude_skill_wrappers -v
+      - name: Check patch whitespace
+        run: git diff --check
