@@ -2,125 +2,149 @@
 
 STATUS: CONTRACT_DRAFT_FOR_REVIEW. Design only. No runtime, UI or server change is made or authorized by this file.
 EXTENDS: K1 `contracts/social-battle-api-v1.md` (PR #472; not merged at time of writing). K2 must be re-checked after K1 merges.
-BASELINE: `main@d4dc39f55c6dd771b470bff08fd2c0c00a95b913`, MEMORY_REV `2026-11-28-K1-C1-FIXES-MODEL-ROUTING-R315`.
-CANON SOURCES: R294 (public battle outcomes), R293, Chat04.0 PASS_DESIGN §2–§3, Chat01 §4–§5,
-Tactical V1 design §17 (V6) and §19 (V11), Chat05A as merged in #460, Chat05B draft #461.
+BASELINE: `main@d4dc39f55c6dd771b470bff08fd2c0c00a95b913`, MEMORY_REV `2026-11-28-OWNER-PUBLIC-BATTLE-DISPLAY-K2-R316`.
+CANON SOURCES: R316 (public battle display), R294, R293, R295/R296, Chat04.0 PASS_DESIGN §2–§3,
+Chat01 §4–§5, Tactical V1 design §16–§19 (V5–V11), Chat05A as merged in #460, Chat05B draft #461
+(`gameplay-server/CHAT05B_CONTRACT.md`), Chat09B V123–V129 offline models (#478).
 
 Server owner: Codex (gameplay-server, single writer, R292). Client owner: Claude Code.
 Privacy and voting are high-risk: this contract needs independent critical review before any runtime work.
 
-## 0. What exists today (merged code, checked 2026-11-28)
+## 0. What exists today (checked 2026-11-28)
 
-- `POST /v1/battles/{id}/votes` with body exactly `{"choice":"A"|"B"}` → `{voteId, choice, replayed}`.
-  Auth is a per-battle spectator capability token issued by an admin route. Same choice replays;
-  a different choice → `409 BALLOT_IMMUTABLE`. Participants cannot receive a capability or vote.
-- One vote per battle (`voteId = "sv1_" + sha256(...battleId)`), opened at reveal only when the trigger is
-  `DRAW`, `AUTHORED_TEXT` or `BOTH`. No closing, no deadline and no tally are implemented in `main`;
-  deadlines, odd quorum and NPC fill are in the unmerged 05B draft #461.
-- No spectator read route and no vote-state read route exist. The only battle read is participant-only.
+- `main` (05A, #460): `POST /v1/battles/{id}/votes` with body exactly `{"choice":"A"|"B"}` → `{voteId, choice, replayed}`.
+  Auth is a per-battle spectator capability issued by an admin route. Same choice replays; a different choice →
+  `409 BALLOT_IMMUTABLE`. Participants cannot receive a capability or vote. One vote per battle, opened at reveal
+  only for trigger `DRAW`, `AUTHORED_TEXT` or `BOTH`. No closing, deadline, tally or read route.
+- #461 (05B, draft): sidecar `gameplay_social_vote_deadlines` is the single lifecycle authority; `closed` plus the
+  persisted counts and `final_choice` is terminal and immutable; NPC ballots fill only at/after the deadline and
+  only while a quorum place remains. 05C must treat `closed` as the only proof of a final vote.
+- 05C: final social outcome, receipt and outbox exist only as offline models (#474); no authoritative runtime yet.
+- No spectator projection exists anywhere.
 
-## 1. Who is a spectator
+## 1. One feed, three outcomes
 
-- Any actor with a valid K1 signed session who is **not** a participant of the battle.
-- K2 replaces the admin-issued capability as the client-facing credential: the server derives the voter
-  from the K1 session (Design B boundary), maps `actorId → personId` internally and keeps the existing
-  one-ballot-per-person rules. Capabilities may stay as an internal mechanism; the client never sees them.
-- A participant reading a battle always gets the K1 participant projection; a spectator always gets the
-  spectator projection (§3). The server decides by session, never by a client flag.
+- A battle is one projection item `(kind: "battle", entityId: battleId)` with a `projectionVersion` (Chat04.0 §2).
+  The unified feed and the «Споры» tab are two views of the same item; neither creates its own entity or copy.
+  The crowd vote is part of that battle item, not a separate item and not a message.
+- Three results stay separate fields and are never derived from one another, in server or client:
+  `mechanicalOutcome` (resolver, immutable), `socialOutcome` (crowd support), `recognizedOutcome` (accepted result).
+- Final `socialOutcome`, `recognizedOutcome` and the final score come only from the authoritative 05C final record,
+  which consumes a vote closed by 05B. Until that record exists the item shows the vote as pending.
 
-## 2. Which battles a spectator can see
+## 2. Who sees which battle (R316 §1)
 
-- Only **public** battles (R294). A non-public battle is visible only to its authorized recipients and,
-  to anyone else, is indistinguishable from a missing battle (same `404 NOT_FOUND`, no counts, no cursor gaps).
-- OPEN-1 (owner): is every battle between invited players public by default in the first goal, or does
-  the challenger choose? Until decided, the server treats battles as non-public and K2 routes return nothing.
+- Player battles are **public by default**. Any actor with a valid K1 session may read the spectator projection
+  of a public battle.
+- A non-public battle is visible only to its authorized recipients; to anyone else it is indistinguishable from a
+  missing battle (same `404 NOT_FOUND`, no counts, no cursor gaps). K2 defines no way to make a battle non-public
+  or to turn a non-public conflict public; that UX and its consent rules are not approved.
+- A participant always gets the K1 participant projection; anyone else gets the spectator projection.
+  The server decides by session, never by a client flag.
 
-## 3. Spectator projection (R294)
+## 3. Spectator projection (R294 + R316)
 
-Shown only fields the server has confirmed and allows. Never: actorIds, personIds, voteId, capability data,
-individual ballots (including counts per side), hidden tactics, private messages, internal evidence,
-raw tallies or scores (see OPEN-2), resolution numbers.
+Only server-confirmed, allowed fields. Never: actorIds, personIds, voteId, capability data, individual ballots,
+intermediate counts, human/NPC breakdown, tactic types, resolution numbers or coefficients, private messages,
+evidence, unconfirmed data.
 
 ```text
 schemaVersion, battleId (opaque public entity id), projectionVersion, rulesVersion, phase,
-participantNames {A, B}            // confirmed current game names
+participantNames {A, B}                          // confirmed current game names
 // before reveal: nothing about choices, texts, colors, types or per-side commit state
-// after reveal:
-dialogue {A:{attack, defense}, B:{attack, defense}}   // texts only, see OPEN-3 for colors
-mechanicalOutcome  A_WIN | B_WIN | DRAW               // a draw has no winner
-vote { status: none | open | closed, deadlineAt?, myBallot?: A | B }
-// after the vote closes (05B):
+// after reveal (R316 §3):
+dialogue {A:{attack:{text, color}, defense:{text, color}}, B:{…}}
+mechanicalOutcome  A_WIN | B_WIN | DRAW          // a draw has no winner
+vote { status: none | open | closed, deadlineAt?, eligible: boolean, myBallot?: A | B }
+// only after the 05C final record exists (R316 §2):
 socialOutcome      A_SUPPORT | B_SUPPORT
 recognizedOutcome  A_WIN | B_WIN | DRAW
-narrative?         // safe editorial text from 04.5 (R296), when available
+finalScore {A, B, total}                         // confirmed aggregate of the closed vote, e.g. 4:3 of 7
+narrative?                                       // safe editorial text from 04.5 (R296), when available
 ```
 
-- `mechanicalOutcome`, `socialOutcome` and `recognizedOutcome` are separate fields and are never derived
-  from one another in the client (R294, Chat01 §5).
-- `myBallot` is returned only to the voter who cast it. Nobody else learns how anyone voted.
-- `phase` before reveal is coarse (`waiting` / `revealed` / `final` / `expired`); whether one side has
-  already committed is not shown to spectators.
+- `phase` for spectators is coarse: `waiting` / `revealed` / `final` / `expired`. Whether one side has committed is not shown.
+- `vote.status` mirrors the 05B sidecar; `closed` is set only by the 05B close transition.
+- `finalScore` is present only together with the 05C final record. No score or partial count is ever sent while
+  the vote is open. The quorum size is a server setting (the 7 in the example is not a canon value).
+- `myBallot` is returned only to the voter who cast it.
+- The participant projection (K1 §5) gains the same post-reveal `vote.status`, `socialOutcome`,
+  `recognizedOutcome` and `finalScore` fields under the same 05C rule; participants have `eligible: false`.
 
-## 4. Routes (proposed; all require a K1 signed session)
+## 4. Voting eligibility (R316 §4)
+
+The server decides eligibility per vote and re-checks it inside the ballot transaction. The client only shows
+buttons when `vote.eligible` is true; it never assumes that an invited player may vote.
+
+A human ballot is accepted only when all of these hold (05A + 05B rules as they exist today):
+1. Valid K1 session and server-side voter authorization for this battle (today: 05A spectator authorization;
+   K2 proposes deriving it from the session, §6).
+2. The voter is not a participant of the battle.
+3. The voter has no ballot in this vote (one person, one ballot; immutable).
+4. The 05B sidecar is open, the trusted timestamp is before `deadlineAt`, and human + NPC ballots are below quorum.
+
+Chat09B: the existing offline models (V123–V129) cover battle cancellation, anti-farm on cancel, occupancy and
+terminal receipts. They define **no** voter-eligibility rule. Additional limits (newcomers, alternate accounts,
+farming through votes) stay OPEN-4 and are not invented here. Until they exist, which persons the server marks
+eligible is an operator/owner decision, not "every invited player".
+
+## 5. Routes (proposed; all require a K1 signed session)
 
 | Route | Request → response |
 |---|---|
-| `GET /v1/battles?scope=public&cursor=` | → `{battles:[{battleId, phase, participantNames, voteStatus}], nextCursor?}`; public battles the caller is not a participant of, newest first |
-| `GET /v1/battles/{battleId}` | participant → K1 projection; spectator of a public battle → §3 projection; else `404` |
-| `POST /v1/battles/{battleId}/votes` | existing body `{"choice":"A"|"B"}` → `{choice, replayed}` (voteId is not returned to the client) |
+| `GET /v1/battles?scope=public&cursor=` | → `{battles:[{battleId, phase, participantNames, voteStatus}], nextCursor?}`: public battles the caller is not a participant of, newest first |
+| `GET /v1/battles/{battleId}` | participant → K1 projection; anyone else, public battle → §3 projection; else `404` |
+| `POST /v1/battles/{battleId}/votes` | existing body `{"choice":"A"|"B"}` → `{choice, replayed}` (voteId is not returned to clients) |
 
-Vote rules (existing 05A rules, unchanged):
-- One immutable ballot per person per vote. Same choice again → original receipt, `replayed: true`.
-  Different choice → `409 BALLOT_IMMUTABLE`. Every HTTP attempt is freshly signed (K1 §1.2).
-- Participants → `409 PARTICIPANT_CANNOT_VOTE`. No open vote → `409 VOTE_NOT_OPEN`. Closed → `409 VOTE_CLOSED`.
-- The ballot insert, nonce consumption and session/revoke re-check happen in one D1 transaction (K1 §0, §1.2).
+- Same choice again → original receipt, `replayed: true`, no second ballot. Different choice → `409 BALLOT_IMMUTABLE`.
+  Every HTTP attempt is freshly signed (K1 §1.2).
+- Errors: `409 PARTICIPANT_CANNOT_VOTE`, `409 NOT_ELIGIBLE`, `409 VOTE_NOT_OPEN`, `409 VOTE_CLOSED`, `409 BALLOT_IMMUTABLE`.
+- Ballot insert, nonce consumption and session/revoke re-check happen in one D1 transaction (K1 §0, §1.2).
 - `A`/`B` are battle sides; the UI labels them with participant names only.
 
-New error codes for the K1 error list: `BALLOT_IMMUTABLE`, `PARTICIPANT_CANNOT_VOTE`, `VOTE_NOT_OPEN`, `VOTE_CLOSED`.
+## 6. Server work required (Codex, after K1 and in R292 order)
 
-## 5. Client UX (first version, inside the temporary «Споры» panel; unified feed later)
+1. Session-based voter identity (K1 session → person) in place of client-held spectator capabilities.
+2. Visibility (public by default) and the `scope=public` list with opaque cursors.
+3. Spectator projection with a field-level allowlist (§3); colors only after reveal.
+4. Vote state from the 05B sidecar (`status`, `deadlineAt`, `eligible`, `myBallot`).
+5. Final outcomes and `finalScore` only from the 05C final record (after 05B closes); never from the open vote.
+6. K2 definitions in `contracts/social-battle-api-v1.schema.json` after K1 merges (one schema file, no copy).
 
-- A second list «Бои в городе» under «Бои с людьми»: opponent names and a short status
-  («Идёт бой», «Толпа решает», «Итог признан», «Время вышло»).
-- An expanded spectator card keeps the V5 chess order of the four replies after reveal, plates neutral
-  (OPEN-3), names and «Атака»/«Защита» labels. Before reveal: «Бой идёт. Реплики откроются после ходов обоих».
-- Under the dialogue: mechanical line («Механически: победа Ани» / «Механически: ничья»), then, when the
-  vote is open, two buttons «Поддержать Аню» / «Поддержать Борю». After voting: «Твой голос учтён: за Аню»,
-  buttons gone; the choice is never shown to anyone else.
-- After closing: «Толпа поддержала Аню» and «Признанный итог: …» as separate lines (no score, OPEN-2).
-- Participants see the same crowd status in their own card but no vote buttons.
-- All text through `textContent`; the projection is rendered as given, no client-side outcome logic.
+## 7. Client UX (first version)
 
-## 6. Open owner decisions
+- In the «Споры» view: a list «Бои в городе» under «Бои с людьми» with names and a short status
+  («Идёт бой», «Толпа решает», «Итог признан», «Время вышло»). The same battle item renders in the unified feed later.
+- Spectator card keeps the V5 chess order of the four replies. Before reveal: grey plates and
+  «Бой идёт. Реплики откроются после ходов обоих». After reveal: real colors and texts, names, «Атака»/«Защита».
+- Under the dialogue, as separate lines: «Механически: победа Ани» / «Механически: ничья»; then the vote:
+  - open and `eligible`: «Поддержать Аню» / «Поддержать Борю»; after voting «Твой голос учтён: за Аню»;
+  - open, not eligible: «Толпа решает» without buttons;
+  - closed, 05C final present: «Толпа поддержала Аню · 4:3» and «Признанный итог: победа Ани».
+- Participants see the same crowd lines in their card, never vote buttons.
+- All text via `textContent`; the client renders the projection as given and computes no outcome.
 
-- OPEN-1: default visibility of player battles (public / challenger chooses / private).
-- OPEN-2: Tactical V1 §17 (V6) shows the final score (e.g. «4:3 из 7», humans vs NPC); R294 forbids
-  unapproved raw tallies/scores. Until the owner explicitly allows a score field, K2 shows only the outcome.
-- OPEN-3: after reveal, do spectators see the reply colors? R294 forbids hidden tactics; colors were hidden
-  choices. K2 default: texts only, neutral plates, no tactic types or numbers.
-- OPEN-4: vote eligibility beyond "invited, not a participant" (anti-farm, newcomer limits) — Chat09B.
+## 8. Open owner decisions
 
-## 7. Server work required (Codex, after K1 and in R292 order)
+- OPEN-4: additional voter limits (newcomers, alternate accounts, vote farming) — Chat09B; not defined in current artifacts.
+- OPEN-5: UX for choosing a non-public battle and its consent (R316 §1 leaves it unapproved).
 
-1. Session-based voter identity (K1 session → person), replacing client-held spectator capabilities.
-2. Battle visibility flag per OPEN-1 and the `scope=public` list with opaque cursors.
-3. Spectator projection with field-level allowlist (§3); participant projection unchanged.
-4. Vote state read (`status`, `deadlineAt`, `myBallot`) and, after 05B closes a vote, the public outcomes.
-5. New error codes in the K1 schema; K2 schema definitions added to `contracts/social-battle-api-v1.schema.json`
-   after K1 merges (kept out of this draft to avoid two diverging schema copies).
+Closed by R316: battle visibility (public by default), final score display (confirmed aggregate after close only),
+colors for spectators (after reveal only).
 
-## 8. Required negative tests (before any runtime claim)
+## 9. Required negative tests (before any runtime claim)
 
-- Spectator payloads (network, not DOM) never contain actorIds, personIds, voteId, ballots of others,
-  counts, tactic types, resolution numbers, or anything before reveal.
+- Spectator payloads (network, not DOM) never contain actorIds, personIds, voteId, other ballots, intermediate
+  counts, human/NPC split, tactic types, resolution numbers, or anything about choices before reveal.
+- No `finalScore`, `socialOutcome` or `recognizedOutcome` while the vote is open or before the 05C final record.
 - A non-public battle and a missing battle give identical responses to a non-recipient.
-- A participant cannot vote; a second different ballot conflicts; a replayed ballot does not double count;
-  concurrent duplicate ballots produce one row.
+- A participant and a non-eligible person cannot vote; a second different ballot conflicts; a replayed ballot does not
+  double count; concurrent duplicate ballots produce one row; a ballot after close is rejected.
 - A revoked session cannot vote even if the ballot request was signed before revoke.
-- Reload/second device shows the same `myBallot`; another viewer never sees it.
+- Reload or a second device shows the same `myBallot`; no other viewer sees it.
 
-## 9. Client development before the server
+## 10. Client development before the server
 
-The client is built against the test-only mock (`tools/mock_social_battle_server.mjs`, PR C1) extended with
-these routes, behind the same default-off flag. Mock results are rule evidence only, not D1 evidence.
-Runtime client changes start only after K1/C1 pass re-review and this contract passes critical review.
+The client is built against the test-only mock (`tools/mock_social_battle_server.mjs`, PR C1), extended with these
+routes and a simulated 05B close plus 05C final record, behind the same default-off flag. Mock results are rule
+evidence only, not D1 or 05B/05C evidence. Runtime client work starts only after K1/C1/K2 pass exact-HEAD review.
