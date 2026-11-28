@@ -1,0 +1,56 @@
+{
+  "atom": "CHAT10B-V123-NEGATIVE-E2E-RUNNER",
+  "baselineMain": "f256228a2a57e5b8144a42a72a240a7455a76417",
+  "kind": "EXECUTABLE_STUB_TEST_HARNESS",
+  "localTest": "11/11 STUB only",
+  "runtimePass": false,
+  "independentCriticalReview": "NOT_DONE",
+  "cloudRecoverableVerified": false,
+  "files": [
+    {
+      "path": "tools/chat10b_negative_e2e/README.md",
+      "bytes": 4714,
+      "sha256": "59f5cddd4b76957a709bdb14b103ac963f368615cf26248511588929a33aa6f8"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/REVIEW_REQUEST.md",
+      "bytes": 1642,
+      "sha256": "bc274a0e6b2d9071b66df27da53da47d5c950578a16aeeb1ce943652258418a0"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/adapter.mjs",
+      "bytes": 502,
+      "sha256": "ed1f7294f400326b427beb517ae5f3312a763154ed0184f793d95f6d526e4474"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/evidence/local-stub-run.json",
+      "bytes": 4200,
+      "sha256": "c27c716c0dd43c45c34b0e74686787f16f603cf28be6b68a78d5ff8fca32dca7"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/evidence/local-stub-run.tap",
+      "bytes": 3436,
+      "sha256": "839f076422ea881463aeb6d805696955ea13ef2564c1ae20484ee2cef926af99"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/provenance.mjs",
+      "bytes": 3241,
+      "sha256": "31dab86ae7581872408b1c6c93bae58d9a0203dd2df74fec30cd70dccf24538d"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/run.mjs",
+      "bytes": 1580,
+      "sha256": "a87718474b4cc2d601d3e778cd5e59f781cc6faf20c7adee838ddfb3f0241342"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/stub-authority.mjs",
+      "bytes": 10758,
+      "sha256": "09251b7c9cfe84f25c17d9114e9015c7492088e233045a31ae8d06ca35df7561"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/test/negative.test.mjs",
+      "bytes": 7388,
+      "sha256": "e877114e45d9977a7c6eb8ae5c2bba54e2838a9ba50e21388f234f3c7a9de16b"
+    }
+  ]
+}

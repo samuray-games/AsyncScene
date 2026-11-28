@@ -1,0 +1,39 @@
+{
+  "atom": "CHAT06-V123-JUDGE-PROOF-ADAPTER",
+  "existing_judge_blob": "12ece4f21b9a57004a8c52f67c14c9f4481f7aac",
+  "existing_pr452_head": "f9a255692e95a8ecb6c9811eab0ce540acf4f149",
+  "files": [
+    {
+      "bytes": 16759,
+      "path": "chat06-judge-fixtures/trusted-knowledge-adapter.mjs",
+      "sha256": "d5a3d4b5cb4e4988a3527e7195d3016eef61f9646338c10e4028c0c6032f1e09"
+    },
+    {
+      "bytes": 18810,
+      "path": "chat06-judge-fixtures/trusted-knowledge-adapter.test.mjs",
+      "sha256": "77a18a4f2c0f3b1f6f4325bd1790ae83999fbf4671b7da89df336c9a354b5b50"
+    },
+    {
+      "bytes": 6041,
+      "path": "chat06-judge-fixtures/TRUSTED_KNOWLEDGE_ADAPTER.md",
+      "sha256": "e94d2209b8c11c46387dba946635759d97e32841de6fd81077c3c16333d495d8"
+    }
+  ],
+  "main_sha": "f256228a2a57e5b8144a42a72a240a7455a76417",
+  "ownership": "new files, isolated scratch only; remote and Mac locks unverified, no PR branch write claim",
+  "privacy": "manual allowlist three files, no secrets, tokens, personal addresses, .env, .git or unrelated sources",
+  "snapshot_version": "v2-after-static-self-review",
+  "stage": "ISOLATED_TESTS_PASS_CRITICAL_REVIEW_PENDING_NOT_RUNTIME",
+  "utc_created": "2026-11-10T12:42:59.538495+00:00",
+  "validation": {
+    "git_pr_publish": "NOT_AUTHORIZED/NOT_ATTEMPTED",
+    "independent_critical_reviewer": "PENDING: no accessible independent reviewer executor",
+    "node_check": "2/2 PASS",
+    "node_test": "29 PASS / 0 FAIL / 1 SKIP exact PR452 judge import not mounted"
+  },
+  "written_paths": [
+    "chat06-judge-fixtures/trusted-knowledge-adapter.mjs",
+    "chat06-judge-fixtures/trusted-knowledge-adapter.test.mjs",
+    "chat06-judge-fixtures/TRUSTED_KNOWLEDGE_ADAPTER.md"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "atom": "CHAT09B-V123-CANCEL-ANTIFARM-IMPLEMENT",
+  "scope": "ISOLATED_SYNTHETIC_PRODUCT_FIXTURES_ONLY",
+  "revision": "2026-11-10-R270-V123",
+  "files": [
+    {
+      "path": "product-model.mjs",
+      "size": 2987,
+      "sha256": "7a08fd014508c50beb49dd6d9338fc26aff755afaf92b9ab6cb5bef13ce1d46c"
+    },
+    {
+      "path": "acceptance.test.mjs",
+      "size": 4355,
+      "sha256": "67e48adf931b27621ba0e91631b3dae1414e561c8aae537a3ba5376923aa6ceb"
+    },
+    {
+      "path": "README.md",
+      "size": 1296,
+      "sha256": "3cbabf27570eb062327c93565156a9779c96845efa9d21df4ed86b9679b3e720"
+    },
+    {
+      "path": "test-results.tap",
+      "size": 2843,
+      "sha256": "a985d5170bb5adbf674f5c3db8a33a804df0534f66d1f45a198ecb4680a2e8f3"
+    }
+  ],
+  "tests": "14/14 PASS",
+  "not_proven": [
+    "server issuer",
+    "real cancellation",
+    "D1 atomicity",
+    "Worker",
+    "ledger",
+    "runtime"
+  ]
+}
