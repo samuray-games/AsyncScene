@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(* --remote *)",
+      "Bash(* --remote)",
+      "Bash(*wrangler deploy*)",
+      "Bash(*wrangler secret*)",
+      "Bash(*wrangler login*)",
+      "Bash(npm publish*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/subagent-guard.mjs\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

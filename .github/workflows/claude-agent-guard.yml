@@ -1,0 +1,38 @@
+name: claude-agent-guard
+
+on:
+  push:
+    paths:
+      - .claude/**
+      - tools/test_claude_subagent_guard.py
+      - .github/workflows/claude-agent-guard.yml
+  pull_request:
+    paths:
+      - .claude/**
+      - tools/test_claude_subagent_guard.py
+      - .github/workflows/claude-agent-guard.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Guard syntax
+        run: node --check .claude/hooks/subagent-guard.mjs
+      - name: Settings JSON
+        run: python3 -c "import json; json.load(open('.claude/settings.json'))"
+      - name: Agent definitions, guard allowlists and negative tests (no remote effects)
+        run: python3 -m unittest tools.test_claude_subagent_guard -v
+      - name: Check patch whitespace
+        run: git diff --check
