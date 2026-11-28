@@ -1,0 +1,51 @@
+{
+  "label": "07A-V127",
+  "archive": {
+    "title": "CHAT07A-V127-PER-VIEWER-SOURCE-BOUNDARY-EXECUTABLE.zip",
+    "bytes": 50528,
+    "sha256": "70a3ff10ee9fa4d2c33b9ea7153e5ad3b0e515b49307935acc9fbb203fcb6076",
+    "zip_crc": "OK",
+    "storage": "owner-private Google Drive folder (owner-only permission, verified 2026-11-28); original left unchanged"
+  },
+  "published": [
+    {
+      "path": "MANIFEST.json",
+      "bytes": 1490,
+      "sha256": "5d0901e3cb8aedac74c438b47d918ae12b28983a68a5ed93c604379d3870d814",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "README.md",
+      "bytes": 7478,
+      "sha256": "da802f582420286039250e8126e69892bc38e6d746be95955e68c76bd30be8a5",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "fixture-authority.mjs",
+      "bytes": 6807,
+      "sha256": "f2d36917bb4ade4db9fd68c60ea8da631315ad457d10730e7d046fbe64742c49",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "oracle.mjs",
+      "bytes": 4920,
+      "sha256": "023f2c8a466febe4bfee0571bda2911c9bb61e68e4c70910357b5282df08e40d",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "test/oracle.test.mjs",
+      "bytes": 17236,
+      "sha256": "5c4ae9ba4bbccb3e1ae04207b8e6bcb43c0d0dd2d47f0232080698d13574665f",
+      "byte_identical_to_original": true
+    }
+  ],
+  "redacted": [],
+  "excluded": [
+    {
+      "path": "test_output.txt",
+      "bytes": 11499,
+      "sha256": "c7741782d3c993cf9092585f7d7799e44bc2c2138b969d88e0d52a85b4110699",
+      "reason": "raw test/run log"
+    }
+  ]
+}
