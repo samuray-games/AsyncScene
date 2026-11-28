@@ -36,7 +36,6 @@ NEVER_FOR_READERS = {
 }
 READ_MCP = re.compile(
     r"^mcp__github__(get_[a-z_]+|list_[a-z_]+|pull_request_read|issue_read)$"
-    r"|^mcp__Notion__notion-(fetch|search)$"
 )
 WRITE_MCP_SAMPLES = [
     "mcp__github__create_pull_request", "mcp__github__merge_pull_request",
@@ -76,7 +75,14 @@ def guard_role_tools() -> dict[str, list[str]]:
     out = subprocess.run(
         ["node", str(GUARD), "--print-role-tools"], capture_output=True, text=True, timeout=20, check=True
     )
-    return json.loads(out.stdout)
+    return json.loads(out.stdout)["roles"]
+
+
+def guard_harness_return_tools() -> list[str]:
+    out = subprocess.run(
+        ["node", str(GUARD), "--print-role-tools"], capture_output=True, text=True, timeout=20, check=True
+    )
+    return json.loads(out.stdout)["harnessReturn"]
 
 
 class AgentDefinitionTests(unittest.TestCase):
@@ -167,8 +173,17 @@ class GuardNegativeTests(unittest.TestCase):
         for tool in ("WebFetch", "WebSearch", "mcp__github__get_file_contents", "mcp__Notion__notion-fetch"):
             self.assert_denied({"agent_type": "explorer", "tool_name": tool, "tool_input": {}})
 
-    def test_researcher_has_no_private_notion(self) -> None:
-        self.assert_denied({"agent_type": "researcher", "tool_name": "mcp__Notion__notion-fetch", "tool_input": {}})
+    def test_no_role_has_session_dependent_notion_tools(self) -> None:
+        for role in APPROVED:
+            self.assert_denied({"agent_type": role, "tool_name": "mcp__Notion__notion-fetch", "tool_input": {}})
+            self.assertFalse([t for t in tool_list(frontmatter(AGENTS / f"{role}.md")) if "Notion" in t], role)
+
+    def test_every_role_can_hand_back_its_report(self) -> None:
+        # Regression: fresh-session probe showed the guard denied SubagentHandback,
+        # so no guarded subagent could return a report.
+        self.assertEqual(guard_harness_return_tools(), ["SubagentHandback"])
+        for role in APPROVED:
+            self.assert_allowed({"agent_type": role, "tool_name": "SubagentHandback", "tool_input": {"report": "x"}})
 
     def test_tester_denied_write_tools_and_mcp(self) -> None:
         for tool in ["Write", "Edit", "NotebookEdit", "Agent", "Skill", "ToolSearch", "WebFetch"] + WRITE_MCP_SAMPLES:

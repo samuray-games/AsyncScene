@@ -32,14 +32,16 @@ const GITHUB_READ = [
   "mcp__github__get_job_logs",
 ];
 
-const NOTION_READ = ["mcp__Notion__notion-fetch", "mcp__Notion__notion-search"];
+// Harness-provided tool a subagent uses to return its final report to the
+// caller. It carries no file, shell, network or MCP capability.
+export const HARNESS_RETURN_TOOLS = Object.freeze(["SubagentHandback"]);
 
 export const ROLE_TOOLS = Object.freeze({
   explorer: Object.freeze([...READ_LOCAL]),
   researcher: Object.freeze([...READ_LOCAL, "WebFetch", "WebSearch", ...GITHUB_READ]),
   tester: Object.freeze([...READ_LOCAL, "Bash"]),
-  reviewer: Object.freeze([...READ_LOCAL, ...GITHUB_READ, ...NOTION_READ]),
-  "critical-reviewer": Object.freeze([...READ_LOCAL, ...GITHUB_READ, ...NOTION_READ]),
+  reviewer: Object.freeze([...READ_LOCAL, ...GITHUB_READ]),
+  "critical-reviewer": Object.freeze([...READ_LOCAL, ...GITHUB_READ]),
 });
 
 // Repository-relative path with no traversal, no absolute path, no options.
@@ -105,6 +107,7 @@ export function decide(input) {
   }
   const tool = input.tool_name;
   if (typeof tool !== "string" || tool === "") throw new Error("missing tool_name for guarded role");
+  if (HARNESS_RETURN_TOOLS.includes(tool)) return { guarded: true, deny: null };
   if (!ROLE_TOOLS[role].includes(tool)) {
     return { guarded: true, deny: `tool ${tool} is outside the ${role} allowlist` };
   }
@@ -119,7 +122,7 @@ export function decide(input) {
 
 function main() {
   if (process.argv[2] === "--print-role-tools") {
-    process.stdout.write(JSON.stringify(ROLE_TOOLS));
+    process.stdout.write(JSON.stringify({ roles: ROLE_TOOLS, harnessReturn: HARNESS_RETURN_TOOLS }));
     return 0;
   }
   let input;
