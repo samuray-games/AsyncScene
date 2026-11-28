@@ -55,9 +55,22 @@
     return { publicJwk };
   }
 
+  // Drafts are per account (K1 §1.3): a session change in this tab drops every draft.
+  function dropAllDrafts() {
+    try {
+      const store = root.sessionStorage;
+      for (let i = store.length - 1; i >= 0; i--) {
+        const key = store.key(i);
+        if (key && key.startsWith("asynchronia.socialBattles.draft.")) store.removeItem(key);
+      }
+    } catch (_) {}
+  }
+
   async function setSession(sessionId, apiOrigin) {
     if (typeof sessionId !== "string" || !/^[A-Za-z0-9_-]{16,128}$/.test(sessionId)) throw Error("INVALID_SESSION_ID");
     if (typeof apiOrigin !== "string" || !apiOrigin) throw Error("INVALID_API_ORIGIN");
+    const prior = await getValue("session");
+    if (!prior || prior.sessionId !== sessionId || prior.apiOrigin !== apiOrigin) dropAllDrafts();
     await putValue("session", { sessionId, apiOrigin });
   }
 
@@ -68,6 +81,7 @@
   }
 
   async function clearSession() {
+    dropAllDrafts();
     await deleteValue("session");
   }
 

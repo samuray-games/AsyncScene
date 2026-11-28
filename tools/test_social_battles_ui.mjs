@@ -11,6 +11,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
 import { startMockServer } from "./mock_social_battle_server.mjs";
+import { validate } from "./social_wire_schema.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const WEB = path.join(ROOT, "AsyncScene", "Web");
@@ -34,6 +35,7 @@ async function startStatic() {
 }
 
 const blocked = [];
+const wire = []; // every K1 response seen by any browser, checked against the wire schema
 async function newPlayer(browser, { pageOrigin, apiOrigin, flag = true, viewport = { width: 1280, height: 900 } }) {
   const context = await browser.newContext({ viewport });
   await context.route("**/*", (route) => {
@@ -52,7 +54,9 @@ async function newPlayer(browser, { pageOrigin, apiOrigin, flag = true, viewport
   page.on("pageerror", (e) => errors.push(String(e)));
   const responses = [];
   page.on("response", async (r) => {
-    if (r.url().startsWith(apiOrigin)) { try { responses.push(await r.text()); } catch (_) {} }
+    if (r.url().startsWith(apiOrigin) && r.request().method() !== "OPTIONS") {
+      try { const body = await r.text(); responses.push(body); wire.push({ url: r.url(), method: r.request().method(), status: r.status(), body }); } catch (_) {}
+    }
   });
   await page.goto(pageOrigin + "/AsyncScene/index.html");
   if (flag) await enterGame(page);
@@ -94,6 +98,7 @@ test("social battles: flag off, two-player battle, privacy, drafts, reveal", asy
   const mock = await startMockServer({ pageOrigin: site.origin });
   await mock.seedActor({ actorId: "actor-a", displayName: "Аня", allowedColors: ["y", "o"] });
   await mock.seedActor({ actorId: "actor-b", displayName: "Боря", allowedColors: ["y"] });
+  await mock.seedActor({ actorId: "actor-c", displayName: "Вика", allowedColors: ["y"] });
   const browser = await chromium.launch();
   t.after(async () => { await browser.close(); await mock.close(); await site.close(); });
 
@@ -160,6 +165,24 @@ test("social battles: flag off, two-player battle, privacy, drafts, reveal", asy
     assert.ok(B.responses.every((body) => !body.includes('"attackColor":"o"')), "A's color must not reach B before reveal");
   });
 
+  await t.test("drafts are scoped to the account: switching actor in one tab drops them", async () => {
+    const D = await newPlayer(browser, { pageOrigin: site.origin, apiOrigin: mock.origin });
+    await login(D, mock, "actor-b");
+    await card(D.page).locator(".sb-commit").waitFor();
+    const plate = card(D.page).locator(".sb-plate.sb-own").first();
+    await plate.click();
+    await D.page.keyboard.type(" черновик Бори");
+    await D.page.mouse.click(5, 5);
+    const keys = () => D.page.evaluate(() => Object.keys(sessionStorage).filter((k) => k.startsWith("asynchronia.socialBattles.draft.")));
+    const before = await keys();
+    assert.equal(before.length, 1);
+    assert.ok(before[0].includes(encodeURIComponent("actor-b") + "|B|"), "key carries API origin, actor, side and battle");
+    await login(D, mock, "actor-c"); // another account in the same tab
+    assert.deepEqual(await keys(), [], "previous account's drafts are gone");
+    assert.ok(!(await D.page.locator("#socialBattlesBlock").innerText()).includes("черновик Бори"));
+    await D.context.close();
+  });
+
   await t.test("B commits; both see one-step reveal with result and crowd status", async () => {
     await card(B.page).locator(".sb-commit").click();
     await card(B.page).locator(".sb-result").waitFor();
@@ -191,10 +214,32 @@ test("social battles: flag off, two-player battle, privacy, drafts, reveal", asy
     await M.context.close();
   });
 
+  await t.test("a second challenge while a battle is ACTIVE is refused by the server", async () => {
+    await reloadGame(A.page);
+    await A.page.selectOption("#socialBattlesBlock .sb-opponent", "actor-c");
+    await A.page.click("#socialBattlesBlock .sb-challenge-btn");
+    await A.page.locator("#socialBattlesBlock .sb-error").waitFor();
+    assert.match(await A.page.locator("#socialBattlesBlock .sb-error").innerText(), /уже идёт бой/);
+  });
+
+  await t.test("every K1 response matches the wire schema", () => {
+    const def = ({ url, method, status }) => {
+      const u = new URL(url);
+      if (status !== 200) return "error";
+      if (u.pathname === "/v1/me") return "meResponse";
+      if (u.pathname === "/v1/players") return "playersResponse";
+      if (u.pathname === "/v1/battles") return method === "POST" ? "createBattleResponse" : "battleListResponse";
+      if (u.pathname.endsWith("/commit")) return "commitResponse";
+      return "participantProjection";
+    };
+    assert.ok(wire.length > 10);
+    for (const r of wire) assert.deepEqual(validate(def(r), JSON.parse(r.body)), [], r.method + " " + r.url);
+  });
+
   await t.test("no page errors", () => {
     assert.deepEqual([...A.errors, ...B.errors].filter((e) => !/telemetry/i.test(e)), []);
   });
-  console.log(`blocked non-loopback requests: ${blocked.length}`);
+  console.log(`blocked non-loopback requests: ${blocked.length} to ${[...new Set(blocked.map((u) => new URL(u).hostname))].join(", ")}`);
   await A.context.close();
   await B.context.close();
 });

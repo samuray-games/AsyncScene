@@ -21,6 +21,9 @@
     COMMIT_IMMUTABLE: "Ход уже подтверждён.",
     BATTLE_EXPIRED: "Время на ход вышло.",
     NOT_FOUND: "Бой не найден.",
+    INVALID_INPUT: "Ход не принят: проверь выбор.",
+    IDEMPOTENCY_CONFLICT: "Этот запрос уже был отправлен с другими данными. Попробуй ещё раз.",
+    RESERVATION_CONFLICT: "У тебя или у соперника уже идёт бой. Дождись его окончания.",
     UNAUTHORIZED: "Сессия недействительна. Войди заново."
   };
 
@@ -39,28 +42,48 @@
   const uuid = () => (root.crypto && root.crypto.randomUUID) ? root.crypto.randomUUID()
     : Array.from(root.crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, "0")).join("");
 
-  // ---------- drafts: own side only, this device only, removed after commit ----------
-  function loadDraft(battleId) {
-    try { return JSON.parse(root.sessionStorage.getItem(DRAFT_PREFIX + battleId) || "null"); } catch (_) { return null; }
+  // ---------- drafts: own side only, this tab only, removed after commit ----------
+  // A draft belongs to one (API origin, actor, side, battle). Drafts of any other account or API
+  // are purged as soon as the current actor is known, so switching accounts in one tab never
+  // shows or sends another account's draft.
+  const draftScopePrefix = (scope) => DRAFT_PREFIX + encodeURIComponent(scope.apiOrigin) + "|" + encodeURIComponent(scope.actorId) + "|";
+  const draftKey = (scope, side, battleId) => draftScopePrefix(scope) + side + "|" + battleId;
+  function loadDraft(scope, side, battleId) {
+    try {
+      const draft = JSON.parse(root.sessionStorage.getItem(draftKey(scope, side, battleId)) || "null");
+      if (!draft || draft.apiOrigin !== scope.apiOrigin || draft.actorId !== scope.actorId ||
+          draft.side !== side || draft.battleId !== battleId) return null;
+      return draft;
+    } catch (_) { return null; }
   }
-  function saveDraft(battleId, draft) {
-    try { root.sessionStorage.setItem(DRAFT_PREFIX + battleId, JSON.stringify(draft)); } catch (_) {}
+  function saveDraft(scope, side, battleId, draft) {
+    Object.assign(draft, { apiOrigin: scope.apiOrigin, actorId: scope.actorId, side, battleId });
+    try { root.sessionStorage.setItem(draftKey(scope, side, battleId), JSON.stringify(draft)); } catch (_) {}
   }
-  function dropDraft(battleId) {
-    try { root.sessionStorage.removeItem(DRAFT_PREFIX + battleId); } catch (_) {}
+  function dropDraft(scope, side, battleId) {
+    try { root.sessionStorage.removeItem(draftKey(scope, side, battleId)); } catch (_) {}
+  }
+  function purgeForeignDrafts(scope) {
+    try {
+      const keep = scope ? draftScopePrefix(scope) : null;
+      for (let i = root.sessionStorage.length - 1; i >= 0; i--) {
+        const key = root.sessionStorage.key(i);
+        if (key && key.startsWith(DRAFT_PREFIX) && (!keep || !key.startsWith(keep))) root.sessionStorage.removeItem(key);
+      }
+    } catch (_) {}
   }
 
   function offersFor(view, channel, type) {
     const all = (view.readyTextOffers && Array.isArray(view.readyTextOffers.offers)) ? view.readyTextOffers.offers : [];
     const forChannel = all.filter((o) => o.channel === channel);
-    const typed = forChannel.filter((o) => o.tactic_type === type);
+    const typed = forChannel.filter((o) => o.tacticType === type);
     // Older catalogs have no tactic type: cycle every phrase of the channel.
-    return typed.length ? typed : forChannel.filter((o) => !o.tactic_type);
+    return typed.length ? typed : forChannel.filter((o) => !o.tacticType);
   }
 
   function freshSlot(view, channel, type, color) {
     const offer = offersFor(view, channel, type)[0] || null;
-    return { type, color, offerId: offer ? offer.offer_id : null, text: offer ? offer.phrase_text : "" };
+    return { type, color, offerId: offer ? offer.offerId : null, text: offer ? offer.text : "" };
   }
 
   function initialDraft(view, me) {
@@ -74,7 +97,7 @@
       const slot = draft[channel];
       if (!types.some(([id]) => id === slot.type)) return false;
       if (!(me.allowedColors || []).includes(slot.color)) return false;
-      if (!offersFor(view, channel, slot.type).some((o) => o.offer_id === slot.offerId)) return false;
+      if (!offersFor(view, channel, slot.type).some((o) => o.offerId === slot.offerId)) return false;
       if (typeof slot.text !== "string" || !slot.text.trim() || slot.text.length > MAX_TEXT) return false;
     }
     return true;
@@ -138,13 +161,19 @@
   }
 
   // ---------- controller ----------
-  function createController({ api, mount }) {
+  function createController({ api, mount, apiOrigin }) {
     const state = {
       me: null, players: [], battles: [], awaiting: 0,
       views: new Map(), expanded: null, error: null, editing: 0, busy: new Set(), pendingCreate: null
     };
     let pollTimer = null;
     let listTimer = null;
+    const scope = () => ({ apiOrigin, actorId: state.me.actorId });
+    const load = (view) => loadDraft(scope(), view.selfSide, view.battleId);
+    const save = (view, draft) => saveDraft(scope(), view.selfSide, view.battleId, draft);
+    // Any change to the draft starts a new command: the previous commandId may only be retried
+    // with exactly the payload it was first sent with (K1 §4.2).
+    const touch = (view, draft) => { delete draft.commandId; save(view, draft); };
 
     const setError = (error) => {
       state.error = error ? (ERROR_TEXT[error.code] || "Ошибка: " + (error.code || "UNKNOWN")) : null;
@@ -180,6 +209,7 @@
     async function start() {
       try {
         state.me = await api.me();
+        purgeForeignDrafts(scope());
         const players = await api.players();
         state.players = Array.isArray(players.players) ? players.players : [];
       } catch (error) {
@@ -214,6 +244,7 @@
         state.expanded = res.battleId;
         await refreshAll();
       } catch (error) {
+        if (error && error.code === "IDEMPOTENCY_CONFLICT") state.pendingCreate = null;
         setError(error);
         render();
       }
@@ -221,19 +252,19 @@
 
     async function commit(battleId) {
       const view = state.views.get(battleId);
-      const draft = loadDraft(battleId);
+      const draft = view ? load(view) : null;
       if (!view || !validDraft(draft, view, state.me) || state.busy.has(battleId)) return;
       state.busy.add(battleId);
       render();
       const commandId = draft.commandId || uuid();
       draft.commandId = commandId;
-      saveDraft(battleId, draft);
+      save(view, draft);
       const textIntent = {};
       for (const channel of ["attack", "defense"]) {
         const slot = draft[channel];
-        const offer = offersFor(view, channel, slot.type).find((o) => o.offer_id === slot.offerId);
+        const offer = offersFor(view, channel, slot.type).find((o) => o.offerId === slot.offerId);
         textIntent[channel] = { offerId: slot.offerId };
-        if (!offer || offer.phrase_text !== slot.text) textIntent[channel].finalText = slot.text;
+        if (!offer || offer.text !== slot.text) textIntent[channel].finalText = slot.text;
       }
       const selection = {
         attackColor: draft.attack.color, defenseColor: draft.defense.color,
@@ -241,7 +272,7 @@
       };
       try {
         await api.commit(battleId, commandId, selection, textIntent);
-        dropDraft(battleId);
+        dropDraft(scope(), view.selfSide, battleId);
         setError(null);
       } catch (error) {
         setError(error);
@@ -317,8 +348,8 @@
       const draftable = !view.revealed && !view.selfCommitted;
       let draft = null;
       if (draftable) {
-        draft = loadDraft(view.battleId);
-        if (!validDraft(draft, view, state.me)) { draft = initialDraft(view, state.me); saveDraft(view.battleId, draft); }
+        draft = load(view);
+        if (!validDraft(draft, view, state.me)) { draft = initialDraft(view, state.me); save(view, draft); }
       }
       const grid = el("div", "sb-dialogue");
       const slots = [[self, "attack", "left"], [rival, "defense", "right"], [rival, "attack", "right"], [self, "defense", "left"]];
@@ -366,27 +397,27 @@
       typeSelect.value = d.type;
       typeSelect.addEventListener("change", () => {
         draft[channel] = freshSlot(view, channel, typeSelect.value, d.color);
-        saveDraft(view.battleId, draft); render();
+        touch(view, draft); render();
       });
       const colorSelect = el("select", "sb-color-select");
       colorSelect.setAttribute("aria-label", "Цвет реплики");
       for (const c of state.me.allowedColors || []) colorSelect.append(new Option(COLOR_LABEL[c] || c, c));
       colorSelect.value = d.color;
-      colorSelect.addEventListener("change", () => { d.color = colorSelect.value; saveDraft(view.battleId, draft); render(); });
+      colorSelect.addEventListener("change", () => { d.color = colorSelect.value; touch(view, draft); render(); });
       const rotate = button("↻", () => {
         const options = offersFor(view, channel, d.type);
         if (!options.length) return;
-        const at = options.findIndex((o) => o.offer_id === d.offerId);
+        const at = options.findIndex((o) => o.offerId === d.offerId);
         const next = options[(at + 1) % options.length];
-        d.offerId = next.offer_id; d.text = next.phrase_text;
-        saveDraft(view.battleId, draft); render();
+        d.offerId = next.offerId; d.text = next.text;
+        touch(view, draft); render();
       }, "sb-rotate");
       rotate.setAttribute("aria-label", "Другая готовая фраза");
       tools.append(typeSelect, colorSelect, rotate);
       slot.append(tools);
       const plateRow = el("div", "sb-plate-row");
       const plate = el("div", "sb-plate sb-own sb-c-" + d.color, d.text);
-      makeEditablePlate(plate, () => d.text, (value) => { d.text = value; saveDraft(view.battleId, draft); },
+      makeEditablePlate(plate, () => d.text, (value) => { d.text = value; touch(view, draft); },
         // No re-render when editing ends: the plate already shows the saved text, and replacing
         // the DOM here would swallow the click that closed the editor (e.g. on «Готово»).
         (on) => { state.editing += on ? 1 : -1; });
@@ -461,18 +492,19 @@
     if (!mount) return null;
     const session = await root.Game.SocialSession.getSession(config.apiOrigin).catch(() => null);
     if (!session) {
+      purgeForeignDrafts(null);
       mount.body.replaceChildren(el("p", "sb-empty", "Бои с людьми доступны после входа по приглашению."));
       return null;
     }
     const api = root.Game.SocialApi.create({ apiOrigin: config.apiOrigin, sessionId: session.sessionId });
-    const controller = createController({ api, mount });
+    const controller = createController({ api, mount, apiOrigin: config.apiOrigin });
     root.Game.SocialBattles.controller = controller;
     await controller.start();
     return controller;
   }
 
   root.Game = root.Game || {};
-  root.Game.SocialBattles = { boot, controller: null };
+  root.Game.SocialBattles = { boot, controller: null, purgeForeignDrafts };
   if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", () => { boot(); });
   else boot();
 })(window);

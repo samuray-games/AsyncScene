@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "asynchronia/contracts/social-battle-api-v1.schema.json",
+  "title": "K1 social battle API v1 wire schema",
+  "description": "Single wire schema for contracts/social-battle-api-v1.md. Client, test mock and gameplay-server validate against this file. Field names are camelCase on the wire; database column names never appear in responses.",
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$" },
+    "uuid": { "type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$" },
+    "color": { "enum": ["y", "o", "r", "k"] },
+    "attackType": { "enum": ["N", "P", "T"] },
+    "defenseType": { "enum": ["S", "C", "G"] },
+    "side": { "enum": ["A", "B"] },
+    "phase": { "enum": ["created", "waiting", "committed", "revealed", "final", "expired"] },
+    "text": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "displayName": { "type": "string", "minLength": 1, "maxLength": 64 },
+
+    "error": {
+      "type": "object",
+      "required": ["error"],
+      "additionalProperties": false,
+      "properties": {
+        "error": { "enum": [
+          "UNAUTHORIZED", "INVALID_JSON", "INVALID_INPUT", "NOT_FOUND", "METHOD_NOT_ALLOWED",
+          "COLOR_NOT_ALLOWED", "ROLE_MISMATCH", "UNKNOWN_TEXT_OFFER", "INVALID_TEXT_INTENT",
+          "IDEMPOTENCY_CONFLICT", "RESERVATION_CONFLICT", "COMMIT_IMMUTABLE", "BATTLE_EXPIRED",
+          "COMMIT_REJECTED"
+        ] }
+      }
+    },
+
+    "meResponse": {
+      "type": "object",
+      "required": ["actorId", "displayName", "role", "allowedColors", "progress"],
+      "additionalProperties": false,
+      "properties": {
+        "actorId": { "$ref": "#/$defs/id" },
+        "displayName": { "$ref": "#/$defs/displayName" },
+        "role": { "$ref": "#/$defs/id" },
+        "allowedColors": { "type": "array", "minItems": 1, "maxItems": 4, "items": { "$ref": "#/$defs/color" } },
+        "progress": {
+          "type": "object",
+          "required": ["rep", "points", "wins"],
+          "additionalProperties": false,
+          "properties": { "rep": { "type": "integer" }, "points": { "type": "integer" }, "wins": { "type": "integer" } }
+        }
+      }
+    },
+
+    "playersResponse": {
+      "type": "object",
+      "required": ["players"],
+      "additionalProperties": false,
+      "properties": {
+        "players": { "type": "array", "items": {
+          "type": "object", "required": ["actorId", "displayName"], "additionalProperties": false,
+          "properties": { "actorId": { "$ref": "#/$defs/id" }, "displayName": { "$ref": "#/$defs/displayName" } }
+        } }
+      }
+    },
+
+    "createBattleRequest": {
+      "type": "object",
+      "required": ["opponentActorId", "clientOperationId"],
+      "additionalProperties": false,
+      "properties": { "opponentActorId": { "$ref": "#/$defs/id" }, "clientOperationId": { "$ref": "#/$defs/id" } }
+    },
+    "createBattleResponse": {
+      "type": "object",
+      "required": ["battleId", "replayed"],
+      "additionalProperties": false,
+      "properties": { "battleId": { "$ref": "#/$defs/uuid" }, "replayed": { "type": "boolean" } }
+    },
+
+    "battleSummary": {
+      "type": "object",
+      "required": ["battleId", "phase", "version", "opponentName", "awaitingMyAction"],
+      "additionalProperties": false,
+      "properties": {
+        "battleId": { "$ref": "#/$defs/uuid" },
+        "phase": { "$ref": "#/$defs/phase" },
+        "version": { "type": "integer", "minimum": 0 },
+        "opponentName": { "$ref": "#/$defs/displayName" },
+        "awaitingMyAction": { "type": "boolean" }
+      }
+    },
+    "battleListResponse": {
+      "type": "object",
+      "required": ["battles", "awaitingMyAction"],
+      "additionalProperties": false,
+      "properties": {
+        "battles": { "type": "array", "items": { "$ref": "#/$defs/battleSummary" } },
+        "awaitingMyAction": { "type": "integer", "minimum": 0 },
+        "nextCursor": { "type": "string" }
+      }
+    },
+
+    "selection": {
+      "type": "object",
+      "required": ["attackColor", "defenseColor", "attackType", "defenseType", "role"],
+      "additionalProperties": false,
+      "properties": {
+        "attackColor": { "$ref": "#/$defs/color" }, "defenseColor": { "$ref": "#/$defs/color" },
+        "attackType": { "$ref": "#/$defs/attackType" }, "defenseType": { "$ref": "#/$defs/defenseType" },
+        "role": { "$ref": "#/$defs/id" }
+      }
+    },
+    "textIntentChannel": {
+      "type": "object",
+      "required": ["offerId"],
+      "additionalProperties": false,
+      "properties": { "offerId": { "$ref": "#/$defs/id" }, "finalText": { "$ref": "#/$defs/text" } }
+    },
+    "commitRequest": {
+      "type": "object",
+      "required": ["commandId", "selection", "textIntent"],
+      "additionalProperties": false,
+      "properties": {
+        "commandId": { "$ref": "#/$defs/id" },
+        "selection": { "$ref": "#/$defs/selection" },
+        "textIntent": {
+          "type": "object", "required": ["attack", "defense"], "additionalProperties": false,
+          "properties": { "attack": { "$ref": "#/$defs/textIntentChannel" }, "defense": { "$ref": "#/$defs/textIntentChannel" } }
+        }
+      }
+    },
+    "commitResponse": {
+      "type": "object",
+      "required": ["code", "replayed", "view"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "type": "string" },
+        "replayed": { "type": "boolean" },
+        "view": { "$ref": "#/$defs/participantProjection" }
+      }
+    },
+
+    "readyTextOffer": {
+      "type": "object",
+      "required": ["channel", "offerId", "text", "tacticType"],
+      "additionalProperties": false,
+      "properties": {
+        "channel": { "enum": ["attack", "defense"] },
+        "offerId": { "$ref": "#/$defs/id" },
+        "text": { "$ref": "#/$defs/text" },
+        "tacticType": { "enum": ["N", "P", "T", "S", "C", "G"] }
+      }
+    },
+    "committedText": {
+      "type": "object",
+      "required": ["offerId", "text", "wordsEdited"],
+      "additionalProperties": false,
+      "properties": { "offerId": { "$ref": "#/$defs/id" }, "text": { "$ref": "#/$defs/text" }, "wordsEdited": { "type": "boolean" } }
+    },
+
+    "participantProjection": {
+      "type": "object",
+      "required": ["schemaVersion", "battleId", "version", "rulesVersion", "phase", "deadlineAt", "participants",
+        "participantNames", "selfSide", "selfCommitted", "opponentCommitted", "revealed"],
+      "additionalProperties": false,
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "battleId": { "$ref": "#/$defs/uuid" },
+        "version": { "type": "integer", "minimum": 0 },
+        "rulesVersion": { "const": "tactical_v1" },
+        "phase": { "$ref": "#/$defs/phase" },
+        "deadlineAt": { "type": "integer" },
+        "participants": {
+          "type": "object", "required": ["self", "opponent"], "additionalProperties": false,
+          "properties": { "self": { "$ref": "#/$defs/id" }, "opponent": { "$ref": "#/$defs/id" } }
+        },
+        "participantNames": {
+          "type": "object", "required": ["self", "opponent"], "additionalProperties": false,
+          "properties": { "self": { "$ref": "#/$defs/displayName" }, "opponent": { "$ref": "#/$defs/displayName" } }
+        },
+        "selfSide": { "$ref": "#/$defs/side" },
+        "selfCommitted": { "type": "boolean" },
+        "opponentCommitted": { "type": "boolean" },
+        "revealed": { "type": "boolean" },
+        "readyTextOffers": {
+          "type": "object", "required": ["catalogVersion", "normalizationVersion", "offers"], "additionalProperties": false,
+          "properties": {
+            "catalogVersion": { "$ref": "#/$defs/id" },
+            "normalizationVersion": { "$ref": "#/$defs/id" },
+            "offers": { "type": "array", "items": { "$ref": "#/$defs/readyTextOffer" } }
+          }
+        },
+        "selections": {
+          "type": "object", "required": ["A", "B"], "additionalProperties": false,
+          "properties": { "A": { "$ref": "#/$defs/selection" }, "B": { "$ref": "#/$defs/selection" } }
+        },
+        "committedTexts": {
+          "type": "object", "required": ["A", "B"], "additionalProperties": false,
+          "properties": {
+            "A": { "type": "object", "required": ["attack", "defense"], "additionalProperties": false,
+              "properties": { "attack": { "$ref": "#/$defs/committedText" }, "defense": { "$ref": "#/$defs/committedText" } } },
+            "B": { "type": "object", "required": ["attack", "defense"], "additionalProperties": false,
+              "properties": { "attack": { "$ref": "#/$defs/committedText" }, "defense": { "$ref": "#/$defs/committedText" } } }
+          }
+        },
+        "mechanicalOutcome": { "enum": ["A_WIN", "B_WIN", "DRAW"] },
+        "resolution": { "type": "object" },
+        "socialOutcome": { "enum": ["A_SUPPORT", "B_SUPPORT", "PENDING", "NONE"] },
+        "recognizedOutcome": { "enum": ["A_WIN", "B_WIN", "DRAW", "PENDING"] },
+        "socialVoteTrigger": { "enum": ["NONE", "DRAW", "AUTHORED_TEXT", "BOTH"] }
+      },
+      "if": { "properties": { "revealed": { "const": false } } },
+      "then": {
+        "required": ["readyTextOffers"],
+        "not": { "anyOf": [
+          { "required": ["selections"] }, { "required": ["committedTexts"] }, { "required": ["mechanicalOutcome"] },
+          { "required": ["resolution"] }, { "required": ["socialOutcome"] }, { "required": ["recognizedOutcome"] },
+          { "required": ["socialVoteTrigger"] }
+        ] }
+      },
+      "else": {
+        "required": ["selections", "committedTexts", "mechanicalOutcome", "resolution", "socialOutcome",
+          "recognizedOutcome", "socialVoteTrigger"],
+        "not": { "required": ["readyTextOffers"] }
+      }
+    }
+  }
+}
