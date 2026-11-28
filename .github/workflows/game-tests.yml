@@ -1,0 +1,180 @@
+name: Game tests (non-blocking)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - .github/workflows/game-tests.yml
+      - AsyncScene/Web/**
+      - docs/**
+      - tools/test_*
+      - scripts/**
+      - package.json
+      - package-lock.json
+
+permissions:
+  contents: read
+
+jobs:
+  game-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0 # Existing regression tests read historical blobs and origin/main.
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "22"
+      - name: Install Chromium from the locked Playwright version
+        run: |
+          dependency_dir="$(mktemp -d "$RUNNER_TEMP/game-playwright.XXXXXX")"
+          cp package.json package-lock.json "$dependency_dir/"
+          checked_in_version="$(node -p 'require("./node_modules/playwright/package.json").version')"
+          (
+            cd "$dependency_dir"
+            npm ci --ignore-scripts --no-audit --no-fund
+            test "$(node -p 'require("./node_modules/playwright/package.json").version')" = "$checked_in_version"
+            node node_modules/playwright/cli.js install --with-deps chromium
+          )
+          git diff --exit-code -- node_modules
+      - name: Run each game test with loopback-only networking
+        id: game
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          suite="$RUNNER_TEMP/game-tests.py"
+          dom="$RUNNER_TEMP/game-html-test.cjs"
+
+          cat > "$dom" <<'JS'
+          const assert = require("node:assert/strict");
+          const { createRequire } = require("node:module");
+          const { resolve } = require("node:path");
+          const { chromium } = createRequire(resolve("package.json"))("playwright");
+
+          async function main() {
+            const browser = await chromium.launch();
+            try {
+              const page = await browser.newPage();
+              await page.goto(process.argv[2]);
+              await page.waitForFunction(() => document.documentElement.dataset.testResult);
+              const result = await page.locator("html").getAttribute("data-test-result");
+              assert.equal(result, "pass", await page.locator("body").innerText());
+            } finally {
+              await browser.close();
+            }
+          }
+
+          main().catch((error) => {
+            console.error(error);
+            process.exitCode = 1;
+          });
+          JS
+
+          cat > "$suite" <<'PY'
+          from functools import partial
+          from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+          from pathlib import Path
+          from threading import Thread
+          import os
+          import signal
+          import subprocess
+          import sys
+
+          # These six root Python tests cover repository tooling. Gameplay-server
+          # tests have separate D1/API workflows.
+          infrastructure = {
+              "test_ai_forensics.py",
+              "test_asynchronia_plugin_model_routing_policy.py",
+              "test_github_transport_resilience.py",
+              "test_model_selector_inventory_maintenance.py",
+              "test_validate_ai_work_pipeline.py",
+              "test_validate_orchestration_policy.py",
+          }
+          node_extensions = {".cjs", ".mjs", ".js"}
+          tests = sorted(
+              path for path in Path("tools").glob("test_*")
+              if path.is_file() and path.name not in infrastructure
+              and path.suffix in node_extensions | {".py", ".html"}
+          )
+          if not tests:
+              raise SystemExit("No game tests found")
+
+          class QuietHandler(SimpleHTTPRequestHandler):
+              def log_message(self, *_):
+                  pass
+
+          class HtmlTestHandler(QuietHandler):
+              def translate_path(self, path):
+                  # The HTML fixtures load the app at its deployed URL prefix.
+                  if path.startswith("/AsyncScene/"):
+                      path = path.replace("/AsyncScene/", "/AsyncScene/Web/", 1)
+                  return super().translate_path(path)
+
+          def serve(directory, port=0, handler_class=QuietHandler):
+              handler = partial(handler_class, directory=directory)
+              server = ThreadingHTTPServer(("127.0.0.1", port), handler)
+              Thread(target=server.serve_forever, daemon=True).start()
+              return server
+
+          def command_for(path, html_runner, html_port):
+              if path.suffix == ".py":
+                  return [sys.executable, str(path)]
+              if path.suffix == ".html":
+                  return ["node", html_runner, f"http://127.0.0.1:{html_port}/{path}"]
+              flags = ["--test"] if ".test." in path.name else []
+              return ["node", *flags, str(path)]
+
+          def run(command):
+              with subprocess.Popen(command, start_new_session=True) as process:
+                  try:
+                      code = process.wait(timeout=90)
+                  except subprocess.TimeoutExpired:
+                      os.killpg(process.pid, signal.SIGKILL)
+                      process.wait()
+                      return "FAIL (timeout)"
+              return "PASS" if code == 0 else f"FAIL ({code})"
+
+          # Existing browser scripts expect these loopback ports.
+          serve("AsyncScene/Web", 8092)
+          serve("AsyncScene/Web", 8094)
+          html = serve(".", handler_class=HtmlTestHandler)
+          html_runner, summary_file, head = sys.argv[1:]
+          results = []
+          for path in tests:
+              print(f"::group::{path}", flush=True)
+              result = run(command_for(path, html_runner, html.server_port))
+              print(f"{result}\n::endgroup::", flush=True)
+              results.append((path, result))
+
+          passed = sum(result == "PASS" for _, result in results)
+          failed = len(results) - passed
+          with open(summary_file, "a", encoding="utf-8") as summary:
+              summary.write("## Game tests (non-blocking)\n\n")
+              summary.write(f"HEAD: {head}\n\n")
+              summary.write(f"Test files: **{passed} passed / {failed} failed** of {len(results)}.\n\n")
+              summary.write("| Test file | Result |\n| --- | --- |\n")
+              for path, result in results:
+                  summary.write(f"| {path} | {result} |\n")
+          print(f"GAME_TESTS_TOTAL passed={passed} failed={failed} total={len(results)}", flush=True)
+          PY
+
+          # Only the fixed namespace setup runs as root. Test processes lose
+          # privileges, inherit a minimal environment and have no external route.
+          sudo unshare --net /bin/bash --noprofile --norc -c '
+            set -euo pipefail
+            ip link set dev lo up
+            exec setpriv --reuid "$1" --regid "$2" --init-groups --no-new-privs -- "${@:3}"
+          ' game-net "$(id -u)" "$(id -g)" /usr/bin/env -i \
+            "PATH=$PATH" "HOME=$HOME" "PYTHONPATH=$PWD" "PYTHONDONTWRITEBYTECODE=1" \
+            "$(command -v python)" "$suite" "$dom" "$GITHUB_STEP_SUMMARY" "$EXPECTED_HEAD"
+      - name: Report runner failure
+        if: ${{ always() && steps.game.outcome != 'success' }}
+        run: echo 'Game test infrastructure did not complete. See the failed step for details.' >> "$GITHUB_STEP_SUMMARY"
