@@ -1,0 +1,178 @@
+{
+  "label": "05C-V129",
+  "archive": {
+    "title": "chat05c_v129_TERMINAL_SEAM_FINAL_20261113.zip",
+    "bytes": 52558,
+    "sha256": "29c92ba922d92925a1efdda0e9b747b353e490a68bbf8e060f728e69cb75fa06",
+    "zip_crc": "OK",
+    "storage": "owner-private Google Drive folder (owner-only permission, verified 2026-11-28); original left unchanged"
+  },
+  "published": [
+    {
+      "path": "BRIDGE_CONTRACT.md",
+      "bytes": 1563,
+      "sha256": "1aaa7157c4e80d58c3895d2eb2738b2827f6f1b46fad2a795b2cf4dd33d3e4ba",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "EARLY_MANIFEST.json",
+      "bytes": 3238,
+      "sha256": "c4797774eaa380261520f7a5c46e0615c258c12d21dcc05b6c28cada6c2619d2",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "FAILED_MANIFEST.json",
+      "bytes": 3544,
+      "sha256": "790e763f98a486cfb334d8b827d78ec527742e18310721d1bd8926ef13aa9c6c",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "FINAL_MANIFEST.json",
+      "bytes": 5585,
+      "sha256": "c95dd69c1ec6a8c601d6a33c5949027633a4d7ccc8a25edb767a8bd0253b8c25",
+      "byte_identical_to_original": false
+    },
+    {
+      "path": "README.md",
+      "bytes": 1282,
+      "sha256": "8f6223736ce79a3dbc270d73831d856cae341e54e905ea70cb4340b371911091",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "REVIEW_AND_STOP.md",
+      "bytes": 4896,
+      "sha256": "6197887d30e39821433cfebdc85af61fb1aafd8a89afbbf668931fb7e1156388",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "RUN.md",
+      "bytes": 804,
+      "sha256": "a47df9349bc545cf4834a4193bf26835c2abbd5a8040178249f72c31c225b34a",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "TEST_MATRIX.md",
+      "bytes": 3110,
+      "sha256": "6d4ead55d4c390af631ae5b33ca638ef514f5cc0e5f23af614bed919581d4610",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "bridge.py",
+      "bytes": 13676,
+      "sha256": "8237748a9f30d6b8aaade61bdbe54d00f593e00ec63d597f0ae54efc4f805ee0",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "seam.sql",
+      "bytes": 10478,
+      "sha256": "51a9b08ba0faa79f45b586190bdccc913cc62e16ae55596d831fe96ce8b58347",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "test/test_seam.py",
+      "bytes": 24015,
+      "sha256": "7eff0c2fae2b853e1f72bbff7cebe341a840112ca295c3bc5a85893ca6d171ed",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "fixtures/migrations/0001_tactical_state.sql",
+      "bytes": 9848,
+      "sha256": "4d5407cb9f6cca454dff73a791d98e99bc1828c1f3d33ae55af47d2d4327e46b",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "fixtures/migrations/0002_battle_capabilities.sql",
+      "bytes": 779,
+      "sha256": "4249b6274c9e48787d4f912309bc9b574e3a005e39f4838afa9c17406df0d4d3",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "fixtures/migrations/0003_idempotent_battle_creation.sql",
+      "bytes": 890,
+      "sha256": "801051632dd6da684e68436d098b086528e3cab35db6026dde8211af4d88d204",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "fixtures/migrations/0004_capability_generation.sql",
+      "bytes": 937,
+      "sha256": "ff0f58d25fd4c9c74a8582bece38072304895bc3e156f6286f19e4c5ae17d16c",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "fixtures/migrations/0005_participant_transition_fence.sql",
+      "bytes": 2431,
+      "sha256": "c3efaabf01a58279153202612a32374e91cebfeca08311b7045c2a5a031cb567",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "fixtures/migrations/0006_creation_recovery_lifecycle.sql",
+      "bytes": 9071,
+      "sha256": "933ca2cf643bab7fe5703c7363d4993b3aebf7cb574260d80db223cfe6123d00",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "fixtures/migrations/0007_capability_operator_lifecycle.sql",
+      "bytes": 3717,
+      "sha256": "bf1bc7279a254317c4593b998a4723fb558b5333edfe0fda606a92fa40ead794",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "fixtures/migrations/0008_chat05a_people_and_votes.sql",
+      "bytes": 13532,
+      "sha256": "a979ff80adf38550ab734e337198486f5628152725660f11985f72020ac69407",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "fixtures/migrations/0009_chat05a_authored_text_commits.sql",
+      "bytes": 11799,
+      "sha256": "561e2e1b4d067f2aaa42f12e27b0057b22ce911b7f29d9bd5bf7bc92ce601a90",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "fixtures/migrations/0010_chat05a_authored_vote_triggers.sql",
+      "bytes": 9634,
+      "sha256": "3ae50102fba8f3488375898ccec69b207f19cafc3e2397821b805be0c8e0c619",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "fixtures/migrations/0011_chat05b_vote_deadlines_and_fill.sql",
+      "bytes": 8213,
+      "sha256": "876f164043222ff77e1ab12e722ddcc7c246ca168274d4bf52f3c3ff724ab2c7",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "fixtures/migrations/0012_chat05b_npc_ballot_no_replace.sql",
+      "bytes": 616,
+      "sha256": "6a268328a38afc0e97805cf67a6fffcd7ebf6e07fd0790551deb000dd08fa7d8",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "fixtures/upstream/v128_candidate.sql",
+      "bytes": 19462,
+      "sha256": "b2071d91d18750125a12d5809800c45b5916587a11dfa47703fc1ef29bef0b11",
+      "byte_identical_to_original": true
+    }
+  ],
+  "redacted": [
+    {
+      "path": "FINAL_MANIFEST.json",
+      "original_sha256": "5bf4353e14d8d6bddef3e98b0deddb8638943fee904c8b369ca6538b39901b3b",
+      "published_sha256": "c95dd69c1ec6a8c601d6a33c5949027633a4d7ccc8a25edb767a8bd0253b8c25",
+      "change": "owner-private Drive IDs replaced"
+    }
+  ],
+  "excluded": [
+    {
+      "path": "FAILED_SQL_SYNTAX_LOG.txt",
+      "bytes": 27223,
+      "sha256": "402f859e0f55958a96e04217833617e5dda87df24757d1831e8b75f8e8813900",
+      "reason": "raw test/run log"
+    },
+    {
+      "path": "TEST_RESULTS.txt",
+      "bytes": 4534,
+      "sha256": "b83f85e4fdf0dc85c65a418b55c98508976257b2ac67eafcc07a41d879f7fcdd",
+      "reason": "raw test/run log"
+    }
+  ]
+}

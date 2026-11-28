@@ -1,0 +1,25 @@
+{
+  "atom": "CHAT05C-R288-SECURITY-ABORT-FULL-TXN-ROLLBACK",
+  "snapshot": "EARLY_BEFORE_EXECUTION",
+  "source_v129_sha256": "29c92ba922d92925a1efdda0e9b747b353e490a68bbf8e060f728e69cb75fa06",
+  "source_r287_delta_sha256": "3bbab702f7c65d40df47827e275a4482ab570cc2dc0dd743396255dcd14bd450",
+  "tests": "NOT_RUN",
+  "review": "NOT_RUN",
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 1404,
+      "sha256": "ecdf74032399c6370fcfd09fea596cbbf61374953793cd17c19c9f18bed5be81"
+    },
+    {
+      "path": "source_readonly/chat040_r287_delta_original.zip",
+      "bytes": 219214,
+      "sha256": "3bbab702f7c65d40df47827e275a4482ab570cc2dc0dd743396255dcd14bd450"
+    },
+    {
+      "path": "source_readonly/chat05c_v129_original.zip",
+      "bytes": 52558,
+      "sha256": "29c92ba922d92925a1efdda0e9b747b353e490a68bbf8e060f728e69cb75fa06"
+    }
+  ]
+}
