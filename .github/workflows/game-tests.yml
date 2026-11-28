@@ -31,10 +31,18 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "22"
-      - name: Install locked Playwright and Chromium
+      - name: Install Chromium from the locked Playwright version
         run: |
-          npm ci --ignore-scripts --no-audit --no-fund
-          node node_modules/playwright/cli.js install --with-deps chromium
+          dependency_dir="$(mktemp -d "$RUNNER_TEMP/game-playwright.XXXXXX")"
+          cp package.json package-lock.json "$dependency_dir/"
+          checked_in_version="$(node -p 'require("./node_modules/playwright/package.json").version')"
+          (
+            cd "$dependency_dir"
+            npm ci --ignore-scripts --no-audit --no-fund
+            test "$(node -p 'require("./node_modules/playwright/package.json").version')" = "$checked_in_version"
+            node node_modules/playwright/cli.js install --with-deps chromium
+          )
+          git diff --exit-code -- node_modules
       - name: Run each game test with loopback-only networking
         id: game
         env:
@@ -103,8 +111,15 @@ jobs:
               def log_message(self, *_):
                   pass
 
-          def serve(directory, port=0):
-              handler = partial(QuietHandler, directory=directory)
+          class HtmlTestHandler(QuietHandler):
+              def translate_path(self, path):
+                  # The HTML fixtures load the app at its deployed URL prefix.
+                  if path.startswith("/AsyncScene/"):
+                      path = path.replace("/AsyncScene/", "/AsyncScene/Web/", 1)
+                  return super().translate_path(path)
+
+          def serve(directory, port=0, handler_class=QuietHandler):
+              handler = partial(handler_class, directory=directory)
               server = ThreadingHTTPServer(("127.0.0.1", port), handler)
               Thread(target=server.serve_forever, daemon=True).start()
               return server
@@ -130,7 +145,7 @@ jobs:
           # Existing browser scripts expect these loopback ports.
           serve("AsyncScene/Web", 8092)
           serve("AsyncScene/Web", 8094)
-          html = serve(".")
+          html = serve(".", handler_class=HtmlTestHandler)
           html_runner, summary_file, head = sys.argv[1:]
           results = []
           for path in tests:
