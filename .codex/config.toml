@@ -1,4 +1,6 @@
 # Project-scoped agent roles, model defaults, and concurrency settings.
+model = "gpt-6.2-sol"
+model_reasoning_effort = "medium"
 default_permissions = ":workspace"
 
 [features]
@@ -9,6 +11,19 @@ network_proxy = true
 extends = ":read-only"
 
 [permissions.stage715-read-only-loopback.network]
+enabled = true
+mode = "limited"
+allow_local_binding = true
+
+[permissions.tester-read-only-loopback]
+description = "Read-only test execution with temporary output and limited local-network checks."
+extends = ":read-only"
+
+[permissions.tester-read-only-loopback.filesystem]
+":tmpdir" = "write"
+":slash_tmp" = "write"
+
+[permissions.tester-read-only-loopback.network]
 enabled = true
 mode = "limited"
 allow_local_binding = true

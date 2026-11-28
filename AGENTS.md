@@ -57,11 +57,13 @@ No silent or untraceable economy deltas, duplicate settlements, lost remainders 
 
 ## Ordinary routing
 
-Either implementer uses its configured tooling under the shared repository policy. Follow the risk-based independent review requirements in `ORCHESTRATION.md`. Ordinary work requires no user-operated selector handshake or special continuation command.
+Use GPT-6.2 Sol at Medium for ordinary development. Raise its reasoning effort to High for complex or high-risk decisions. Use GPT-6.2 Astra at High only for unusually difficult work and only when it appears in the current Codex model catalog. Either implementer follows the shared repository policy and risk-based independent review requirements in `ORCHESTRATION.md`. Ordinary work requires no user-operated selector handshake.
 
 ## Parallel work
 
-Use the configured scope-planning mechanism when multiple tasks exist. Serialize shared registries, boot wiring, smoke exports, runtime mirrors and documentation ownership. Do not merge, rebase or absorb another lane without an explicit integration task.
+Handle small tasks directly. Delegate substantial, independent routine research, test execution, or large-log analysis to the existing Luna Low roles only when that saves time or resources; do not spawn an agent for every small task. Keep no more than two subagents active per session. Serialize shared registries, boot wiring, smoke exports, runtime mirrors and documentation ownership. Do not merge, rebase or absorb another lane without an explicit integration task.
+
+Subagents inherit the parent session's permission mode. A `sandbox_mode` entry in an agent TOML does not create a separate sandbox. Select `tester-read-only-loopback` on the parent session before spawning `tester`; it keeps the repository read-only, allows temporary output under `$TMPDIR` and `/tmp`, and permits limited local-network checks. Use the `:read-only` parent profile for review agents. If a check requires repository writes or broader network access, stop and report that requirement rather than widening the profile.
 
 ## Safety and acceptance
 
