@@ -1,0 +1,80 @@
+{
+  "atom": "CHAT09B-V129-CANCEL-ANTIFARM-TERMINAL-COMPAT",
+  "entries": [
+    {
+      "bytes": 4276,
+      "path": "README.md",
+      "sha256": "652bb6fb95ce65b0d081e68acef2df2e3662a52df0622a4d6d87f13fae09c18b"
+    },
+    {
+      "bytes": 182,
+      "path": "product-model.mjs",
+      "sha256": "c5cc71b9b542c5068a3cc760b5a3ab4be04acaa771e8a27db7797231301c8f9a"
+    },
+    {
+      "bytes": 5089,
+      "path": "vendor/v128/product-model.mjs",
+      "sha256": "0fd4dd85fc71ff5871afc92ad12d8ea52b48c1fd10e2b0a0df50570985b9f79e"
+    },
+    {
+      "bytes": 4355,
+      "path": "vendor/v128/acceptance.test.mjs",
+      "sha256": "67e48adf931b27621ba0e91631b3dae1414e561c8aae537a3ba5376923aa6ceb"
+    },
+    {
+      "bytes": 7087,
+      "path": "vendor/v128/binding-regression.test.mjs",
+      "sha256": "73399715a39632b7123bea55c944da03e420f37b760cef739b0b9edd8360280f"
+    },
+    {
+      "bytes": 1090,
+      "path": "vendor/v128/baseline-v127-repro.test.mjs",
+      "sha256": "c1e8208cc47b444cb418e8f11427bc31d2e69d079fc74951e9a86b5521b089b9"
+    },
+    {
+      "bytes": 7107,
+      "path": "terminal-bridge.mjs",
+      "sha256": "9f3c8a283e2516eb197d513770266aeaf7d3fa8c0f5542d7e58bbfd8f42ce590"
+    },
+    {
+      "bytes": 13522,
+      "path": "terminal-bridge.test.mjs",
+      "sha256": "3b2a34fc26dbeb6f4eacb5c3fde168bddf0801a7f2248d0b36deffc1618e07a9"
+    },
+    {
+      "bytes": 14958,
+      "path": "test-results-v129.tap",
+      "sha256": "155125f3a3d345a587b553c000c179ef0672a86580e907870363ed3edd6372c3"
+    },
+    {
+      "bytes": 793,
+      "path": "test-results-v129.json",
+      "sha256": "1d8543cb39bf98199814fc723be78357db6b43eb9d8ff7b80649d3dc7b58d84b"
+    },
+    {
+      "bytes": 2093,
+      "path": "REVIEW_REQUEST.md",
+      "sha256": "a70b7423e870ca387039a55a5d93c1e3c3eda85504475b580614231c52c309cf"
+    },
+    {
+      "bytes": 3287,
+      "path": "source-provenance.md",
+      "sha256": "2c5cc26bb4a52e8510c629c30ab99648cc1c714d4eca459e52d8e03b8ed07109"
+    }
+  ],
+  "github_main_readonly": "f256228a2a57e5b8144a42a72a240a7455a76417",
+  "integration": "NOT_APPROVED",
+  "phase": "FINAL_TESTED",
+  "review": "INDEPENDENT_CRITICAL_REVIEW_NOT_EXECUTED",
+  "scope": "ISOLATED_OFFLINE_09B_TERMINAL_BRIDGE_ONLY",
+  "source_v123": {
+    "drive_id": "<owner-private-drive-id>",
+    "zip_sha256": "faf25936b205d5ad30033f22653842afb2fc90cf7198a1b123a33f58e14a5ece"
+  },
+  "source_v128": {
+    "drive_id": "<owner-private-drive-id>",
+    "model_sha256": "0fd4dd85fc71ff5871afc92ad12d8ea52b48c1fd10e2b0a0df50570985b9f79e",
+    "zip_sha256": "11ecf06d29c57b5214f0589127cff7aa8e652286aea2592bf838b350c3717da1"
+  },
+  "write_scope": "only isolated cloud candidate and owner-private checkpoint; no GitHub, Worker, 05C, 09A, D1, ledger or migrations"
+}

@@ -1,0 +1,44 @@
+{
+  "atom": "CHAT09A-V126-PERSON-WIDE-TERMINAL-CAS-CUTSET",
+  "cloud_readback": "NOT_YET_VERIFIED",
+  "critical_reviewer": "PENDING",
+  "failed": 0,
+  "files": {
+    "README.md": {
+      "sha256": "88e4b0592385255b5728723f866247c7ebb4a328c8ca9376e6542f0ab9de9afc",
+      "size": 4771
+    },
+    "REVIEW_REQUEST.md": {
+      "sha256": "2f063e1ddcdd9b08d107d257f5c848dff7395fdabdaa90e359c642853e850bfd",
+      "size": 1797
+    },
+    "SERVER_PROOF_INPUTS.md": {
+      "sha256": "70c54f6522a47dde26f8816087c0790417d71b68f01e90bf7fed5311f29158ab",
+      "size": 5104
+    },
+    "TEST_MATRIX.md": {
+      "sha256": "91929ebe388dbb973b0c82da53b91323abecc78aa9570b2c10a6f09bdb46f6b0",
+      "size": 1752
+    },
+    "oracle.py": {
+      "sha256": "6c3d0d34c4eb6d7cef9934f0bba6b31b74b49e33d445f059b60db9dcb67b4371",
+      "size": 15270
+    },
+    "test_oracle.py": {
+      "sha256": "fb4cdada04393cd7c0ef37798c0bc5afbce0751bd584fb26ac73f6ecc7fd3729",
+      "size": 15382
+    },
+    "test_output.txt": {
+      "sha256": "27c08574cbdba9d8ee7a5f589523586bd1986f618d4f82f5059b2063dec831d6",
+      "size": 5436
+    }
+  },
+  "main_sha": "f256228a2a57e5b8144a42a72a240a7455a76417",
+  "memory_rev": "2026-11-10-OWNER-LAUNCH-SAFE-PARALLEL-SCOPED-GO-R270",
+  "native_D1": "NOT_RUN",
+  "plan_rev": "2026-11-02-OWNER-NO-WORK-NO-AUTO-HANDOFF-V26",
+  "python": "3.13.5",
+  "skipped": 0,
+  "source": "ISOLATED_SQLITE_MODEL_ONLY",
+  "tests": 44
+}
