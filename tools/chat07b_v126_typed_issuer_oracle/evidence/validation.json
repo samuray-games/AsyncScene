@@ -1,0 +1,18 @@
+{
+  "atom": "CHAT07B-V126-RESTORED-ORIGINAL-TYPED-ISSUER-ORACLE",
+  "mode": "OFFLINE_FIXTURE_ONLY",
+  "source_root": "tools/chat07b_v126_typed_issuer_oracle/**",
+  "original_07b_drive_id": "<owner-private-drive-id>",
+  "original_07b_zip_sha256": "e79b1aab042537184207b283e0c5381e478c9ad36ca3cc73d5f0330b733927ed",
+  "original_source_sha_match": "4/4 PASS",
+  "v125_zip_sha256": "6f80cc910d6c82b66e762566ac4bdb1c13825f23e8df3f0772e9b02da9c7af25",
+  "v125_wire_parity": "3/3 PASS against actual V125 helper, no rerun of old 75/75",
+  "node_check": "4/4 PASS",
+  "contract_tests": "63/63 PASS, 0 fail, 0 skip",
+  "privacy_scan": "5/5 PASS, heuristic only; not a formal security audit",
+  "independent_critical_reviewer": "NOT_RUN / NO_REVIEWER_TOOL_AVAILABLE",
+  "hosted_runtime": "NOT_RUN",
+  "production_schema_go": "NO",
+  "github_publication": "NONE",
+  "originals_mutated": false
+}

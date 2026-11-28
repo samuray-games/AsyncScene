@@ -1,0 +1,82 @@
+{
+  "label": "07B-V126",
+  "archive": {
+    "title": "CHAT07B-V126-RESTORED-ORIGINAL-TYPED-ISSUER-ORACLE.zip",
+    "bytes": 19587,
+    "sha256": "4118e2aae12da06ea4449013464e43dd86d03d23d6f9584a9a3a17a739c39342",
+    "zip_crc": "OK",
+    "storage": "owner-private Google Drive folder (owner-only permission, verified 2026-11-28); original left unchanged"
+  },
+  "published": [
+    {
+      "path": "README.md",
+      "bytes": 3955,
+      "sha256": "a07a78ae747be1831dc1f305abb740a57b69ad9c0cd26e4c4c788d9cf3236f3a",
+      "byte_identical_to_original": false
+    },
+    {
+      "path": "fixture-authority.mjs",
+      "bytes": 8276,
+      "sha256": "0c7b277ace079a7585d50cc84138fbe1562d1499e0a83c289df79d2c842f6cd2",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "manifest.json",
+      "bytes": 2899,
+      "sha256": "f0491e00377d6a821ffcc14ad963169448bbbf2158899ca232312ed654f662c6",
+      "byte_identical_to_original": false
+    },
+    {
+      "path": "typed-oracle.mjs",
+      "bytes": 9222,
+      "sha256": "bf681882413ad22ceea4e9bca2d73c514b6f196b3adb2c40deb1473527f07ab2",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "wire.mjs",
+      "bytes": 4117,
+      "sha256": "775226da5e7e4b987cb956931470455390d331e7bf1837019a28a6af86eb41fe",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "evidence/validation.json",
+      "bytes": 884,
+      "sha256": "8f639e8b4fdf3059ba644de7ea75be86b2f330e423369c14693e4858efa44d9c",
+      "byte_identical_to_original": false
+    },
+    {
+      "path": "test/oracle.test.mjs",
+      "bytes": 21283,
+      "sha256": "75c1aa54fcf7096b9ad74ed10b99dcc87de192a53150b9b0282a5356c26c6809",
+      "byte_identical_to_original": true
+    }
+  ],
+  "redacted": [
+    {
+      "path": "README.md",
+      "original_sha256": "31eedbae31ccdb6547a3bd997e688aaf7c9ffa5a15258d5cf11b8cf13dd1e493",
+      "published_sha256": "a07a78ae747be1831dc1f305abb740a57b69ad9c0cd26e4c4c788d9cf3236f3a",
+      "change": "owner-private Drive IDs replaced"
+    },
+    {
+      "path": "manifest.json",
+      "original_sha256": "b4b756b494afbb1f103b6da6fd4fe33ed99c221cca4584b9b9f2bad6efdbb482",
+      "published_sha256": "f0491e00377d6a821ffcc14ad963169448bbbf2158899ca232312ed654f662c6",
+      "change": "owner-private Drive IDs replaced"
+    },
+    {
+      "path": "evidence/validation.json",
+      "original_sha256": "7aef01f9b8f9e1b231f59a700807ecdafb683cb78d6a1c9be8f3a17bb5b7dc7d",
+      "published_sha256": "8f639e8b4fdf3059ba644de7ea75be86b2f330e423369c14693e4858efa44d9c",
+      "change": "owner-private Drive IDs replaced"
+    }
+  ],
+  "excluded": [
+    {
+      "path": "evidence/node-tests.log",
+      "bytes": 12017,
+      "sha256": "8c49094ea10c12d7c0467b694b85661bd093af00feda142324d436eeb7cbb894",
+      "reason": "raw test/run log"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "format": "private-cloud-checkpoint-v1",
+  "atom": "CHAT07B-V126-RESTORED-ORIGINAL-TYPED-ISSUER-ORACLE",
+  "main_base": "f256228a2a57e5b8144a42a72a240a7455a76417",
+  "write_allowlist": [
+    "tools/chat07b_v126_typed_issuer_oracle/**"
+  ],
+  "local_scratch_not_mac": true,
+  "created_at_utc": "2026-11-11T14:23:03.850839+00:00",
+  "original_archive": {
+    "drive_id": "<owner-private-drive-id>",
+    "sha256": "e79b1aab042537184207b283e0c5381e478c9ad36ca3cc73d5f0330b733927ed",
+    "source_sha_match": "4/4"
+  },
+  "reference_v125_sha256": "6f80cc910d6c82b66e762566ac4bdb1c13825f23e8df3f0772e9b02da9c7af25",
+  "validation": {
+    "atom": "CHAT07B-V126-RESTORED-ORIGINAL-TYPED-ISSUER-ORACLE",
+    "mode": "OFFLINE_FIXTURE_ONLY",
+    "source_root": "tools/chat07b_v126_typed_issuer_oracle/**",
+    "original_07b_drive_id": "<owner-private-drive-id>",
+    "original_07b_zip_sha256": "e79b1aab042537184207b283e0c5381e478c9ad36ca3cc73d5f0330b733927ed",
+    "original_source_sha_match": "4/4 PASS",
+    "v125_zip_sha256": "6f80cc910d6c82b66e762566ac4bdb1c13825f23e8df3f0772e9b02da9c7af25",
+    "v125_wire_parity": "3/3 PASS against actual V125 helper, no rerun of old 75/75",
+    "node_check": "4/4 PASS",
+    "contract_tests": "63/63 PASS, 0 fail, 0 skip",
+    "privacy_scan": "5/5 PASS, heuristic only; not a formal security audit",
+    "independent_critical_reviewer": "NOT_RUN / NO_REVIEWER_TOOL_AVAILABLE",
+    "hosted_runtime": "NOT_RUN",
+    "production_schema_go": "NO",
+    "github_publication": "NONE",
+    "originals_mutated": false
+  },
+  "files": [
+    {
+      "path": "tools/chat07b_v126_typed_issuer_oracle/README.md",
+      "sha256": "31eedbae31ccdb6547a3bd997e688aaf7c9ffa5a15258d5cf11b8cf13dd1e493",
+      "size": 3973
+    },
+    {
+      "path": "tools/chat07b_v126_typed_issuer_oracle/evidence/node-tests.log",
+      "sha256": "8c49094ea10c12d7c0467b694b85661bd093af00feda142324d436eeb7cbb894",
+      "size": 12017
+    },
+    {
+      "path": "tools/chat07b_v126_typed_issuer_oracle/evidence/validation.json",
+      "sha256": "7aef01f9b8f9e1b231f59a700807ecdafb683cb78d6a1c9be8f3a17bb5b7dc7d",
+      "size": 893
+    },
+    {
+      "path": "tools/chat07b_v126_typed_issuer_oracle/fixture-authority.mjs",
+      "sha256": "0c7b277ace079a7585d50cc84138fbe1562d1499e0a83c289df79d2c842f6cd2",
+      "size": 8276
+    },
+    {
+      "path": "tools/chat07b_v126_typed_issuer_oracle/test/oracle.test.mjs",
+      "sha256": "75c1aa54fcf7096b9ad74ed10b99dcc87de192a53150b9b0282a5356c26c6809",
+      "size": 21283
+    },
+    {
+      "path": "tools/chat07b_v126_typed_issuer_oracle/typed-oracle.mjs",
+      "sha256": "bf681882413ad22ceea4e9bca2d73c514b6f196b3adb2c40deb1473527f07ab2",
+      "size": 9222
+    },
+    {
+      "path": "tools/chat07b_v126_typed_issuer_oracle/wire.mjs",
+      "sha256": "775226da5e7e4b987cb956931470455390d331e7bf1837019a28a6af86eb41fe",
+      "size": 4117
+    }
+  ]
+}
