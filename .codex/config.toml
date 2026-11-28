@@ -28,6 +28,10 @@ enabled = true
 mode = "limited"
 allow_local_binding = true
 
+[permissions.tester-read-only-loopback.network.domains]
+"localhost" = "allow"
+"127.0.0.1" = "allow"
+
 [agents]
 default_subagent_model = "gpt-6-luna"
 default_subagent_reasoning_effort = "low"
