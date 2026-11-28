@@ -76,6 +76,7 @@ the same 404 as a missing one.
 | Route | Request → response |
 |---|---|
 | `GET /v1/me` | → actorId, displayName, progress {rep, points, wins}, `allowedColors`, role |
+| `GET /v1/players?scope=challengeable` | → `{players:[{actorId, displayName}]}`: invited players the caller may challenge (never self, never revoked) |
 | `POST /v1/battles` | `{opponentActorId, clientOperationId}` → `{battleId}`; atomically reserves both persons; same operation replays the same receipt |
 | `GET /v1/battles?scope=mine&cursor=` | → own battle summaries + `awaitingMyAction` count («Ваш ход: N») |
 | `GET /v1/battles/{battleId}` | → participant projection (§5); spectator projection comes later (Chat04.4/03) |
@@ -110,7 +111,9 @@ Extends the existing lifecycle `getPublicView` + `participantView` output:
 
 ```text
 schemaVersion, battleId, version, rulesVersion, phase, deadlineAt,
-participants {self, opponent}            // actorIds; display names added by the server
+participants {self, opponent}            // actorIds
+participantNames {self, opponent}        // current display names, added by the server
+selfSide                                 // "A" or "B", so the client can read selections/committedTexts
 selfCommitted, opponentCommitted, revealed,
 readyTextOffers {catalogVersion, normalizationVersion, offers[]}   // before reveal, own side only
 // after reveal only:
