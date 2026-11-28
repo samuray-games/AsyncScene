@@ -56,6 +56,8 @@ SOURCE_REVISION: <repo SHA>
 
 ### Codex prompt strategy
 
+Name the assigned implementer, Claude Code or Codex. Preserve this section heading for schema validation.
+
 ### Blockers
 
 ## 03-codex-task.md
@@ -68,7 +70,7 @@ CREATED_AT: <ISO-8601>
 AUTHOR_ROLE: WORK
 SOURCE_REVISION: <repo SHA>
 
-Current routing, scope ownership, branch safety, and acceptance rules come from current repository authority. Do not invoke removed or nonexistent external routing mechanisms.
+Current routing, scope ownership, branch safety and acceptance rules come from current repository authority. Use this schema filename for either implementer. Do not invoke removed or nonexistent external routing mechanisms.
 
 ### Atomic goal
 
@@ -97,10 +99,12 @@ PIPELINE_VERSION: 1.0.0
 PHASE: REVIEW
 STATUS: <ACCEPTED|CORRECTION_REQUIRED|BLOCKED>
 CREATED_AT: <ISO-8601>
-AUTHOR_ROLE: <CHAT|WORK>
-SOURCE_REVISION: <reviewed SHA>
+AUTHOR_ROLE: REVIEWER
+SOURCE_REVISION: <full reviewed HEAD SHA>
 
 ### Evidence inspected
+
+Record the independent reviewer/session, risk level, exact base SHA, full reviewed HEAD SHA and test evidence.
 
 ### Scope verification
 
@@ -123,6 +127,6 @@ PIPELINE_VERSION: 1.0.0
 CURRENT_STATUS: <STATUS>
 CURRENT_PHASE: <PHASE>
 CURRENT_ARTIFACT: <PATH>
-NEXT_ROLE: <CHAT|WORK|CODEX|USER|NONE>
+NEXT_ROLE: <CHAT|WORK|CODEX|CLAUDE_CODE|REVIEWER|USER|NONE>
 NEXT_ACTION: <ONE ACTION>
 UPDATED_AT: <ISO-8601>

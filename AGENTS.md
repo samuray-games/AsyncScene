@@ -10,7 +10,7 @@ LOCAL_WORKTREE_SAFETY: CONDITIONAL
 - Ordinary work starts from the current fetched `main` on an isolated remote GitHub branch.
 - A local/Codex worktree is optional execution infrastructure and is not required for ordinary work.
 - Changes enter `main` only through a reviewed pull request.
-- Required GitHub checks must pass before merge.
+- Required GitHub checks and independent review must pass for the exact PR head. Merge is owner-only.
 - Preserve unrelated or concurrent work; never reset, clean, stash, force-push or rewrite history without explicit authorization.
 - Runtime changes require source/deployed mirror checks and remain subject to user-owned Safari acceptance.
 
@@ -18,17 +18,18 @@ LOCAL_WORKTREE_SAFETY: CONDITIONAL
 
 - Project: Asynchronia; legacy repository paths may use `AsyncScene`.
 - Architecture: static HTML and JavaScript.
-- Codex implements isolated changes and static validation.
-- ChatGPT coordinates tasks and review.
-- Codex must not claim user runtime acceptance.
+- The owner decides product policy, grants approval for sensitive operations, owns merge and decides user acceptance.
+- ChatGPT provides technical leadership. It sets architecture and technical priorities, coordinates scope and integration order, and routes independent review.
+- Claude Code and Codex are peer implementers. Either can implement and validate an authorized atomic task under the same scope, safety and review rules.
+- GitHub is current authority for implementation, refs, tasks and ownership. The canonical Notion page ASYNCHRONIA - PROJECT MEMORY is product authority. Fetch it during the task, report the top-level MEMORY_REV and identify any conflict with current repository evidence.
 
 ## Mandatory context
 
-Before planning or editing, read `AGENTS.md`, `TASKS.md`, `PROJECT_MEMORY.md`, inspect exact target files, check Git status/diff, and distinguish task-owned from unrelated changes.
+Before planning or editing, read `AGENTS.override.md`, `AGENTS.md`, `TASKS.md`, `PROJECT_MEMORY.md` and applicable path rules. Inspect exact target files and the current Git status/diff. Distinguish authorized task changes from pre-existing or concurrent work. Follow `ORCHESTRATION.md` for risk, review and evidence requirements.
 
 ## Scope isolation
 
-Every task has one atomic goal, baseline, branch, read scope, write scope, stable-read dependencies, validation commands and stop conditions. If local execution is used, it additionally has one disclosed worktree. Overlapping writes, runtime mirrors and shared wiring require serialization. Do not mix UI, logic or unrelated cleanup.
+Every task has one atomic goal, baseline, branch, read scope, write scope, stable-read dependencies, validation commands and stop conditions. If local execution is used, it additionally has one disclosed worktree. Confirm write ownership and locks before edits, including stable reads and shared dependencies. Use an atomic reservation where required and verify the current state before transfer or publication. Overlapping writes, runtime mirrors, shared wiring, migrations and shared contracts require serialization. Do not mix UI, logic or unrelated cleanup.
 
 ## Canonical mechanics
 
@@ -42,16 +43,30 @@ Every task has one atomic goal, baseline, branch, read scope, write scope, stabl
 
 No silent or untraceable economy deltas, duplicate settlements, lost remainders or invalid refunds. Accepted canon outranks stale plans. Source and deployed counterparts are one mirror-ownership group; byte, semantic, wiring and deployment evidence are separate. Runtime acceptance remains user-controlled.
 
+## Owner decisions carried forward
+
+- **R292.** Chat03 is the sole responsible integrator for shared game-server modules. Shared writes require verified ownership, locks and handoffs, independent critical review and the applicable separate owner authorization.
+- **R293.** Preserve game events and consequences after account deletion. Erase or properly anonymize personal data and prevent a new account from resetting those consequences. Retention, erasure and restore designs need their own approval.
+- **R294.** A public battle can expose confirmed game names and outcomes, public voting outcome and safe editorial text. Keep mechanical and public outcomes distinct. A draw has no winner. Keep individual votes, hidden tactics, messages, internal identifiers and private evidence confidential. Restrict nonpublic battles to authorized recipients. Publish only server-confirmed, allowed fields.
+- **R295.** NPC knowledge distinguishes confirmed fact, received rumor and confirmed utterance. Preserve authorized provenance and separate relay receipts, record subsequent confirmation separately, deduplicate effects per NPC and event and preserve existing fixtures and snapshots. Rumors and utterances do not change numeric reputation in the first slice. An authorized confirmed outcome may affect NPC attitude under its policy.
+- **R296.** Chat04.5 may edit the short in-feed and expanded narrative in the selected communication style. Keep mechanical outcome, social support and recognized result distinct. Use recorded facts and the R294 projection when writing consequences and narrative.
+- **R297.** Preserve approved sticker `046-0004`, its original asset and ID. Public chat and direct-message use remains subject to delivery authorization, abuse moderation, documented distribution rights and applicable age and platform requirements.
+- **R298.** Removing dependence on a particular Mac is open. Preserve the authorized read-only recovery process for original 08B V127 and verify any owner-private checkpoint by raw bytes. Demonstrate recovery, reproducible tests, native D1 and independent review on approved infrastructure without that Mac before closing this gate.
+- **R302.** Read the applicable Social Loop Risk Register entries when designing, reviewing or accepting affected work. Record controls, evidence and residual risk in the existing report when materially changed.
+- **R56.** Dispatch remains `UNKNOWN` pending authoritative resolution. Leave the request and any overlapping scope reserved. A generic review receipt does not close the task. Do not resend it or claim it ran.
+
 ## Ordinary routing
 
-Configured Codex agent-team/model routing is the ordinary mechanism. No user-operated selector handshake or special continuation command is required for ordinary work.
-
-Before requesting a review, the coordinating agent must classify task risk. Route routine and medium-risk work to `reviewer`. Invoke `critical_reviewer` only for high-risk work, including security or authorization, economy or ledger, persistence or data integrity, and dangerous cross-branch integrations. If a high-risk review cannot use `critical_reviewer`, stop and report the gap instead of silently substituting `reviewer`.
+Either implementer uses its configured tooling under the shared repository policy. Follow the risk-based independent review requirements in `ORCHESTRATION.md`. Ordinary work requires no user-operated selector handshake or special continuation command.
 
 ## Parallel work
 
 Use the configured scope-planning mechanism when multiple tasks exist. Serialize shared registries, boot wiring, smoke exports, runtime mirrors and documentation ownership. Do not merge, rebase or absorb another lane without an explicit integration task.
 
-## Acceptance
+## Safety and acceptance
 
-Static checks, GitHub publication, deployment readiness and Safari acceptance are separate truth levels. A passing build or push is never Safari acceptance.
+Verify effective hooks and publishers before local execution or publication. Stop the affected lane if private evidence could be published by an active hook or publisher. Keep credentials, personal data, raw logs and protected checkpoints out of public artifacts. Use approved owner-private storage and verify raw bytes, identity and access for required recovery evidence.
+
+Production, infrastructure access, credentials, billing, paid automation, deployments and destructive or privileged changes require separate explicit owner authorization for the exact operation. Scope, ownership, review and recovery requirements continue to apply.
+
+Record the evidence separately for static checks, GitHub publication, deployment readiness and Safari acceptance. The owner provides required runtime evidence and decides final acceptance.
