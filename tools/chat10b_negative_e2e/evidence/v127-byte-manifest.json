@@ -1,0 +1,197 @@
+{
+  "atom": "CHAT10B-V127-SOURCE-PROVENANCE-REVIEW-AND-09B-IMPORT-GATE",
+  "originV125ZipSha256": "e0fa09d468d04e7c82d59760457e375643a59c7167dd85eb19437f073a4794f0",
+  "origin09BZipSha256": "faf25936b205d5ad30033f22653842afb2fc90cf7198a1b123a33f58e14a5ece",
+  "sourceOwnerWrites": "NONE",
+  "vendorFilesChanged": "NONE",
+  "formalIndependentReview": "NOT_EXECUTED",
+  "runtimePass": false,
+  "runExitCode": 1,
+  "newSourceTests": {
+    "pass": 10,
+    "fail": 3,
+    "skip": 0
+  },
+  "totalTests": {
+    "pass": 75,
+    "fail": 3,
+    "skip": 2
+  },
+  "files": [
+    {
+      "path": "tools/chat10b_negative_e2e/README.md",
+      "bytes": 4714,
+      "sha256": "59f5cddd4b76957a709bdb14b103ac963f368615cf26248511588929a33aa6f8"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/README_V125.md",
+      "bytes": 3739,
+      "sha256": "1a80c30928c03387323669e0403453241fb329d046832231d98d6e9cb3809383"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/README_V127.md",
+      "bytes": 1719,
+      "sha256": "4d2486a53e9417e761ecbc1ce60eca28f1b746d37fcdf83e8b45e705204d7bbe"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/REVIEW_REQUEST.md",
+      "bytes": 1642,
+      "sha256": "bc274a0e6b2d9071b66df27da53da47d5c950578a16aeeb1ce943652258418a0"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/REVIEW_REQUEST_V125.md",
+      "bytes": 1415,
+      "sha256": "65569009487b8bb45ccaed3ce5024322000a817d9059a0c76c702e70af0739aa"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/REVIEW_V127.md",
+      "bytes": 6840,
+      "sha256": "81708527d7e20ac9b352a03ffc39afa5743dd05c3de5dce405216ea78d331930"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/SOURCE_MATRIX_V125.md",
+      "bytes": 2890,
+      "sha256": "1a97c7cc05125a475ea6e5adc3cdab7428d33c54d8df7d133b0c8e018e9c28cb"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/adapter.mjs",
+      "bytes": 502,
+      "sha256": "ed1f7294f400326b427beb517ae5f3312a763154ed0184f793d95f6d526e4474"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/evidence/local-stub-run.json",
+      "bytes": 4200,
+      "sha256": "c27c716c0dd43c45c34b0e74686787f16f603cf28be6b68a78d5ff8fca32dca7"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/evidence/local-stub-run.tap",
+      "bytes": 3436,
+      "sha256": "839f076422ea881463aeb6d805696955ea13ef2564c1ae20484ee2cef926af99"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/evidence/sha256-manifest.json",
+      "bytes": 1919,
+      "sha256": "e68f827273d38fd6f8380332a877d9db41647f97e528949d5a96639243c7956d"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/evidence/v125-byte-manifest.json",
+      "bytes": 4223,
+      "sha256": "88888c8c0d162b998222ec088c8bea1cc7bd102f6c3b48b3d3522bf00ba0afa8"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/evidence/v125-local-source-run.json",
+      "bytes": 3720,
+      "sha256": "bc632aae543542b6b5418fdd90cda1f810260d127303d135ec489f2aca4a4315"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/evidence/v125-source-provenance.json",
+      "bytes": 1386,
+      "sha256": "d7d06ce5dd27dd6eed19e1b8d4812291c3653bb67e65b6c176ac6b47a9afaf1b"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/evidence/v127-actual-run.json",
+      "bytes": 4175,
+      "sha256": "89418332db08b7abbae6d136b7b4222bb1a7307b40217b06a44e1eba61a95ba3"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/evidence/v127-targeted-failure-trace.tap",
+      "bytes": 6124,
+      "sha256": "272fe61082719c52e888f9b501e2497468da4644afa234484a66efa5cd61f0d6"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/provenance.mjs",
+      "bytes": 3241,
+      "sha256": "31dab86ae7581872408b1c6c93bae58d9a0203dd2df74fec30cd70dccf24538d"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/run-v125.mjs",
+      "bytes": 5816,
+      "sha256": "910e104a9ff59b21e2d0afdb7fe2c6b2dba4244f4e94ef2966fc5fcf594e78d4"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/run-v127.mjs",
+      "bytes": 5882,
+      "sha256": "96bac89170ae1d92c11a832e5e3c9fbb3a6928d0ad2e750a846a2a9e02d0f57d"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/run.mjs",
+      "bytes": 1580,
+      "sha256": "a87718474b4cc2d601d3e778cd5e59f781cc6faf20c7adee838ddfb3f0241342"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/source_vendor/chat06/TRUSTED_KNOWLEDGE_ADAPTER.md",
+      "bytes": 6041,
+      "sha256": "e94d2209b8c11c46387dba946635759d97e32841de6fd81077c3c16333d495d8"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/source_vendor/chat06/checkpoint-manifest.json",
+      "bytes": 1717,
+      "sha256": "81f350835e09f6b94d3d2e7dff5b96c3093d898a15f0878591ede1a10ad63f6c"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/source_vendor/chat06/judge.mjs",
+      "bytes": 20646,
+      "sha256": "e403e5366a9e4c3c7caf4a32544e55ae77146264fa7f96a00ad2506c7fa559e7"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/source_vendor/chat06/trusted-knowledge-adapter.mjs",
+      "bytes": 16759,
+      "sha256": "d5a3d4b5cb4e4988a3527e7195d3016eef61f9646338c10e4028c0c6032f1e09"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/source_vendor/chat06/trusted-knowledge-adapter.test.mjs",
+      "bytes": 18810,
+      "sha256": "77a18a4f2c0f3b1f6f4325bd1790ae83999fbf4671b7da89df336c9a354b5b50"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/source_vendor/chat09b/README.md",
+      "bytes": 1296,
+      "sha256": "3cbabf27570eb062327c93565156a9779c96845efa9d21df4ed86b9679b3e720"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/source_vendor/chat09b/acceptance.test.mjs",
+      "bytes": 4355,
+      "sha256": "67e48adf931b27621ba0e91631b3dae1414e561c8aae537a3ba5376923aa6ceb"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/source_vendor/chat09b/manifest.json",
+      "bytes": 918,
+      "sha256": "dc0fe2ba3014db32ba88643dafa32bd265f26a9ec6f11aa714334065ae272f93"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/source_vendor/chat09b/product-model.mjs",
+      "bytes": 2987,
+      "sha256": "7a08fd014508c50beb49dd6d9338fc26aff755afaf92b9ab6cb5bef13ce1d46c"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/source_vendor/chat09b/test-results.tap",
+      "bytes": 2843,
+      "sha256": "a985d5170bb5adbf674f5c3db8a33a804df0534f66d1f45a198ecb4680a2e8f3"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/stub-authority.mjs",
+      "bytes": 10758,
+      "sha256": "09251b7c9cfe84f25c17d9114e9015c7492088e233045a31ae8d06ca35df7561"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/test/negative.test.mjs",
+      "bytes": 7388,
+      "sha256": "e877114e45d9977a7c6eb8ae5c2bba54e2838a9ba50e21388f234f3c7a9de16b"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/test/source-chat06-recipient-v127.test.mjs",
+      "bytes": 1571,
+      "sha256": "bf0373a4d838c220f8bd79b594a81c8f03cea2a404eaf7cc549edd181034cb33"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/test/source-chat06.test.mjs",
+      "bytes": 8162,
+      "sha256": "296d965d3c5bcdbdb4ecae443651063f2e5ecf4b8d8c9978d08e3478bdacf0bd"
+    },
+    {
+      "path": "tools/chat10b_negative_e2e/test/source-chat09b-v127.test.mjs",
+      "bytes": 4499,
+      "sha256": "35194c2a953974efb8214ab77a5ec397a435264ebbb8d0c614c55990ff082e7b"
+    }
+  ]
+}

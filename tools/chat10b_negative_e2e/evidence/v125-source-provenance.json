@@ -1,0 +1,41 @@
+{
+  "atom": "CHAT10B-V125-SOURCE-ADAPTER-PROVENANCE",
+  "baselineMain": "f256228a2a57e5b8144a42a72a240a7455a76417",
+  "status": "OFFLINE_SOURCE_EVIDENCE_ONLY",
+  "runtimePass": false,
+  "criticalReviewer": "PENDING",
+  "originals": [
+    {
+      "kind": "V123",
+      "name": "CHAT10B-V123-NEGATIVE-E2E-RUNNER.zip",
+      "sha256": "89a23460a513cf059098f9bbcd3ceca845954b003de3119c7addabf7d96ee286",
+      "cloudId": "<owner-private-drive-id>",
+      "bytes": 15631,
+      "byteReadbackVerified": true
+    },
+    {
+      "kind": "Chat06V2",
+      "name": "CHAT06_V123_JUDGE_PROOF_ADAPTER_CHECKPOINT_V2.zip",
+      "sha256": "c88782307a95e5ddbf3fc3a1f63f724844a04816cb8d80d1feb1c6bcb604c6a8",
+      "cloudId": "<owner-private-drive-id>",
+      "bytes": 14518,
+      "byteReadbackVerified": true
+    },
+    {
+      "kind": "Chat09B",
+      "name": "chat09b-v123-cancel-antifarm-fixtures.zip",
+      "expectedNotionSha256": "faf25936b205d5ad30033f22653842afb2fc90cf7198a1b123a33f58e14a5ece",
+      "cloudId": null,
+      "byteReadbackVerified": false,
+      "status": "BLOCKED"
+    }
+  ],
+  "localTestCounts": {
+    "tests": 53,
+    "pass": 50,
+    "fail": 0,
+    "skip": 3
+  },
+  "rawSourceImportedNotReimplemented": true,
+  "notes": "source Chat06 exported module is real original bytes but authority injected in tests is synthetic; no server source issuer verified"
+}
