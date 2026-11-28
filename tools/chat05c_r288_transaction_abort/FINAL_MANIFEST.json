@@ -1,0 +1,86 @@
+{
+  "atom": "CHAT05C-R288-SECURITY-ABORT-FULL-TXN-ROLLBACK",
+  "snapshot": "FINAL_AFTER_LAST_SOURCE_MUTATION_BEFORE_REMOTE_READBACK",
+  "base_main": "f256228a2a57e5b8144a42a72a240a7455a76417",
+  "canonical_memory_rev_at_start": "2026-11-14-OWNER-DISPATCH-PROMPT-POTENTIAL-DELTA-R285",
+  "plan_rev": "2026-11-02-OWNER-NO-WORK-NO-AUTO-HANDOFF-V26",
+  "cloud_policy_rev": "2026-11-13-OWNER-CLOUD-FIRST-FAIL-CLOSED-NO-MAC-SINGLE-COPY-V2",
+  "original_v129_sha256": "29c92ba922d92925a1efdda0e9b747b353e490a68bbf8e060f728e69cb75fa06",
+  "original_r287_delta_sha256": "3bbab702f7c65d40df47827e275a4482ab570cc2dc0dd743396255dcd14bd450",
+  "test_r288": "17/17 PASS disposable sqlite",
+  "test_v129_original": "33/33 PASS unmodified sqlite",
+  "upstream_r287_statement_abort_gap": "REPRODUCED and still present in original SQL",
+  "security_transaction": "isolated proposed handler only",
+  "independent_critical_reviewer": "NOT_RUN_ROLE_NOT_CALLABLE",
+  "native_d1": "NOT_RUN",
+  "shared_write_claim": "NONE",
+  "write_scope": "tools/chat05c_r288_transaction_abort/**",
+  "product": "P03-AUTH/P05-FINAL NOT_ACCEPTED; WORK 68.75 PRODUCT 32 DELTA 0/0",
+  "files": [
+    {
+      "path": "EARLY_MANIFEST.json",
+      "bytes": 859,
+      "sha256": "4a5dd87ee5d5cc53ba4c4cc368c1e350c2d92954f2b0d8122efef9b5070da435"
+    },
+    {
+      "path": "README.md",
+      "bytes": 1404,
+      "sha256": "ecdf74032399c6370fcfd09fea596cbbf61374953793cd17c19c9f18bed5be81"
+    },
+    {
+      "path": "RUN.md",
+      "bytes": 1025,
+      "sha256": "71875f99c77976e06d6860f8a772a5a899220b0f8d3251f985111e45877f6e9f"
+    },
+    {
+      "path": "STATUS.md",
+      "bytes": 1082,
+      "sha256": "c05d16617315163125f6cd632f66710170f795a0802c811d3e4455600cab9511"
+    },
+    {
+      "path": "TEST_RESULTS_R288.txt",
+      "bytes": 2775,
+      "sha256": "bfee7ecd3670d909603254b78f5c93b67468f132c5b7b315182bc759cd6c2c97"
+    },
+    {
+      "path": "TEST_RESULTS_UNMODIFIED_V129.txt",
+      "bytes": 4534,
+      "sha256": "56fb6373078c18d37a92e2ebd90d6a49a97b1d86a1f0c36e87f35306042b056e"
+    },
+    {
+      "path": "TRANSACTION_CONTRACT.md",
+      "bytes": 8064,
+      "sha256": "6c250db298e334a33b43a52f254213d7dcd6e32ad6c9caf162f6abc869287934"
+    },
+    {
+      "path": "__pycache__/transaction_handler.cpython-313.pyc",
+      "bytes": 9375,
+      "sha256": "3b583d350bc8382b433cc63d7d55cd544f646f54930815b1e8f92e70f24fecbd"
+    },
+    {
+      "path": "source_readonly/chat040_r287_delta_original.zip",
+      "bytes": 219214,
+      "sha256": "3bbab702f7c65d40df47827e275a4482ab570cc2dc0dd743396255dcd14bd450"
+    },
+    {
+      "path": "source_readonly/chat05c_v129_original.zip",
+      "bytes": 52558,
+      "sha256": "29c92ba922d92925a1efdda0e9b747b353e490a68bbf8e060f728e69cb75fa06"
+    },
+    {
+      "path": "test/__pycache__/test_r288.cpython-313.pyc",
+      "bytes": 37040,
+      "sha256": "6287ea6baeb0a380cd1ad5672a38186fed36a66eb86e49da7a071a911c872c56"
+    },
+    {
+      "path": "test/test_r288.py",
+      "bytes": 16402,
+      "sha256": "f5360ee596e73c1100e19073e49d8276cce5342795676522afa82c74d4ebd3ad"
+    },
+    {
+      "path": "transaction_handler.py",
+      "bytes": 5956,
+      "sha256": "c03e773432946aaf690a5eb28f3aaf8f48563efcb506e45fa9fcf3c1885e66b5"
+    }
+  ]
+}
