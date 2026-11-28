@@ -1,0 +1,51 @@
+{
+  "label": "08B-V126",
+  "archive": {
+    "title": "CHAT08B-V126-R268-SQLITE-ORACLE-PRIVATE.zip",
+    "bytes": 14645,
+    "sha256": "9e15fb265470eea7fe7934ebaa204298dbdc60c7b3131133ad57bb86db1779e9",
+    "zip_crc": "OK",
+    "storage": "owner-private Google Drive folder (owner-only permission, verified 2026-11-28); original left unchanged"
+  },
+  "published": [
+    {
+      "path": "MANIFEST.json",
+      "bytes": 1484,
+      "sha256": "861a18e5186532323ffd1606501382404c7752442b5aeb9e9639698c1c024204",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "R268_TABLE.md",
+      "bytes": 4025,
+      "sha256": "ff7414a7d597d92c3f1a2e91c27d715992f47339c7c085d7b847cf75a7f8c479",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "README.md",
+      "bytes": 6135,
+      "sha256": "395dd62dfae0c10b7bb3a2f4f01fcd5b125771373e677dfe053f6cf73bf1c842",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "oracle.py",
+      "bytes": 14183,
+      "sha256": "87e995e0ad4a1dbc6a019e49261de280caa59289b8a020715cbcb49a29bbd2f9",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "test_oracle.py",
+      "bytes": 13239,
+      "sha256": "577b5136be34bcefa2e476375b0b706dee7a74d8e77237818822a84d3c8b4bb7",
+      "byte_identical_to_original": true
+    }
+  ],
+  "redacted": [],
+  "excluded": [
+    {
+      "path": "test_output.txt",
+      "bytes": 3313,
+      "sha256": "b9f68b669022f02aaaec1d2c478849963fa4169ce3d385a546b679c72e8a546b",
+      "reason": "raw test/run log"
+    }
+  ]
+}

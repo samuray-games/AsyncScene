@@ -1,0 +1,74 @@
+{
+  "artifact": "CHAT08A-V125-07B-V2-KEY-CONFORMANCE",
+  "format": "private-cloud-checkpoint-v1",
+  "base_head": "f256228a2a57e5b8144a42a72a240a7455a76417",
+  "branch": "codex/chat08a-typed-v2-fixtures-20261111",
+  "scope": "tools/chat08a_typed_v2_fixtures/**",
+  "source_v123_archive_id": "<owner-private-drive-id>",
+  "source_v123_archive_sha256": "6806ab7dc073a2a209ba664566439e04ad0eed647cf89fd201298d4dc414666e",
+  "files": [
+    {
+      "path": "tools/chat08a_typed_v2_fixtures/07b-v2-conformance-adapter.mjs",
+      "size": 26931,
+      "sha256": "1f362ff9b674fdfaf7c5244b57304d4046bae9da581350bbe6b0259fd8f8eac8"
+    },
+    {
+      "path": "tools/chat08a_typed_v2_fixtures/README.md",
+      "size": 1925,
+      "sha256": "7409eda362d3c4f583255a7a0127c721eb1470cab1932ba575ad19d0450a7c4b"
+    },
+    {
+      "path": "tools/chat08a_typed_v2_fixtures/fixtures.mjs",
+      "size": 6657,
+      "sha256": "cc936075b3986bd7ffb67c0903e0994110ee01b74aa75ee1b00e51c52f001617"
+    },
+    {
+      "path": "tools/chat08a_typed_v2_fixtures/keys.mjs",
+      "size": 6086,
+      "sha256": "488521babb5b36f6b15830924176a605fbd14e4f0ae80fc2944aa3d738a9bdfc"
+    },
+    {
+      "path": "tools/chat08a_typed_v2_fixtures/memory-model.mjs",
+      "size": 15527,
+      "sha256": "6bf439e469f6abc18917f7c6bd5eea5472b365ad753e9342aa18fbcb83b31f73"
+    },
+    {
+      "path": "tools/chat08a_typed_v2_fixtures/snapshot-store.mjs",
+      "size": 12814,
+      "sha256": "6d7661eecaf9b166fbf9290586ef8fc350d9f3777f9fb02b691b6c88ad56cb81"
+    },
+    {
+      "path": "tools/chat08a_typed_v2_fixtures/test/07b-v2-conformance.test.mjs",
+      "size": 27057,
+      "sha256": "955d09b478ba918e719d03309ab2c96cdde5b83f474b156c16a9cf9c3d5b3c90"
+    },
+    {
+      "path": "tools/chat08a_typed_v2_fixtures/test/replay-revoke-snapshot.test.mjs",
+      "size": 15413,
+      "sha256": "c951b869c33f6c75e8e48c4a8d0c0e63ca0682a211514a3dfae89caa1f7c93f8"
+    },
+    {
+      "path": "tools/chat08a_typed_v2_fixtures/test/typed-memory-contract.test.mjs",
+      "size": 17966,
+      "sha256": "ad656a2e58d7d08bd333c17e4c31031678c71d09c3b51b09e77aec60975f7597"
+    }
+  ],
+  "validation": {
+    "node_check": "PASS",
+    "candidate_tests": "32/32 PASS",
+    "full_tests": "75/75 PASS",
+    "v123_tests_unchanged": "43",
+    "git_diff_check": "PASS",
+    "privacy_scan": "PASS"
+  },
+  "independent_review": {
+    "role": "critical_reviewer",
+    "invocation": "/root/chat08a_v125_critical_review",
+    "verdict": "PASS",
+    "reviewed_file_sha256": {
+      "tools/chat08a_typed_v2_fixtures/07b-v2-conformance-adapter.mjs": "1f362ff9b674fdfaf7c5244b57304d4046bae9da581350bbe6b0259fd8f8eac8",
+      "tools/chat08a_typed_v2_fixtures/test/07b-v2-conformance.test.mjs": "955d09b478ba918e719d03309ab2c96cdde5b83f474b156c16a9cf9c3d5b3c90"
+    },
+    "limits": "offline fixture only; not production 07B authority, runtime, anti-rollback or 08B acceptance"
+  }
+}
