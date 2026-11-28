@@ -1,0 +1,64 @@
+{
+  "label": "07A-V129",
+  "archive": {
+    "title": "CHAT07A-V129-FINAL-HTTP-TEST-REGISTRY-20261113.zip",
+    "bytes": 16162,
+    "sha256": "98243811451c0b378ecc080a57027ab74957d1a170d95447c2dbfbfc01c68603",
+    "zip_crc": "OK",
+    "storage": "owner-private Google Drive folder (owner-only permission, verified 2026-11-28); original left unchanged"
+  },
+  "published": [
+    {
+      "path": "MANIFEST.json",
+      "bytes": 1783,
+      "sha256": "a2868f2f1259c3ad8ff3e5ebbab93ee23264fe36b110878abc974968635875be",
+      "byte_identical_to_original": false
+    },
+    {
+      "path": "README.md",
+      "bytes": 4246,
+      "sha256": "a88354f4f8f2d4273b4690e7e526cb5278ecfc74ae28c959deac44fcc30fcd8d",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "REVIEW_GATE.md",
+      "bytes": 1428,
+      "sha256": "c3ace82df1ff9270f91bd820c5aaf865a425428e120464f141a612162d3b9cff",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "authority.mjs",
+      "bytes": 9451,
+      "sha256": "e0c79b75d3e87f081761d0ea46aa1ff978bb2d80e30d598ed3d6a98ce240c8e2",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "http-candidate.mjs",
+      "bytes": 4286,
+      "sha256": "6af4541cd7a61ee30390f4e3f5180dec98c2bb30e4286fe524cd5246a04b234b",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "test/http.test.mjs",
+      "bytes": 19101,
+      "sha256": "0ebf3659617d2c36becbe9b4b75867710e9d5b1200294096838d2b2f9a730189",
+      "byte_identical_to_original": true
+    }
+  ],
+  "redacted": [
+    {
+      "path": "MANIFEST.json",
+      "original_sha256": "10a5154de5f3c0d5dce317eebeef4392a63170dd01d2f9acb1a25c2f6581fe76",
+      "published_sha256": "a2868f2f1259c3ad8ff3e5ebbab93ee23264fe36b110878abc974968635875be",
+      "change": "owner-private Drive IDs replaced"
+    }
+  ],
+  "excluded": [
+    {
+      "path": "test_output.txt",
+      "bytes": 7158,
+      "sha256": "8770e69a96f2ec0ee019a3df08f3440667bba8cdd5779b2174ef222d25bafc0d",
+      "reason": "raw test/run log"
+    }
+  ]
+}

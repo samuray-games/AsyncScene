@@ -1,0 +1,40 @@
+{
+  "atom": "CHAT07A-V127-PER-VIEWER-SOURCE-BOUNDARY-EXECUTABLE",
+  "mode": "ISOLATED_OFFLINE_ORACLE_ONLY",
+  "baseline_main": "f256228a2a57e5b8144a42a72a240a7455a76417",
+  "canonical_memory_rev": "2026-11-12-CHAT08B-V127-REVIEW-FAIL-MODEL-DECISION-R274",
+  "plan_rev": "2026-11-02-OWNER-NO-WORK-NO-AUTO-HANDOFF-V26",
+  "author_tests": "70/70 PASS; synthetic only",
+  "independent_critical_review": "PENDING_ROLE_UNAVAILABLE",
+  "native_D1": "NOT_RUN",
+  "worker": "NOT_RUN",
+  "runtime": "NOT_RUN",
+  "github_publication": "NOT_RUN",
+  "files": [
+    {
+      "path": "tools/chat07a_v127_public_projection/README.md",
+      "bytes": 7478,
+      "sha256": "da802f582420286039250e8126e69892bc38e6d746be95955e68c76bd30be8a5"
+    },
+    {
+      "path": "tools/chat07a_v127_public_projection/oracle.mjs",
+      "bytes": 4920,
+      "sha256": "023f2c8a466febe4bfee0571bda2911c9bb61e68e4c70910357b5282df08e40d"
+    },
+    {
+      "path": "tools/chat07a_v127_public_projection/fixture-authority.mjs",
+      "bytes": 6807,
+      "sha256": "f2d36917bb4ade4db9fd68c60ea8da631315ad457d10730e7d046fbe64742c49"
+    },
+    {
+      "path": "tools/chat07a_v127_public_projection/test/oracle.test.mjs",
+      "bytes": 17236,
+      "sha256": "5c4ae9ba4bbccb3e1ae04207b8e6bcb43c0d0dd2d47f0232080698d13574665f"
+    },
+    {
+      "path": "tools/chat07a_v127_public_projection/test_output.txt",
+      "bytes": 11499,
+      "sha256": "c7741782d3c993cf9092585f7d7799e44bc2c2138b969d88e0d52a85b4110699"
+    }
+  ]
+}

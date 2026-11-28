@@ -1,0 +1,46 @@
+{
+  "atom": "CHAT07A-V129-HTTP-PER-VIEWER-AUTHORIZATION-EXECUTABLE",
+  "author_test_pass": 37,
+  "author_test_total": 37,
+  "baseline_main": "f256228a2a57e5b8144a42a72a240a7455a76417",
+  "early_archive_sha256": "4d0ad79eebf395f9c9e6ae81206ad270c6c36f7a0f557a2612aa669ee07d521a",
+  "files": [
+    {
+      "bytes": 4246,
+      "path": "tools/chat07a_v129_http_consumer/README.md",
+      "sha256": "a88354f4f8f2d4273b4690e7e526cb5278ecfc74ae28c959deac44fcc30fcd8d"
+    },
+    {
+      "bytes": 1428,
+      "path": "tools/chat07a_v129_http_consumer/REVIEW_GATE.md",
+      "sha256": "c3ace82df1ff9270f91bd820c5aaf865a425428e120464f141a612162d3b9cff"
+    },
+    {
+      "bytes": 9451,
+      "path": "tools/chat07a_v129_http_consumer/authority.mjs",
+      "sha256": "e0c79b75d3e87f081761d0ea46aa1ff978bb2d80e30d598ed3d6a98ce240c8e2"
+    },
+    {
+      "bytes": 4286,
+      "path": "tools/chat07a_v129_http_consumer/http-candidate.mjs",
+      "sha256": "6af4541cd7a61ee30390f4e3f5180dec98c2bb30e4286fe524cd5246a04b234b"
+    },
+    {
+      "bytes": 19101,
+      "path": "tools/chat07a_v129_http_consumer/test/http.test.mjs",
+      "sha256": "0ebf3659617d2c36becbe9b4b75867710e9d5b1200294096838d2b2f9a730189"
+    },
+    {
+      "bytes": 7158,
+      "path": "tools/chat07a_v129_http_consumer/test_output.txt",
+      "sha256": "8770e69a96f2ec0ee019a3df08f3440667bba8cdd5779b2174ef222d25bafc0d"
+    }
+  ],
+  "independent_critical_reviewer": "NOT_RUN_EXECUTOR_UNAVAILABLE",
+  "node_check_total": 3,
+  "original_v127_drive_id": "<owner-private-drive-id>",
+  "original_v127_sha256": "70a3ff10ee9fa4d2c33b9ea7153e5ad3b0e515b49307935acc9fbb203fcb6076",
+  "owner_scope": "tools/chat07a_v129_http_consumer/**",
+  "real_http_backend": "NOT_RUN",
+  "stage": "FINAL_AUTHOR_HTTP_TESTS_PASS_REVIEW_PENDING"
+}
