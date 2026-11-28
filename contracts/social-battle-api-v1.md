@@ -31,8 +31,14 @@ Changes to this contract need review by the other implementer; security-relevant
   - The client creates an ECDSA P-256 key pair with `extractable: false` and keeps the private
     `CryptoKey` in IndexedDB.
   - The device public key hash is part of the WebAuthn challenge, binding the passkey assertion to it.
-  - Each request carries `Session-Id` and a signature over
-    `method | path | sha256(body) | serverNonce | timestamp`. The server rejects replay, skew and wrong keys.
+  - Each request carries headers `Session-Id`, `Signature-Nonce`, `Signature-Timestamp` and `Signature`.
+    Signature scheme `K1-SIG-V1`: ECDSA P-256 / SHA-256, raw `r||s` in base64url, over the UTF-8 string
+    `["K1-SIG-V1", method, path, hex(sha256(body)), nonce, timestamp, sessionId].join("\n")`.
+    `path` includes the query string; an empty body hashes as the empty string.
+  - The nonce is client-generated (16 random bytes, base64url); `timestamp` is client epoch ms.
+    The server rejects a signature whose timestamp is outside the allowed skew (mock: ±120 s), a nonce
+    already seen for that session within the skew window, an unknown/revoked session and a wrong key.
+    No server-issued nonce round-trip is required.
 - Limits: a non-extractable key stops key theft, NOT XSS. Script running in the page can still ask
   the browser to sign requests while the page is open. XSS prevention is therefore mandatory:
   strict CSP (`script-src` self + hashes, no third-party scripts, `connect-src` limited to API origins),
