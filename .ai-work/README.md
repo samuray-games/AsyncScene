@@ -1,4 +1,4 @@
-# Chat -> Work -> Codex -> Review Pipeline
+# Chat -> Work -> Implementation -> Review Pipeline
 
 PIPELINE_VERSION: 1.0.0
 STATUS: IMPLEMENTED_FOR_REVIEW
@@ -8,10 +8,10 @@ This directory defines the durable task handoff layer for Asynchronia. It does n
 
 ## Roles
 
-- Chat decides product intent, architecture, constraints, and acceptance criteria.
-- Work performs repository research, dependency analysis, risk analysis, task decomposition, and Codex prompt preparation.
-- Codex implements one approved atomic task using the existing repository and worktree safety rules.
-- Review independently verifies implementation evidence and records ACCEPTED, CORRECTION_REQUIRED, or BLOCKED.
+- The owner decides product intent and final acceptance. ChatGPT leads architecture, priorities and coordination within those decisions.
+- Work performs repository research, dependency and risk analysis, task decomposition and implementation prompt preparation.
+- Claude Code or Codex implements one approved atomic task using the same repository and worktree safety rules.
+- A separate reviewer agent verifies the exact HEAD under the risk rules in `ORCHESTRATION.md` and records ACCEPTED, CORRECTION_REQUIRED or BLOCKED.
 
 ## Durable unit
 
@@ -21,7 +21,7 @@ Required files by phase:
 
 1. `01-chat-brief.md`
 2. `02-work-plan.md`
-3. `03-codex-task.md`
+3. `03-codex-task.md` (existing schema filename for either implementer)
 4. `04-review-report.md`
 5. `STATE.md`
 
@@ -43,9 +43,9 @@ Failure and recovery states:
 - `CANCELLED`
 
 Only Chat may promote to `READY_FOR_WORK`.
-Only Work may promote to `READY_FOR_CODEX`.
-Codex may promote only to `READY_FOR_REVIEW`, never to `ACCEPTED`.
-Only an independent review may set `ACCEPTED`.
+Only Work may promote to `READY_FOR_CODEX`, the existing schema identifier for readiness for either implementer.
+The implementer may promote only to `READY_FOR_REVIEW`.
+Only an independent reviewer may set the workflow review state to `ACCEPTED`. Owner merge and runtime acceptance are separate decisions.
 
 ## Token economy
 
@@ -78,9 +78,9 @@ Task artifacts record execution identity only after authorization. They must not
 
 ## Review split
 
-Use Work review for exhaustive repository and evidence checks.
-Use Chat review for product intent, UX, canon, and final acceptance decisions.
-A runtime task remains `PENDING_USER` until the user supplies the required Safari result.
+Use independent exact-HEAD review for repository and evidence checks, with critical review for high-risk changes.
+ChatGPT verifies alignment with technical direction and the owner's product decisions.
+A runtime task remains `PENDING_USER` until the owner supplies the required Safari evidence and accepts it.
 
 ## Validation
 

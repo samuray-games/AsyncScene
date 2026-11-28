@@ -50,13 +50,11 @@ Required sections:
 - Codex prompt strategy
 - Blockers
 
-Work must not claim implementation or user acceptance.
+Use the existing Codex prompt strategy section name for the assigned implementer's prompt. Work must not claim implementation or user acceptance.
 
 ## 03 Codex task
 
-Active executable Codex prompts must use the current repository authority and
-must not contain retired external routing directives. Historical artifacts are
-evidence-only and cannot authorize execution.
+The `03-codex-task.md` filename and `READY_FOR_CODEX` state are stable schema identifiers for either implementer. Active implementation prompts must use current repository authority and omit retired external routing directives. Historical artifacts are evidence-only and cannot authorize execution.
 
 Required sections:
 
@@ -92,7 +90,7 @@ Allowed verdicts:
 - `CORRECTION_REQUIRED`
 - `BLOCKED`
 
-Codex self-report alone is never sufficient evidence.
+Record the independent reviewer's session identity, exact base, full HEAD SHA and risk level in the evidence. Follow the risk rules in `ORCHESTRATION.md`. Implementer self-report cannot satisfy independent review.
 
 ## STATE.md
 
