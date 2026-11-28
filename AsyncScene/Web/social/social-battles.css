@@ -1,0 +1,47 @@
+/* Social battles (K1). Scoped to #socialBattlesBlock. Colors reuse the game's chip variables. */
+#socialBattlesBlock .sb-turn { color: var(--muted); font-weight: 600; }
+#socialBattlesBlock .sb-root { display: flex; flex-direction: column; gap: 10px; padding: 10px; }
+#socialBattlesBlock .sb-error { color: var(--rcol); margin: 0; }
+#socialBattlesBlock .sb-empty, #socialBattlesBlock .sb-status { color: var(--muted); margin: 0; }
+#socialBattlesBlock .sb-challenge { display: flex; gap: 8px; flex-wrap: wrap; }
+#socialBattlesBlock select, #socialBattlesBlock button {
+  font: inherit; color: var(--text); background: var(--chipNeutralBg);
+  border: 1px solid var(--chipNeutralBorder); border-radius: 12px; padding: 8px 12px; min-height: 40px;
+}
+#socialBattlesBlock button { cursor: pointer; }
+#socialBattlesBlock button:disabled { opacity: .6; cursor: default; }
+#socialBattlesBlock .sb-card { border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+#socialBattlesBlock .sb-card-head { width: 100%; text-align: left; border: 0; border-radius: 0; }
+#socialBattlesBlock .sb-body { display: flex; flex-direction: column; gap: 10px; padding: 10px; }
+/* Chess order: own replies left, opponent replies right (Tactical V1 §16 V5). */
+#socialBattlesBlock .sb-dialogue { display: flex; flex-direction: column; gap: 12px; }
+#socialBattlesBlock .sb-slot { max-width: 86%; display: flex; flex-direction: column; gap: 6px; }
+#socialBattlesBlock .sb-left { align-self: flex-start; }
+#socialBattlesBlock .sb-right { align-self: flex-end; align-items: flex-end; }
+#socialBattlesBlock .sb-slot-title, #socialBattlesBlock .sb-type { font-size: 12px; color: var(--muted); }
+#socialBattlesBlock .sb-tools { display: flex; gap: 6px; flex-wrap: wrap; }
+#socialBattlesBlock .sb-plate-row { display: flex; align-items: center; gap: 6px; }
+/* Saturated fill, large dark text, thick rounded border (V8). */
+#socialBattlesBlock .sb-plate {
+  border: 3px solid var(--chipNeutralBorder); border-radius: 18px; padding: 10px 14px;
+  font-size: 17px; line-height: 1.35; color: #111; overflow-wrap: anywhere; outline: none;
+}
+#socialBattlesBlock .sb-own { cursor: text; }
+#socialBattlesBlock .sb-plate.is-editing { box-shadow: 0 0 0 2px var(--text); }
+#socialBattlesBlock .sb-c-y { background: var(--y); border-color: var(--ybd); }
+#socialBattlesBlock .sb-c-o { background: var(--o); border-color: var(--obd); }
+#socialBattlesBlock .sb-c-r { background: var(--rcol); border-color: var(--rbd); }
+#socialBattlesBlock .sb-c-k { background: var(--kcol); border-color: var(--kbd); color: #fff; }
+#socialBattlesBlock .sb-c-hidden {
+  background: var(--chipHiddenBg); border-color: var(--chipHiddenBorder); color: var(--muted); font-size: 14px;
+}
+#socialBattlesBlock .sb-cancel-edit { min-height: 36px; padding: 4px 10px; }
+#socialBattlesBlock .sb-commit { align-self: stretch; font-weight: 700; }
+#socialBattlesBlock .sb-result { border-top: 1px solid var(--line); padding-top: 8px; }
+#socialBattlesBlock .sb-outcome { margin: 0 0 4px; font-size: 18px; }
+#socialBattlesBlock .sb-explain, #socialBattlesBlock .sb-social { margin: 4px 0; }
+#socialBattlesBlock .sb-details p { margin: 2px 0; color: var(--muted); }
+
+/* Mobile panel mode: show this panel only inside the «баттл» tab. */
+#blocks[data-active-tab] > #socialBattlesBlock { display: none !important; }
+#blocks[data-active-tab="battles"] > #socialBattlesBlock { display: flex !important; flex-direction: column; }
