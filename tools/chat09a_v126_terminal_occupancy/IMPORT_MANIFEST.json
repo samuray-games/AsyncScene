@@ -1,0 +1,63 @@
+{
+  "label": "09A-V126",
+  "archive": {
+    "title": "CHAT09A-V126-PERSON-WIDE-TERMINAL-CAS-CUTSET.zip",
+    "bytes": 17451,
+    "sha256": "4d02f276d005937caa265f4e3b016a8dc83ff52095af48868cd07ecbf1d3809b",
+    "zip_crc": "OK",
+    "storage": "owner-private Google Drive folder (owner-only permission, verified 2026-11-28); original left unchanged"
+  },
+  "published": [
+    {
+      "path": "MANIFEST.json",
+      "bytes": 1422,
+      "sha256": "d5b4f9eac85605a53546106522b4bc45c3ea5823e999cc0509902fa4b9ccfdba",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "README.md",
+      "bytes": 4771,
+      "sha256": "88e4b0592385255b5728723f866247c7ebb4a328c8ca9376e6542f0ab9de9afc",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "REVIEW_REQUEST.md",
+      "bytes": 1797,
+      "sha256": "2f063e1ddcdd9b08d107d257f5c848dff7395fdabdaa90e359c642853e850bfd",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "SERVER_PROOF_INPUTS.md",
+      "bytes": 5104,
+      "sha256": "70c54f6522a47dde26f8816087c0790417d71b68f01e90bf7fed5311f29158ab",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "TEST_MATRIX.md",
+      "bytes": 1752,
+      "sha256": "91929ebe388dbb973b0c82da53b91323abecc78aa9570b2c10a6f09bdb46f6b0",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "oracle.py",
+      "bytes": 15270,
+      "sha256": "6c3d0d34c4eb6d7cef9934f0bba6b31b74b49e33d445f059b60db9dcb67b4371",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "test_oracle.py",
+      "bytes": 15382,
+      "sha256": "fb4cdada04393cd7c0ef37798c0bc5afbce0751bd584fb26ac73f6ecc7fd3729",
+      "byte_identical_to_original": true
+    }
+  ],
+  "redacted": [],
+  "excluded": [
+    {
+      "path": "test_output.txt",
+      "bytes": 5436,
+      "sha256": "27c08574cbdba9d8ee7a5f589523586bd1986f618d4f82f5059b2063dec831d6",
+      "reason": "raw test/run log"
+    }
+  ]
+}

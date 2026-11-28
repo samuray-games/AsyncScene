@@ -1,0 +1,106 @@
+{
+  "label": "09B-V129",
+  "archive": {
+    "title": "CHAT09B-V129-CANCEL-ANTIFARM-TERMINAL-COMPAT-FINAL-20261113.zip",
+    "bytes": 23328,
+    "sha256": "7705794c86ea535ee33c0f953342600503d5e44de851a9058b982045016f7ea5",
+    "zip_crc": "OK",
+    "storage": "owner-private Google Drive folder (owner-only permission, verified 2026-11-28); original left unchanged"
+  },
+  "published": [
+    {
+      "path": "README.md",
+      "bytes": 4276,
+      "sha256": "652bb6fb95ce65b0d081e68acef2df2e3662a52df0622a4d6d87f13fae09c18b",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "REVIEW_REQUEST.md",
+      "bytes": 2093,
+      "sha256": "a70b7423e870ca387039a55a5d93c1e3c3eda85504475b580614231c52c309cf",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "manifest.json",
+      "bytes": 2758,
+      "sha256": "7c9713bc77c6a8e75134e4b0a061ce252153a79fa337b368cf02a399fb69b2fe",
+      "byte_identical_to_original": false
+    },
+    {
+      "path": "product-model.mjs",
+      "bytes": 182,
+      "sha256": "c5cc71b9b542c5068a3cc760b5a3ab4be04acaa771e8a27db7797231301c8f9a",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "source-provenance.md",
+      "bytes": 3260,
+      "sha256": "b54ead7d4bce271cdfac5461f311f8411fe983eacce6a20d975bf5a0969665d9",
+      "byte_identical_to_original": false
+    },
+    {
+      "path": "terminal-bridge.mjs",
+      "bytes": 7107,
+      "sha256": "9f3c8a283e2516eb197d513770266aeaf7d3fa8c0f5542d7e58bbfd8f42ce590",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "terminal-bridge.test.mjs",
+      "bytes": 13522,
+      "sha256": "3b2a34fc26dbeb6f4eacb5c3fde168bddf0801a7f2248d0b36deffc1618e07a9",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "vendor/v128/acceptance.test.mjs",
+      "bytes": 4355,
+      "sha256": "67e48adf931b27621ba0e91631b3dae1414e561c8aae537a3ba5376923aa6ceb",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "vendor/v128/baseline-v127-repro.test.mjs",
+      "bytes": 1090,
+      "sha256": "c1e8208cc47b444cb418e8f11427bc31d2e69d079fc74951e9a86b5521b089b9",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "vendor/v128/binding-regression.test.mjs",
+      "bytes": 7087,
+      "sha256": "73399715a39632b7123bea55c944da03e420f37b760cef739b0b9edd8360280f",
+      "byte_identical_to_original": true
+    },
+    {
+      "path": "vendor/v128/product-model.mjs",
+      "bytes": 5089,
+      "sha256": "0fd4dd85fc71ff5871afc92ad12d8ea52b48c1fd10e2b0a0df50570985b9f79e",
+      "byte_identical_to_original": true
+    }
+  ],
+  "redacted": [
+    {
+      "path": "manifest.json",
+      "original_sha256": "62e96d27404a4c6ac57e48f09ad28a59b63725fb998095f6b1a32189dc4518ed",
+      "published_sha256": "7c9713bc77c6a8e75134e4b0a061ce252153a79fa337b368cf02a399fb69b2fe",
+      "change": "owner-private Drive IDs replaced"
+    },
+    {
+      "path": "source-provenance.md",
+      "original_sha256": "2c5cc26bb4a52e8510c629c30ab99648cc1c714d4eca459e52d8e03b8ed07109",
+      "published_sha256": "b54ead7d4bce271cdfac5461f311f8411fe983eacce6a20d975bf5a0969665d9",
+      "change": "owner-private Drive IDs replaced"
+    }
+  ],
+  "excluded": [
+    {
+      "path": "test-results-v129.json",
+      "bytes": 793,
+      "sha256": "1d8543cb39bf98199814fc723be78357db6b43eb9d8ff7b80649d3dc7b58d84b",
+      "reason": "raw test/run log"
+    },
+    {
+      "path": "test-results-v129.tap",
+      "bytes": 14958,
+      "sha256": "155125f3a3d345a587b553c000c179ef0672a86580e907870363ed3edd6372c3",
+      "reason": "raw test/run log"
+    }
+  ]
+}
